@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>센터 실사재고조사</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Malgun Gothic', -apple-system, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
+  h1 { color: #333; border-bottom: 3px solid #1976D2; padding-bottom: 10px; font-size: 22px; }
+  .description { background: #e3f2fd; padding: 14px; border-radius: 8px; border-left: 4px solid #1976D2; color: #555; font-size: 14px; line-height: 1.7; margin-bottom: 20px; }
+  .form-group { margin-bottom: 15px; }
+  label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; font-size: 14px; }
+  input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; font-family: inherit; }
+  textarea { resize: vertical; min-height: 50px; }
+  .searchable-dropdown { position: relative; }
+  .dropdown-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; border-top: none; border-radius: 0 0 5px 5px; max-height: 300px; overflow-y: auto; display: none; z-index: 100; }
+  .dropdown-list.show { display: block; }
+  .dropdown-item { padding: 10px; cursor: pointer; font-size: 14px; border-bottom: 1px solid #f0f0f0; }
+  .dropdown-item:hover { background: #e3f2fd; }
+  .dropdown-item.no-result { color: #999; cursor: default; }
+  .dropdown-item .meta { font-size: 12px; color: #888; margin-top: 2px; }
+  .item-row { background: white; padding: 15px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #ddd; }
+  .row-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .row-title { font-weight: bold; color: #1976D2; font-size: 15px; }
+  .product-info { background: #f5f7fa; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; color: #555; display: none; }
+  .product-info.show { display: block; }
+  .product-info .info-row { display: flex; gap: 15px; flex-wrap: wrap; }
+  .product-info .info-row span { white-space: nowrap; }
+  .product-info strong { color: #1976D2; }
+  .qty-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  @media (max-width: 600px) { .qty-grid { grid-template-columns: 1fr; } }
+  .qty-cell { background: #fafafa; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid #eee; }
+  .qty-cell label { font-size: 12px; color: #888; margin-bottom: 4px; }
+  .qty-cell .value { font-size: 20px; font-weight: bold; color: #333; }
+  .qty-cell input { text-align: center; font-size: 18px; font-weight: bold; padding: 8px; border: 2px solid #1976D2; }
+  .qty-cell.diff .value { color: #757575; }
+  .qty-cell.diff.positive .value { color: #2e7d32; }
+  .qty-cell.diff.negative .value { color: #d32f2f; }
+  .diff-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; margin-left: 6px; }
+  .diff-badge.match { background: #4CAF50; color: white; }
+  .diff-badge.over { background: #2196F3; color: white; }
+  .diff-badge.short { background: #d32f2f; color: white; }
+  button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
+  .btn-add { background: #2196F3; color: white; width: 100%; margin-bottom: 15px; }
+  .btn-remove { background: #f44336; color: white; padding: 5px 10px; font-size: 12px; }
+  .btn-submit { background: #1976D2; color: white; width: 100%; padding: 15px; font-size: 16px; font-weight: bold; }
+  .btn-submit:hover { background: #1565c0; }
+  .btn-submit:disabled { background: #aaa; cursor: not-allowed; }
+  #loadingBanner { background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 15px; font-size: 14px; }
+  .summary-bar { background: white; border: 2px solid #1976D2; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: space-around; }
+  .summary-bar .stat { text-align: center; flex: 1; min-width: 90px; }
+  .summary-bar .stat-label { font-size: 11px; color: #888; }
+  .summary-bar .stat-value { font-size: 20px; font-weight: bold; color: #1976D2; }
+  .summary-bar .stat-value.warn { color: #d32f2f; }
+  .summary-bar .stat-value.ok { color: #2e7d32; }
+  .memo-area { margin-top: 8px; }
+  .memo-area textarea { background: #fffde7; border-color: #ffc107; }
+  .memo-area textarea.needed { background: #ffebee; border-color: #d32f2f; }
+
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
+  .modal-overlay.show { display: flex; }
+  .modal-box { background: white; padding: 30px 25px; border-radius: 12px; max-width: 440px; width: 100%; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: popIn 0.3s ease-out; }
+  @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal-icon { font-size: 60px; margin-bottom: 10px; }
+  .modal-title { font-size: 22px; font-weight: bold; margin-bottom: 12px; color: #2e7d32; }
+  .modal-text { color: #555; font-size: 15px; line-height: 1.6; margin-bottom: 20px; }
+  .modal-btn { background: #1976D2; color: white; padding: 12px 30px; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
+  .modal-btn:hover { background: #1565c0; }
+
+  #completedView { display: none; background: white; padding: 30px; border-radius: 8px; text-align: center; border: 2px solid #1976D2; }
+  #completedView.show { display: block; }
+  #completedView .check { font-size: 70px; margin-bottom: 15px; }
+  #completedView h2 { color: #1976D2; margin: 0 0 12px 0; }
+</style>
+</head>
+<body>
+<h1>📋 센터 실사재고조사</h1>
+<div class="description">
+  센터 현장에서 확인한 실제 수량을 입력하면 전산 수량과 자동 비교됩니다.<br>
+  <strong>※ 차이가 발생한 품목은 메모란에 사유를 반드시 기록해 주세요.</strong>
+</div>
+
+<div id="loadingBanner">⏳ 전산 재고 데이터를 불러오는 중...</div>
+
+<form id="surveyForm">
+  <div class="form-group">
+    <label>조사자 이름 / 부서</label>
+    <input type="text" id="inspector" placeholder="예: 김다이 / 운영팀" required>
+  </div>
+
+  <div class="summary-bar" id="summaryBar" style="display:none;">
+    <div class="stat">
+      <div class="stat-label">조사 품목 수</div>
+      <div class="stat-value" id="statTotal">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">일치</div>
+      <div class="stat-value ok" id="statMatch">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">초과</div>
+      <div class="stat-value" id="statOver">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">부족</div>
+      <div class="stat-value warn" id="statShort">0</div>
+    </div>
+  </div>
+
+  <div id="itemsContainer"></div>
+  <button type="button" class="btn-add" onclick="addItem()">＋ 품목 추가</button>
+  <button type="submit" class="btn-submit" id="submitBtn" disabled>실사 결과 제출하기</button>
+</form>
+
+<div id="completedView">
+  <div class="check">✅</div>
+  <h2>실사 결과가 정상 접수되었습니다</h2>
+  <p id="completedSummary"></p>
+  <p style="font-size: 13px; color: #888; margin-top: 20px;">중복 제출 방지를 위해 폼이 잠겼습니다.<br>추가 조사가 필요하면 페이지를 새로고침해 주세요.</p>
+</div>
+
+<div class="modal-overlay" id="successModal">
+  <div class="modal-box">
+    <div class="modal-icon">🎉</div>
+    <div class="modal-title">실사 제출 완료!</div>
+    <div class="modal-text" id="successText"></div>
+    <button type="button" class="modal-btn" onclick="closeModal('successModal')">확인</button>
+  </div>
+</div>
+
+<form id="hiddenForm" method="POST" target="hiddenIframe" style="display:none;">
+  <input type="hidden" name="payload" id="hiddenPayload">
+</form>
+<iframe name="hiddenIframe" id="hiddenIframe" style="display:none;"></iframe>
+
+<script>
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyXhkpC3W7wnEicqCVeEDUKjO26buHxrHSnncZ-NtXk-J7wFErSl8XKDp8FqBFHHDya/exec'; // ← Apps Script URL 입력
+
+  let PRODUCTS = [];
+  let itemCount = 0;
+  let isSubmitting = false;
+  let jsonpCounter = 0;
+
+  function jsonpRequest(url, callback) {
+    const callbackName = 'jsonp_cb_' + (++jsonpCounter) + '_' + Date.now();
+    const script = document.createElement('script');
+    const cleanup = () => {
+      delete window[callbackName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    };
+    const timeoutId = setTimeout(() => {
+      cleanup();
+      callback(new Error('요청 시간 초과'), null);
+    }, 30000);
+    window[callbackName] = (data) => {
+      clearTimeout(timeoutId);
+      cleanup();
+      callback(null, data);
+    };
+    script.onerror = () => {
+      clearTimeout(timeoutId);
+      cleanup();
+      callback(new Error('스크립트 로드 실패'), null);
+    };
+    const sep = url.includes('?') ? '&' : '?';
+    script.src = url + sep + 'callback=' + callbackName + '&t=' + Date.now();
+    document.body.appendChild(script);
+  }
+
+  function setupProductDropdown(inputEl, listEl, row) {
+    function render(keyword = '') {
+      if (PRODUCTS.length === 0) {
+        listEl.innerHTML = '<div class="dropdown-item no-result">목록 로드 중...</div>';
+        return;
+      }
+      const filtered = PRODUCTS
+        .filter(item => item.name.toLowerCase().includes(keyword.toLowerCase()) ||
+                       item.spec.toLowerCase().includes(keyword.toLowerCase()))
+        .slice(0, 200);
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<div class="dropdown-item no-result">검색 결과가 없습니다</div>';
+      } else {
+        listEl.innerHTML = filtered.map((item, i) => {
+          const safeName = item.name.replace(/"/g, '&quot;');
+          return `<div class="dropdown-item" data-idx="${PRODUCTS.indexOf(item)}">
+            <div>${item.name}</div>
+            <div class="meta">규격: ${item.spec || '-'} · 단위: ${item.unit || '-'} · 전산: ${item.sysQty.toLocaleString()}</div>
+          </div>`;
+        }).join('');
+        listEl.querySelectorAll('.dropdown-item:not(.no-result)').forEach(el => {
+          el.addEventListener('mousedown', e => {
+            e.preventDefault();
+            const product = PRODUCTS[Number(el.dataset.idx)];
+            applyProductToRow(row, product);
+            listEl.classList.remove('show');
+          });
+        });
+      }
+    }
+    inputEl.addEventListener('focus', () => { render(inputEl.value); listEl.classList.add('show'); });
+    inputEl.addEventListener('input', () => {
+      clearRowData(row);
+      render(inputEl.value);
+      listEl.classList.add('show');
+    });
+  }
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.searchable-dropdown')) {
+      document.querySelectorAll('.dropdown-list').forEach(l => l.classList.remove('show'));
+    }
+  });
+
+  function applyProductToRow(row, product) {
+    const inputEl = row.querySelector('.itemName');
+    inputEl.value = product.name;
+    inputEl.dataset.name = product.name;
+    inputEl.dataset.spec = product.spec;
+    inputEl.dataset.unit = product.unit;
+    inputEl.dataset.sysQty = product.sysQty;
+
+    const infoBox = row.querySelector('.product-info');
+    infoBox.innerHTML = `<div class="info-row">
+      <span><strong>규격:</strong> ${product.spec || '-'}</span>
+      <span><strong>단위:</strong> ${product.unit || '-'}</span>
+      <span><strong>전산수량:</strong> ${product.sysQty.toLocaleString()}</span>
+    </div>`;
+    infoBox.classList.add('show');
+
+    row.querySelector('.sys-qty-display').textContent = product.sysQty.toLocaleString();
+    updateDiff(row);
+  }
+
+  function clearRowData(row) {
+    const inputEl = row.querySelector('.itemName');
+    inputEl.dataset.name = '';
+    inputEl.dataset.spec = '';
+    inputEl.dataset.unit = '';
+    inputEl.dataset.sysQty = '';
+    row.querySelector('.product-info').classList.remove('show');
+    row.querySelector('.sys-qty-display').textContent = '-';
+    updateDiff(row);
+  }
+
+  function updateDiff(row) {
+    const sysQty = Number(row.querySelector('.itemName').dataset.sysQty);
+    const actualVal = row.querySelector('.actual-qty').value;
+    const diffCell = row.querySelector('.qty-cell.diff');
+    const diffValue = row.querySelector('.diff-value');
+    const memoArea = row.querySelector('.memo-area textarea');
+
+    if (actualVal === '' || isNaN(sysQty)) {
+      diffValue.textContent = '-';
+      diffCell.classList.remove('positive', 'negative');
+      memoArea.classList.remove('needed');
+      memoArea.placeholder = '메모 (선택)';
+      updateSummary();
+      return;
+    }
+
+    const actualQty = Number(actualVal);
+    const diff = actualQty - sysQty;
+    const sign = diff > 0 ? '+' : '';
+    const rate = sysQty > 0 ? ` (${(diff / sysQty * 100).toFixed(1)}%)` : '';
+    diffValue.textContent = `${sign}${diff.toLocaleString()}${rate}`;
+
+    diffCell.classList.remove('positive', 'negative');
+    if (diff > 0) diffCell.classList.add('positive');
+    else if (diff < 0) diffCell.classList.add('negative');
+
+    if (diff !== 0) {
+      memoArea.classList.add('needed');
+      memoArea.placeholder = '⚠ 차이 발생 - 사유를 입력해 주세요 (필수)';
+    } else {
+      memoArea.classList.remove('needed');
+      memoArea.placeholder = '메모 (선택)';
+    }
+    updateSummary();
+  }
+
+  function updateSummary() {
+    const rows = document.querySelectorAll('.item-row');
+    let total = 0, match = 0, over = 0, short = 0;
+    rows.forEach(row => {
+      const sysQty = Number(row.querySelector('.itemName').dataset.sysQty);
+      const actualVal = row.querySelector('.actual-qty').value;
+      if (actualVal === '' || isNaN(sysQty)) return;
+      total++;
+      const diff = Number(actualVal) - sysQty;
+      if (diff === 0) match++;
+      else if (diff > 0) over++;
+      else short++;
+    });
+    const bar = document.getElementById('summaryBar');
+    if (total > 0) {
+      bar.style.display = 'flex';
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statMatch').textContent = match;
+      document.getElementById('statOver').textContent = over;
+      document.getElementById('statShort').textContent = short;
+    } else {
+      bar.style.display = 'none';
+    }
+  }
+
+  function addItem() {
+    itemCount++;
+    const container = document.getElementById('itemsContainer');
+    const div = document.createElement('div');
+    div.className = 'item-row';
+    div.innerHTML = `
+      <div class="row-header">
+        <span class="row-title">조사 #${itemCount}</span>
+        <button type="button" class="btn-remove" onclick="removeItem(this)">삭제</button>
+      </div>
+      <div class="form-group">
+        <label>상품 검색</label>
+        <div class="searchable-dropdown">
+          <input type="text" class="itemName" placeholder="상품명 또는 규격으로 검색" autocomplete="off" required>
+          <div class="dropdown-list"></div>
+        </div>
+      </div>
+      <div class="product-info"></div>
+      <div class="qty-grid">
+        <div class="qty-cell">
+          <label>전산 수량</label>
+          <div class="value sys-qty-display">-</div>
+        </div>
+        <div class="qty-cell">
+          <label>실사 수량</label>
+          <input type="number" class="actual-qty" min="0" placeholder="0" required>
+        </div>
+        <div class="qty-cell diff">
+          <label>차이 (실사 - 전산)</label>
+          <div class="value diff-value">-</div>
+        </div>
+      </div>
+      <div class="memo-area">
+        <label style="font-size:13px;">메모</label>
+        <textarea class="memo" placeholder="메모 (선택)"></textarea>
+      </div>
+    `;
+    container.appendChild(div);
+    const inputEl = div.querySelector('.itemName');
+    const listEl = div.querySelector('.dropdown-list');
+    const actualEl = div.querySelector('.actual-qty');
+    setupProductDropdown(inputEl, listEl, div);
+    actualEl.addEventListener('input', () => updateDiff(div));
+  }
+
+  function removeItem(btn) {
+    btn.parentElement.parentElement.remove();
+    updateSummary();
+  }
+
+  function loadProducts() {
+    const banner = document.getElementById('loadingBanner');
+    const submitBtn = document.getElementById('submitBtn');
+    banner.style.display = 'block';
+    banner.style.background = '#fff3cd';
+    banner.style.color = '#856404';
+    banner.textContent = '⏳ 전산 재고 데이터를 불러오는 중...';
+
+    jsonpRequest(WEB_APP_URL, (err, data) => {
+      if (err) {
+        banner.style.background = '#f8d7da';
+        banner.style.color = '#721c24';
+        banner.textContent = '❌ 로드 실패: ' + err.message;
+        return;
+      }
+      if (data && data.products) {
+        PRODUCTS = data.products;
+        banner.style.background = '#d4edda';
+        banner.style.color = '#155724';
+        banner.textContent = `✅ 전산 재고 ${PRODUCTS.length.toLocaleString()}개 품목 로드 완료`;
+        setTimeout(() => { banner.style.display = 'none'; }, 2500);
+        submitBtn.disabled = false;
+      } else {
+        banner.textContent = '❌ 응답 오류';
+      }
+    });
+  }
+
+  addItem();
+  loadProducts();
+
+  document.getElementById('surveyForm').addEventListener('submit', e => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    const inspector = document.getElementById('inspector').value.trim();
+    if (!inspector) {
+      alert('조사자 이름을 입력해 주세요.');
+      return;
+    }
+
+    const rows = document.querySelectorAll('.item-row');
+    if (rows.length === 0) {
+      alert('최소 1개의 조사 품목을 입력해 주세요.');
+      return;
+    }
+
+    const items = [];
+    const productNames = PRODUCTS.map(p => p.name);
+
+    for (const row of rows) {
+      const nameInput = row.querySelector('.itemName');
+      const name = nameInput.value.trim();
+      const actualVal = row.querySelector('.actual-qty').value;
+      const memo = row.querySelector('.memo').value.trim();
+
+      if (!productNames.includes(name)) {
+        alert(`"${name}"은(는) 등록된 상품이 아닙니다. 목록에서 선택해 주세요.`);
+        return;
+      }
+      if (actualVal === '' || isNaN(Number(actualVal))) {
+        alert(`"${name}"의 실사 수량을 입력해 주세요.`);
+        return;
+      }
+      const sysQty = Number(nameInput.dataset.sysQty);
+      const actualQty = Number(actualVal);
+      const diff = actualQty - sysQty;
+
+      if (diff !== 0 && !memo) {
+        alert(`"${name}"은(는) 전산 수량과 차이가 있습니다.\n메모(사유)를 반드시 입력해 주세요.`);
+        row.querySelector('.memo').focus();
+        return;
+      }
+
+      items.push({
+        name,
+        spec: nameInput.dataset.spec || '',
+        unit: nameInput.dataset.unit || '',
+        sysQty,
+        actualQty,
+        memo
+      });
+    }
+
+    if (!confirm(`총 ${items.length}개 품목을 제출하시겠습니까?`)) return;
+
+    isSubmitting = true;
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '⏳ 제출 중...';
+
+    const hiddenForm = document.getElementById('hiddenForm');
+    const hiddenPayload = document.getElementById('hiddenPayload');
+    const hiddenIframe = document.getElementById('hiddenIframe');
+
+    hiddenForm.action = WEB_APP_URL;
+    hiddenPayload.value = JSON.stringify({ inspector, items });
+
+    const onLoad = () => {
+      hiddenIframe.removeEventListener('load', onLoad);
+      showSuccess(items);
+    };
+    hiddenIframe.addEventListener('load', onLoad);
+    hiddenForm.submit();
+  });
+
+  function showSuccess(items) {
+    const total = items.length;
+    const match = items.filter(it => it.actualQty - it.sysQty === 0).length;
+    const diff = total - match;
+    const summary = `총 ${total}개 품목 제출 완료\n· 일치: ${match}개 / 차이: ${diff}개`;
+    document.getElementById('successText').innerText = summary;
+    document.getElementById('completedSummary').innerText = summary;
+    document.getElementById('surveyForm').style.display = 'none';
+    document.getElementById('completedView').classList.add('show');
+    document.getElementById('successModal').classList.add('show');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('show');
+  }
+</script>
+</body>
+</html>
