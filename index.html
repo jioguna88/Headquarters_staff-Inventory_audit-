@@ -2,87 +2,138 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<meta name="theme-color" content="#1976D2">
 <title>센터 실사재고조사</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
 <style>
-  * { box-sizing: border-box; }
-  body { font-family: 'Malgun Gothic', -apple-system, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
-  h1 { color: #333; border-bottom: 3px solid #1976D2; padding-bottom: 10px; font-size: 22px; }
-  .description { background: #e3f2fd; padding: 14px; border-radius: 8px; border-left: 4px solid #1976D2; color: #555; font-size: 14px; line-height: 1.7; margin-bottom: 20px; }
-  .form-group { margin-bottom: 15px; }
-  label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; font-size: 14px; }
-  input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; font-family: inherit; }
-  textarea { resize: vertical; min-height: 50px; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: rgba(25,118,210,0.2); }
+  body { font-family: 'Malgun Gothic', -apple-system, sans-serif; max-width: 900px; margin: 0 auto; padding: 12px; background: #f5f5f5; font-size: 16px; }
+  h1 { color: #333; border-bottom: 4px solid #1976D2; padding-bottom: 10px; font-size: 24px; margin-top: 8px; }
+  .description { background: #e3f2fd; padding: 14px; border-radius: 10px; border-left: 5px solid #1976D2; color: #333; font-size: 15px; line-height: 1.7; margin-bottom: 16px; }
+
+  .form-group { margin-bottom: 14px; }
+  label { display: block; font-weight: bold; margin-bottom: 6px; color: #333; font-size: 16px; }
+  input, textarea, select { width: 100%; padding: 14px; border: 2px solid #ccc; border-radius: 8px; font-size: 17px; font-family: inherit; min-height: 56px; }
+  input:focus, textarea:focus { border-color: #1976D2; outline: none; }
+  textarea { min-height: 70px; resize: vertical; }
+
   .searchable-dropdown { position: relative; }
-  .dropdown-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; border-top: none; border-radius: 0 0 5px 5px; max-height: 300px; overflow-y: auto; display: none; z-index: 100; }
+  .dropdown-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid #1976D2; border-top: none; border-radius: 0 0 8px 8px; max-height: 360px; overflow-y: auto; display: none; z-index: 100; box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
   .dropdown-list.show { display: block; }
-  .dropdown-item { padding: 10px; cursor: pointer; font-size: 14px; border-bottom: 1px solid #f0f0f0; }
-  .dropdown-item:hover { background: #e3f2fd; }
+  .dropdown-item { padding: 16px 14px; cursor: pointer; font-size: 16px; border-bottom: 1px solid #f0f0f0; min-height: 60px; }
+  .dropdown-item:active { background: #1976D2; color: white; }
   .dropdown-item.no-result { color: #999; cursor: default; }
-  .dropdown-item .meta { font-size: 12px; color: #888; margin-top: 2px; }
-  .item-row { background: white; padding: 15px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #ddd; }
-  .row-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  .row-title { font-weight: bold; color: #1976D2; font-size: 15px; }
-  .product-info { background: #f5f7fa; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; color: #555; display: none; }
+  .dropdown-item .meta { font-size: 13px; color: #666; margin-top: 4px; }
+  .dropdown-item:active .meta { color: #e3f2fd; }
+
+  .item-row { background: white; padding: 16px; margin-bottom: 14px; border-radius: 12px; border: 2px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
+  .item-row.matched { border-color: #4CAF50; background: #f1f8e9; }
+  .item-row.diff { border-color: #FF9800; background: #fff8e1; }
+  .row-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .row-title { font-weight: bold; color: #1976D2; font-size: 17px; }
+  .btn-remove { background: #f44336; color: white; padding: 10px 16px; font-size: 14px; min-height: 44px; min-width: 60px; border: none; border-radius: 8px; font-weight: bold; }
+
+  .product-info { background: #f5f7fa; padding: 12px; border-radius: 8px; margin-bottom: 14px; font-size: 14px; color: #555; display: none; }
   .product-info.show { display: block; }
-  .product-info .info-row { display: flex; gap: 15px; flex-wrap: wrap; }
-  .product-info .info-row span { white-space: nowrap; }
-  .product-info strong { color: #1976D2; }
-  .qty-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-  @media (max-width: 600px) { .qty-grid { grid-template-columns: 1fr; } }
-  .qty-cell { background: #fafafa; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid #eee; }
-  .qty-cell label { font-size: 12px; color: #888; margin-bottom: 4px; }
-  .qty-cell .value { font-size: 20px; font-weight: bold; color: #333; }
-  .qty-cell input { text-align: center; font-size: 18px; font-weight: bold; padding: 8px; border: 2px solid #1976D2; }
-  .qty-cell.diff .value { color: #757575; }
-  .qty-cell.diff.positive .value { color: #2e7d32; }
-  .qty-cell.diff.negative .value { color: #d32f2f; }
-  .diff-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; margin-left: 6px; }
-  .diff-badge.match { background: #4CAF50; color: white; }
-  .diff-badge.over { background: #2196F3; color: white; }
-  .diff-badge.short { background: #d32f2f; color: white; }
-  button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
-  .btn-add { background: #2196F3; color: white; width: 100%; margin-bottom: 15px; }
-  .btn-remove { background: #f44336; color: white; padding: 5px 10px; font-size: 12px; }
-  .btn-submit { background: #1976D2; color: white; width: 100%; padding: 15px; font-size: 16px; font-weight: bold; }
-  .btn-submit:hover { background: #1565c0; }
+  .product-info strong { color: #1976D2; font-size: 15px; }
+
+  .qty-display { background: white; border: 2px solid #e0e0e0; border-radius: 10px; padding: 12px; margin-bottom: 12px; text-align: center; }
+  .qty-display .label { font-size: 13px; color: #888; margin-bottom: 4px; }
+  .qty-display .sys-value { font-size: 28px; font-weight: bold; color: #1976D2; }
+
+  .qty-input-area { background: #fafafa; padding: 14px; border-radius: 10px; border: 2px solid #e0e0e0; margin-bottom: 12px; }
+  .qty-input-area .actual-label { display: block; text-align: center; font-size: 14px; color: #666; margin-bottom: 8px; font-weight: bold; }
+  .qty-control { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .qty-btn { flex: 1; min-height: 64px; font-size: 22px; font-weight: bold; border: none; border-radius: 10px; background: white; border: 2px solid #1976D2; color: #1976D2; cursor: pointer; user-select: none; touch-action: manipulation; }
+  .qty-btn:active { background: #1976D2; color: white; transform: scale(0.96); }
+  .qty-btn.minus { background: #ffebee; border-color: #d32f2f; color: #d32f2f; }
+  .qty-btn.minus:active { background: #d32f2f; color: white; }
+  .qty-value { flex: 2; min-height: 64px; font-size: 32px; font-weight: bold; text-align: center; border: 3px solid #1976D2; border-radius: 10px; background: white; padding: 4px; -moz-appearance: textfield; }
+  .qty-value::-webkit-outer-spin-button, .qty-value::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .qty-quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; }
+  .qty-quick button { min-height: 44px; font-size: 14px; font-weight: bold; border: 1.5px solid #1976D2; background: white; color: #1976D2; border-radius: 8px; cursor: pointer; }
+  .qty-quick button:active { background: #1976D2; color: white; }
+  .qty-quick button.minus-quick { border-color: #d32f2f; color: #d32f2f; }
+  .qty-quick button.minus-quick:active { background: #d32f2f; color: white; }
+
+  .btn-match { width: 100%; min-height: 56px; font-size: 16px; font-weight: bold; background: #4CAF50; color: white; border: none; border-radius: 10px; cursor: pointer; }
+  .btn-match:active { background: #2e7d32; transform: scale(0.98); }
+
+  .diff-display { background: white; border-radius: 10px; padding: 14px; text-align: center; margin-bottom: 12px; border: 2px solid #e0e0e0; }
+  .diff-display .label { font-size: 13px; color: #888; margin-bottom: 4px; }
+  .diff-display .value { font-size: 26px; font-weight: bold; color: #757575; }
+  .diff-display.match { background: #e8f5e9; border-color: #4CAF50; }
+  .diff-display.match .value { color: #2e7d32; }
+  .diff-display.over { background: #e3f2fd; border-color: #2196F3; }
+  .diff-display.over .value { color: #1565c0; }
+  .diff-display.short { background: #ffebee; border-color: #d32f2f; }
+  .diff-display.short .value { color: #d32f2f; }
+
+  .memo-area textarea { background: #fffde7; border-color: #ffc107; font-size: 16px; }
+  .memo-area textarea.needed { background: #ffebee; border-color: #d32f2f; }
+
+  button { padding: 14px 18px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; min-height: 56px; font-weight: bold; touch-action: manipulation; }
+  .btn-add { background: #2196F3; color: white; width: 100%; margin-bottom: 14px; font-size: 18px; min-height: 64px; }
+  .btn-add:active { background: #1565c0; }
+  .btn-submit { background: #1976D2; color: white; width: 100%; padding: 18px; font-size: 18px; min-height: 68px; }
+  .btn-submit:active { background: #0d47a1; }
   .btn-submit:disabled { background: #aaa; cursor: not-allowed; }
-  #loadingBanner { background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 15px; font-size: 14px; }
-  .summary-bar { background: white; border: 2px solid #1976D2; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: space-around; }
-  .summary-bar .stat { text-align: center; flex: 1; min-width: 90px; }
-  .summary-bar .stat-label { font-size: 11px; color: #888; }
-  .summary-bar .stat-value { font-size: 20px; font-weight: bold; color: #1976D2; }
+
+  #loadingBanner { background: #fff3cd; color: #856404; padding: 14px; border-radius: 10px; text-align: center; margin-bottom: 14px; font-size: 15px; font-weight: bold; }
+
+  .summary-bar { background: white; border: 2px solid #1976D2; padding: 14px; border-radius: 10px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .summary-bar .stat { text-align: center; }
+  .summary-bar .stat-label { font-size: 12px; color: #888; margin-bottom: 2px; }
+  .summary-bar .stat-value { font-size: 22px; font-weight: bold; color: #1976D2; }
   .summary-bar .stat-value.warn { color: #d32f2f; }
   .summary-bar .stat-value.ok { color: #2e7d32; }
-  .memo-area { margin-top: 8px; }
-  .memo-area textarea { background: #fffde7; border-color: #ffc107; }
-  .memo-area textarea.needed { background: #ffebee; border-color: #d32f2f; }
+
+  .saved-indicator { position: fixed; bottom: 16px; right: 16px; background: rgba(46,125,50,0.95); color: white; padding: 10px 16px; border-radius: 24px; font-size: 13px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.25); display: none; z-index: 500; }
+  .saved-indicator.show { display: block; animation: fadeInOut 2.5s; }
+  @keyframes fadeInOut { 0% {opacity:0;} 20% {opacity:1;} 80% {opacity:1;} 100% {opacity:0;} }
+
+  .restore-banner { background: #fff3e0; border: 2px solid #FF9800; padding: 14px; border-radius: 10px; margin-bottom: 14px; display: none; }
+  .restore-banner.show { display: block; }
+  .restore-banner p { margin: 0 0 10px 0; color: #e65100; font-weight: bold; font-size: 15px; }
+  .restore-banner .btn-group { display: flex; gap: 8px; }
+  .restore-banner button { flex: 1; min-height: 48px; font-size: 14px; }
+  .restore-banner .btn-restore { background: #FF9800; color: white; }
+  .restore-banner .btn-discard { background: #e0e0e0; color: #555; }
 
   .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
   .modal-overlay.show { display: flex; }
-  .modal-box { background: white; padding: 30px 25px; border-radius: 12px; max-width: 440px; width: 100%; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: popIn 0.3s ease-out; }
-  @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-  .modal-icon { font-size: 60px; margin-bottom: 10px; }
+  .modal-box { background: white; padding: 26px 20px; border-radius: 14px; max-width: 440px; width: 100%; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.25); animation: popIn 0.3s ease-out; }
+  @keyframes popIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal-icon { font-size: 60px; margin-bottom: 8px; }
   .modal-title { font-size: 22px; font-weight: bold; margin-bottom: 12px; color: #2e7d32; }
-  .modal-text { color: #555; font-size: 15px; line-height: 1.6; margin-bottom: 20px; }
-  .modal-btn { background: #1976D2; color: white; padding: 12px 30px; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
-  .modal-btn:hover { background: #1565c0; }
+  .modal-text { color: #555; font-size: 16px; line-height: 1.6; margin-bottom: 20px; white-space: pre-line; }
+  .modal-btn { background: #1976D2; color: white; padding: 14px 30px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; min-height: 56px; min-width: 120px; }
 
-  #completedView { display: none; background: white; padding: 30px; border-radius: 8px; text-align: center; border: 2px solid #1976D2; }
+  #completedView { display: none; background: white; padding: 30px 20px; border-radius: 12px; text-align: center; border: 3px solid #1976D2; }
   #completedView.show { display: block; }
-  #completedView .check { font-size: 70px; margin-bottom: 15px; }
-  #completedView h2 { color: #1976D2; margin: 0 0 12px 0; }
+  #completedView .check { font-size: 70px; margin-bottom: 12px; }
+  #completedView h2 { color: #1976D2; margin: 0 0 12px 0; font-size: 22px; }
+  #completedView p { font-size: 16px; line-height: 1.6; }
 </style>
 </head>
 <body>
 <h1>📋 센터 실사재고조사</h1>
 <div class="description">
-  센터 현장에서 확인한 실제 수량을 입력하면 전산 수량과 자동 비교됩니다.<br>
+  센터 현장에서 확인한 수량을 입력하면 전산 수량과 자동 비교됩니다.<br>
   <strong>※ 차이가 발생한 품목은 메모란에 사유를 반드시 기록해 주세요.</strong>
 </div>
 
 <div id="loadingBanner">⏳ 전산 재고 데이터를 불러오는 중...</div>
+
+<div class="restore-banner" id="restoreBanner">
+  <p>📦 이전에 입력 중이던 데이터가 있습니다.</p>
+  <div class="btn-group">
+    <button type="button" class="btn-restore" onclick="restoreData()">이어서 작성</button>
+    <button type="button" class="btn-discard" onclick="discardData()">새로 시작</button>
+  </div>
+</div>
 
 <form id="surveyForm">
   <div class="form-group">
@@ -91,26 +142,14 @@
   </div>
 
   <div class="summary-bar" id="summaryBar" style="display:none;">
-    <div class="stat">
-      <div class="stat-label">조사 품목 수</div>
-      <div class="stat-value" id="statTotal">0</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">일치</div>
-      <div class="stat-value ok" id="statMatch">0</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">초과</div>
-      <div class="stat-value" id="statOver">0</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">부족</div>
-      <div class="stat-value warn" id="statShort">0</div>
-    </div>
+    <div class="stat"><div class="stat-label">조사</div><div class="stat-value" id="statTotal">0</div></div>
+    <div class="stat"><div class="stat-label">일치</div><div class="stat-value ok" id="statMatch">0</div></div>
+    <div class="stat"><div class="stat-label">초과</div><div class="stat-value" id="statOver">0</div></div>
+    <div class="stat"><div class="stat-label">부족</div><div class="stat-value warn" id="statShort">0</div></div>
   </div>
 
   <div id="itemsContainer"></div>
-  <button type="button" class="btn-add" onclick="addItem()">＋ 품목 추가</button>
+  <button type="button" class="btn-add" onclick="addItem(true)">＋ 품목 추가</button>
   <button type="submit" class="btn-submit" id="submitBtn" disabled>실사 결과 제출하기</button>
 </form>
 
@@ -130,6 +169,8 @@
   </div>
 </div>
 
+<div class="saved-indicator" id="savedIndicator">💾 자동 저장됨</div>
+
 <form id="hiddenForm" method="POST" target="hiddenIframe" style="display:none;">
   <input type="hidden" name="payload" id="hiddenPayload">
 </form>
@@ -137,38 +178,122 @@
 
 <script>
   const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyXhkpC3W7wnEicqCVeEDUKjO26buHxrHSnncZ-NtXk-J7wFErSl8XKDp8FqBFHHDya/exec'; // ← Apps Script URL 입력
+  const STORAGE_KEY = 'inventory_audit_draft';
 
   let PRODUCTS = [];
   let itemCount = 0;
   let isSubmitting = false;
   let jsonpCounter = 0;
+  let autoSaveTimer = null;
 
   function jsonpRequest(url, callback) {
     const callbackName = 'jsonp_cb_' + (++jsonpCounter) + '_' + Date.now();
     const script = document.createElement('script');
-    const cleanup = () => {
-      delete window[callbackName];
-      if (script.parentNode) script.parentNode.removeChild(script);
-    };
-    const timeoutId = setTimeout(() => {
-      cleanup();
-      callback(new Error('요청 시간 초과'), null);
-    }, 30000);
-    window[callbackName] = (data) => {
-      clearTimeout(timeoutId);
-      cleanup();
-      callback(null, data);
-    };
-    script.onerror = () => {
-      clearTimeout(timeoutId);
-      cleanup();
-      callback(new Error('스크립트 로드 실패'), null);
-    };
+    const cleanup = () => { delete window[callbackName]; if (script.parentNode) script.parentNode.removeChild(script); };
+    const timeoutId = setTimeout(() => { cleanup(); callback(new Error('요청 시간 초과'), null); }, 30000);
+    window[callbackName] = (data) => { clearTimeout(timeoutId); cleanup(); callback(null, data); };
+    script.onerror = () => { clearTimeout(timeoutId); cleanup(); callback(new Error('스크립트 로드 실패'), null); };
     const sep = url.includes('?') ? '&' : '?';
     script.src = url + sep + 'callback=' + callbackName + '&t=' + Date.now();
     document.body.appendChild(script);
   }
 
+  // ====== 햅틱 피드백 ======
+  function vibrate(ms) {
+    if (navigator.vibrate) try { navigator.vibrate(ms); } catch(e) {}
+  }
+
+  // ====== 자동 저장 ======
+  function saveDraft() {
+    const inspector = document.getElementById('inspector').value;
+    const items = [];
+    document.querySelectorAll('.item-row').forEach(row => {
+      const nameInput = row.querySelector('.itemName');
+      const actualVal = row.querySelector('.actual-qty').value;
+      const memo = row.querySelector('.memo').value;
+      if (nameInput.value || actualVal || memo) {
+        items.push({
+          name: nameInput.value,
+          spec: nameInput.dataset.spec || '',
+          unit: nameInput.dataset.unit || '',
+          sysQty: nameInput.dataset.sysQty || '',
+          actualQty: actualVal,
+          memo
+        });
+      }
+    });
+    if (!inspector && items.length === 0) {
+      localStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ inspector, items, savedAt: Date.now() }));
+      const ind = document.getElementById('savedIndicator');
+      ind.classList.remove('show');
+      void ind.offsetWidth; // 애니메이션 재시작
+      ind.classList.add('show');
+      setTimeout(() => ind.classList.remove('show'), 2500);
+    } catch(e) {}
+  }
+
+  function scheduleAutoSave() {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(saveDraft, 1500);
+  }
+
+  function checkRestore() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+      const data = JSON.parse(saved);
+      if (data && (data.inspector || (data.items && data.items.length > 0))) {
+        document.getElementById('restoreBanner').classList.add('show');
+      }
+    } catch(e) {}
+  }
+
+  function restoreData() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+      const data = JSON.parse(saved);
+      document.getElementById('inspector').value = data.inspector || '';
+      document.getElementById('itemsContainer').innerHTML = '';
+      itemCount = 0;
+      (data.items || []).forEach(item => {
+        addItem(false);
+        const row = document.querySelectorAll('.item-row')[itemCount - 1];
+        const nameInput = row.querySelector('.itemName');
+        nameInput.value = item.name || '';
+        nameInput.dataset.spec = item.spec || '';
+        nameInput.dataset.unit = item.unit || '';
+        nameInput.dataset.sysQty = item.sysQty || '';
+        if (item.name && item.sysQty) {
+          const infoBox = row.querySelector('.product-info');
+          infoBox.innerHTML = `<strong>규격:</strong> ${item.spec || '-'} &nbsp;|&nbsp; <strong>단위:</strong> ${item.unit || '-'} &nbsp;|&nbsp; <strong>전산:</strong> ${Number(item.sysQty).toLocaleString()}`;
+          infoBox.classList.add('show');
+          row.querySelector('.sys-value').textContent = Number(item.sysQty).toLocaleString();
+        }
+        row.querySelector('.actual-qty').value = item.actualQty || '';
+        row.querySelector('.memo').value = item.memo || '';
+        updateDiff(row);
+      });
+      document.getElementById('restoreBanner').classList.remove('show');
+      if (itemCount === 0) addItem(false);
+    } catch(e) {
+      alert('복구 중 오류가 발생했습니다. 새로 시작합니다.');
+      discardData();
+    }
+  }
+
+  function discardData() {
+    localStorage.removeItem(STORAGE_KEY);
+    document.getElementById('restoreBanner').classList.remove('show');
+  }
+
+  window.addEventListener('beforeunload', saveDraft);
+
+  // ====== 상품 드롭다운 ======
   function setupProductDropdown(inputEl, listEl, row) {
     function render(keyword = '') {
       if (PRODUCTS.length === 0) {
@@ -178,12 +303,11 @@
       const filtered = PRODUCTS
         .filter(item => item.name.toLowerCase().includes(keyword.toLowerCase()) ||
                        item.spec.toLowerCase().includes(keyword.toLowerCase()))
-        .slice(0, 200);
+        .slice(0, 100);
       if (filtered.length === 0) {
         listEl.innerHTML = '<div class="dropdown-item no-result">검색 결과가 없습니다</div>';
       } else {
-        listEl.innerHTML = filtered.map((item, i) => {
-          const safeName = item.name.replace(/"/g, '&quot;');
+        listEl.innerHTML = filtered.map(item => {
           return `<div class="dropdown-item" data-idx="${PRODUCTS.indexOf(item)}">
             <div>${item.name}</div>
             <div class="meta">규격: ${item.spec || '-'} · 단위: ${item.unit || '-'} · 전산: ${item.sysQty.toLocaleString()}</div>
@@ -195,6 +319,9 @@
             const product = PRODUCTS[Number(el.dataset.idx)];
             applyProductToRow(row, product);
             listEl.classList.remove('show');
+            vibrate(20);
+            // 자동 포커스 이동: 수량 입력칸으로
+            setTimeout(() => row.querySelector('.actual-qty').focus(), 100);
           });
         });
       }
@@ -204,6 +331,7 @@
       clearRowData(row);
       render(inputEl.value);
       listEl.classList.add('show');
+      scheduleAutoSave();
     });
   }
 
@@ -222,15 +350,12 @@
     inputEl.dataset.sysQty = product.sysQty;
 
     const infoBox = row.querySelector('.product-info');
-    infoBox.innerHTML = `<div class="info-row">
-      <span><strong>규격:</strong> ${product.spec || '-'}</span>
-      <span><strong>단위:</strong> ${product.unit || '-'}</span>
-      <span><strong>전산수량:</strong> ${product.sysQty.toLocaleString()}</span>
-    </div>`;
+    infoBox.innerHTML = `<strong>규격:</strong> ${product.spec || '-'} &nbsp;|&nbsp; <strong>단위:</strong> ${product.unit || '-'} &nbsp;|&nbsp; <strong>전산:</strong> ${product.sysQty.toLocaleString()}`;
     infoBox.classList.add('show');
 
-    row.querySelector('.sys-qty-display').textContent = product.sysQty.toLocaleString();
+    row.querySelector('.sys-value').textContent = product.sysQty.toLocaleString();
     updateDiff(row);
+    scheduleAutoSave();
   }
 
   function clearRowData(row) {
@@ -240,42 +365,50 @@
     inputEl.dataset.unit = '';
     inputEl.dataset.sysQty = '';
     row.querySelector('.product-info').classList.remove('show');
-    row.querySelector('.sys-qty-display').textContent = '-';
+    row.querySelector('.sys-value').textContent = '-';
     updateDiff(row);
   }
 
   function updateDiff(row) {
-    const sysQty = Number(row.querySelector('.itemName').dataset.sysQty);
+    const sysQtyStr = row.querySelector('.itemName').dataset.sysQty;
     const actualVal = row.querySelector('.actual-qty').value;
-    const diffCell = row.querySelector('.qty-cell.diff');
-    const diffValue = row.querySelector('.diff-value');
-    const memoArea = row.querySelector('.memo-area textarea');
+    const diffEl = row.querySelector('.diff-display');
+    const diffValueEl = row.querySelector('.diff-value');
+    const memoEl = row.querySelector('.memo');
 
-    if (actualVal === '' || isNaN(sysQty)) {
-      diffValue.textContent = '-';
-      diffCell.classList.remove('positive', 'negative');
-      memoArea.classList.remove('needed');
-      memoArea.placeholder = '메모 (선택)';
+    diffEl.classList.remove('match', 'over', 'short');
+    row.classList.remove('matched', 'diff');
+
+    if (actualVal === '' || sysQtyStr === '' || sysQtyStr === undefined) {
+      diffValueEl.textContent = '-';
+      memoEl.classList.remove('needed');
+      memoEl.placeholder = '메모 (선택)';
       updateSummary();
       return;
     }
 
+    const sysQty = Number(sysQtyStr);
     const actualQty = Number(actualVal);
     const diff = actualQty - sysQty;
     const sign = diff > 0 ? '+' : '';
     const rate = sysQty > 0 ? ` (${(diff / sysQty * 100).toFixed(1)}%)` : '';
-    diffValue.textContent = `${sign}${diff.toLocaleString()}${rate}`;
+    diffValueEl.textContent = `${sign}${diff.toLocaleString()}${rate}`;
 
-    diffCell.classList.remove('positive', 'negative');
-    if (diff > 0) diffCell.classList.add('positive');
-    else if (diff < 0) diffCell.classList.add('negative');
-
-    if (diff !== 0) {
-      memoArea.classList.add('needed');
-      memoArea.placeholder = '⚠ 차이 발생 - 사유를 입력해 주세요 (필수)';
+    if (diff === 0) {
+      diffEl.classList.add('match');
+      row.classList.add('matched');
+      memoEl.classList.remove('needed');
+      memoEl.placeholder = '메모 (선택)';
+    } else if (diff > 0) {
+      diffEl.classList.add('over');
+      row.classList.add('diff');
+      memoEl.classList.add('needed');
+      memoEl.placeholder = '⚠ 사유를 입력해 주세요 (필수)';
     } else {
-      memoArea.classList.remove('needed');
-      memoArea.placeholder = '메모 (선택)';
+      diffEl.classList.add('short');
+      row.classList.add('diff');
+      memoEl.classList.add('needed');
+      memoEl.placeholder = '⚠ 사유를 입력해 주세요 (필수)';
     }
     updateSummary();
   }
@@ -284,18 +417,18 @@
     const rows = document.querySelectorAll('.item-row');
     let total = 0, match = 0, over = 0, short = 0;
     rows.forEach(row => {
-      const sysQty = Number(row.querySelector('.itemName').dataset.sysQty);
+      const sysQtyStr = row.querySelector('.itemName').dataset.sysQty;
       const actualVal = row.querySelector('.actual-qty').value;
-      if (actualVal === '' || isNaN(sysQty)) return;
+      if (actualVal === '' || sysQtyStr === '') return;
       total++;
-      const diff = Number(actualVal) - sysQty;
+      const diff = Number(actualVal) - Number(sysQtyStr);
       if (diff === 0) match++;
       else if (diff > 0) over++;
       else short++;
     });
     const bar = document.getElementById('summaryBar');
     if (total > 0) {
-      bar.style.display = 'flex';
+      bar.style.display = 'grid';
       document.getElementById('statTotal').textContent = total;
       document.getElementById('statMatch').textContent = match;
       document.getElementById('statOver').textContent = over;
@@ -305,7 +438,33 @@
     }
   }
 
-  function addItem() {
+  // ====== 수량 ± 버튼 ======
+  function changeQty(btn, delta) {
+    const row = btn.closest('.item-row');
+    const input = row.querySelector('.actual-qty');
+    let cur = Number(input.value) || 0;
+    cur += delta;
+    if (cur < 0) cur = 0;
+    input.value = cur;
+    updateDiff(row);
+    scheduleAutoSave();
+    vibrate(15);
+  }
+
+  function setMatchQty(btn) {
+    const row = btn.closest('.item-row');
+    const sysQty = row.querySelector('.itemName').dataset.sysQty;
+    if (sysQty === '' || sysQty === undefined) {
+      alert('먼저 상품을 선택해 주세요.');
+      return;
+    }
+    row.querySelector('.actual-qty').value = sysQty;
+    updateDiff(row);
+    scheduleAutoSave();
+    vibrate([20, 30, 20]);
+  }
+
+  function addItem(scrollToNew) {
     itemCount++;
     const container = document.getElementById('itemsContainer');
     const div = document.createElement('div');
@@ -323,22 +482,37 @@
         </div>
       </div>
       <div class="product-info"></div>
-      <div class="qty-grid">
-        <div class="qty-cell">
-          <label>전산 수량</label>
-          <div class="value sys-qty-display">-</div>
-        </div>
-        <div class="qty-cell">
-          <label>실사 수량</label>
-          <input type="number" class="actual-qty" min="0" placeholder="0" required>
-        </div>
-        <div class="qty-cell diff">
-          <label>차이 (실사 - 전산)</label>
-          <div class="value diff-value">-</div>
-        </div>
+
+      <div class="qty-display">
+        <div class="label">전산 수량</div>
+        <div class="sys-value">-</div>
       </div>
+
+      <div class="qty-input-area">
+        <span class="actual-label">📝 실사 수량 입력</span>
+        <div class="qty-control">
+          <button type="button" class="qty-btn minus" onclick="changeQty(this, -1)">−</button>
+          <input type="number" class="qty-value actual-qty" inputmode="numeric" pattern="[0-9]*" min="0" placeholder="0" required>
+          <button type="button" class="qty-btn" onclick="changeQty(this, 1)">+</button>
+        </div>
+        <div class="qty-quick">
+          <button type="button" class="minus-quick" onclick="changeQty(this, -10)">−10</button>
+          <button type="button" class="minus-quick" onclick="changeQty(this, -100)">−100</button>
+          <button type="button" onclick="document.activeElement.blur(); this.closest('.item-row').querySelector('.actual-qty').value=0; updateDiff(this.closest('.item-row')); scheduleAutoSave();">0으로</button>
+          <button type="button" onclick="changeQty(this, 10)">+10</button>
+          <button type="button" onclick="changeQty(this, 100)">+100</button>
+          <button type="button" onclick="changeQty(this, 1000)">+1000</button>
+        </div>
+        <button type="button" class="btn-match" onclick="setMatchQty(this)">✓ 전산 수량과 동일</button>
+      </div>
+
+      <div class="diff-display">
+        <div class="label">차이 (실사 - 전산)</div>
+        <div class="value diff-value">-</div>
+      </div>
+
       <div class="memo-area">
-        <label style="font-size:13px;">메모</label>
+        <label style="font-size:14px;">메모</label>
         <textarea class="memo" placeholder="메모 (선택)"></textarea>
       </div>
     `;
@@ -346,13 +520,25 @@
     const inputEl = div.querySelector('.itemName');
     const listEl = div.querySelector('.dropdown-list');
     const actualEl = div.querySelector('.actual-qty');
+    const memoEl = div.querySelector('.memo');
     setupProductDropdown(inputEl, listEl, div);
-    actualEl.addEventListener('input', () => updateDiff(div));
+    actualEl.addEventListener('input', () => { updateDiff(div); scheduleAutoSave(); });
+    memoEl.addEventListener('input', scheduleAutoSave);
+
+    if (scrollToNew) {
+      setTimeout(() => {
+        div.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        inputEl.focus();
+      }, 100);
+    }
   }
 
   function removeItem(btn) {
-    btn.parentElement.parentElement.remove();
+    if (!confirm('이 품목을 삭제하시겠습니까?')) return;
+    btn.closest('.item-row').remove();
     updateSummary();
+    scheduleAutoSave();
+    vibrate(30);
   }
 
   function loadProducts() {
@@ -375,7 +561,7 @@
         banner.style.background = '#d4edda';
         banner.style.color = '#155724';
         banner.textContent = `✅ 전산 재고 ${PRODUCTS.length.toLocaleString()}개 품목 로드 완료`;
-        setTimeout(() => { banner.style.display = 'none'; }, 2500);
+        setTimeout(() => { banner.style.display = 'none'; }, 2000);
         submitBtn.disabled = false;
       } else {
         banner.textContent = '❌ 응답 오류';
@@ -383,7 +569,10 @@
     });
   }
 
-  addItem();
+  document.getElementById('inspector').addEventListener('input', scheduleAutoSave);
+  setInterval(saveDraft, 30000); // 30초마다 강제 저장
+  checkRestore();
+  addItem(false);
   loadProducts();
 
   document.getElementById('surveyForm').addEventListener('submit', e => {
@@ -393,6 +582,7 @@
     const inspector = document.getElementById('inspector').value.trim();
     if (!inspector) {
       alert('조사자 이름을 입력해 주세요.');
+      document.getElementById('inspector').focus();
       return;
     }
 
@@ -412,11 +602,13 @@
       const memo = row.querySelector('.memo').value.trim();
 
       if (!productNames.includes(name)) {
-        alert(`"${name}"은(는) 등록된 상품이 아닙니다. 목록에서 선택해 주세요.`);
+        alert(`"${name}"은(는) 등록된 상품이 아닙니다.`);
+        nameInput.focus();
         return;
       }
       if (actualVal === '' || isNaN(Number(actualVal))) {
         alert(`"${name}"의 실사 수량을 입력해 주세요.`);
+        row.querySelector('.actual-qty').focus();
         return;
       }
       const sysQty = Number(nameInput.dataset.sysQty);
@@ -424,19 +616,12 @@
       const diff = actualQty - sysQty;
 
       if (diff !== 0 && !memo) {
-        alert(`"${name}"은(는) 전산 수량과 차이가 있습니다.\n메모(사유)를 반드시 입력해 주세요.`);
+        alert(`"${name}"은(는) 차이가 있습니다.\n메모(사유)를 반드시 입력해 주세요.`);
         row.querySelector('.memo').focus();
         return;
       }
 
-      items.push({
-        name,
-        spec: nameInput.dataset.spec || '',
-        unit: nameInput.dataset.unit || '',
-        sysQty,
-        actualQty,
-        memo
-      });
+      items.push({ name, spec: nameInput.dataset.spec || '', unit: nameInput.dataset.unit || '', sysQty, actualQty, memo });
     }
 
     if (!confirm(`총 ${items.length}개 품목을 제출하시겠습니까?`)) return;
@@ -455,6 +640,7 @@
 
     const onLoad = () => {
       hiddenIframe.removeEventListener('load', onLoad);
+      localStorage.removeItem(STORAGE_KEY);
       showSuccess(items);
     };
     hiddenIframe.addEventListener('load', onLoad);
@@ -465,13 +651,14 @@
     const total = items.length;
     const match = items.filter(it => it.actualQty - it.sysQty === 0).length;
     const diff = total - match;
-    const summary = `총 ${total}개 품목 제출 완료\n· 일치: ${match}개 / 차이: ${diff}개`;
+    const summary = `총 ${total}개 품목 제출 완료\n· 일치: ${match}개\n· 차이: ${diff}개`;
     document.getElementById('successText').innerText = summary;
     document.getElementById('completedSummary').innerText = summary;
     document.getElementById('surveyForm').style.display = 'none';
     document.getElementById('completedView').classList.add('show');
     document.getElementById('successModal').classList.add('show');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    vibrate([50, 100, 50, 100, 200]);
   }
 
   function closeModal(id) {
