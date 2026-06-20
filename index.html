@@ -8,17 +8,14 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; margin: 0; padding: 0; background: #f5f6fa; color: #222; }
   h1 { font-size: 18px; margin: 10px; text-align: center; }
-  
   .sticky-top { position: sticky; top: 0; z-index: 50; background: #f5f6fa; padding: 8px 10px; border-bottom: 2px solid #ddd; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
   .banner { padding: 8px; border-radius: 6px; text-align: center; font-weight: 600; margin-bottom: 6px; font-size: 13px; }
   .banner.loading { background: #fff3cd; color: #856404; }
   .banner.ok { background: #d4edda; color: #155724; }
   .banner.err { background: #f8d7da; color: #721c24; }
-  
   .save-status { display: flex; justify-content: space-between; align-items: center; background: #e7f3ff; padding: 5px 8px; border-radius: 5px; font-size: 11px; margin-bottom: 6px; color: #004085; }
   .save-status.saving { background: #fff3cd; color: #856404; }
   .save-status.saved { background: #d4edda; color: #155724; }
-  
   .restore-banner { background: #fff8e1; border: 2px solid #ffc107; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
   .restore-banner h3 { margin: 0 0 6px; font-size: 14px; color: #856404; }
   .restore-banner .info { font-size: 12px; color: #555; margin-bottom: 8px; }
@@ -26,11 +23,9 @@
   .restore-banner button { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 700; font-size: 13px; }
   .restore-banner .btn-restore { background: #28a745; color: #fff; }
   .restore-banner .btn-discard { background: #6c757d; color: #fff; }
-  
   .surveyor-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
   .surveyor-row label { font-weight: 700; font-size: 13px; white-space: nowrap; }
   .surveyor-row input { flex: 1; padding: 10px; font-size: 15px; border: 1px solid #ccc; border-radius: 6px; }
-  
   .summary-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 6px; }
   .summary-bar div { background: #fff; border-radius: 6px; padding: 5px 2px; text-align: center; font-size: 11px; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
   .summary-bar div b { display: block; font-size: 16px; margin-top: 1px; }
@@ -38,7 +33,6 @@
   .sum-match b { color: #28a745; }
   .sum-over b { color: #fd7e14; }
   .sum-short b { color: #dc3545; }
-  
   .dropdown { position: relative; }
   .dropdown input { width: 100%; padding: 14px; font-size: 16px; border: 2px solid #007bff; border-radius: 8px; background: #fff; font-weight: 600; }
   .dropdown-list { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ccc; border-radius: 8px; max-height: 50vh; overflow-y: auto; z-index: 100; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-top: 4px; }
@@ -56,9 +50,7 @@
   .dropdown-item.partial .item-name::before { content: '🟡 '; }
   .dropdown-item.fully-surveyed { opacity: 0.55; }
   .dropdown-item.fully-surveyed .item-name::before { content: '✅ '; }
-  
   .main { padding: 10px; }
-  
   .dash-toggle { background: #17a2b8; color: #fff; padding: 10px; border-radius: 8px; text-align: center; font-weight: 700; cursor: pointer; margin-bottom: 8px; font-size: 14px; }
   .dash-panel { display: none; background: #fff; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
   .dash-panel.show { display: block; }
@@ -75,26 +67,22 @@
   .dash-filter button { flex: 1; padding: 8px 4px; border: 1px solid #ccc; background: #fff; border-radius: 6px; font-size: 11px; min-width: 60px; }
   .dash-filter button.active { background: #007bff; color: #fff; border-color: #007bff; }
   .draft-badge { display: inline-block; background: #ffc107; color: #000; font-size: 9px; padding: 1px 4px; border-radius: 3px; margin-left: 3px; font-weight: 700; }
-  
   .item-row { background: #fff; border: 2px solid #007bff; border-radius: 10px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
   .item-row.extra { border-color: #b8860b; background: #fffbf0; }
   .item-row.draft { border-color: #ffc107; }
   .item-row.new { animation: highlight 1.5s; }
   @keyframes highlight { 0% { background: #fff3cd; } 100% { background: #fff; } }
-  
   .row-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; word-break: break-all; line-height: 1.3; }
   .type-tag { display: inline-block; background: #b8860b; color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-right: 4px; vertical-align: middle; }
   .draft-tag { display: inline-block; background: #ffc107; color: #000; font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-right: 4px; vertical-align: middle; font-weight: 700; }
   .row-meta { font-size: 13px; color: #444; margin-bottom: 10px; background: #f8f9fa; padding: 6px 8px; border-radius: 6px; }
   .row-meta .sys-qty { font-size: 16px; font-weight: 700; color: #007bff; }
   .row-meta .other-qty { color: #856404; font-weight: 700; }
-  
   .qty-big-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
   .qty-btn-big { width: 60px; height: 60px; font-size: 28px; border: 2px solid #007bff; background: #fff; color: #007bff; border-radius: 10px; font-weight: 800; flex-shrink: 0; }
   .qty-btn-big:active { background: #007bff; color: #fff; }
   .qty-input-big { flex: 1; text-align: center; font-size: 26px; font-weight: 800; padding: 12px; border: 2px solid #007bff; border-radius: 10px; width: 100%; min-width: 0; }
   .qty-input-big:focus { border-color: #0056b3; background: #fffde7; outline: none; }
-  
   .quick-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 8px; }
   .quick-btn { padding: 10px 4px; font-size: 13px; font-weight: 700; border: 1px solid #ccc; background: #fff; border-radius: 6px; }
   .quick-btn:active { background: #e9ecef; }
@@ -102,13 +90,11 @@
   .quick-btn.match:active { background: #1e7e34; }
   .quick-btn.calc { background: #ffc107; color: #000; border-color: #ffc107; }
   .quick-btn.zero { background: #6c757d; color: #fff; border-color: #6c757d; }
-  
   .diff-box { padding: 10px; border-radius: 6px; margin-top: 6px; font-size: 14px; font-weight: 700; text-align: center; }
   .diff-match { background: #d4edda; color: #155724; }
   .diff-over { background: #fff3cd; color: #856404; }
   .diff-short { background: #f8d7da; color: #721c24; }
   .diff-na { background: #e2e3e5; color: #383d41; font-size: 12px; }
-  
   .memo-section { margin-top: 8px; }
   .memo-label { font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #555; }
   .memo-label.required { color: #dc3545; }
@@ -119,15 +105,12 @@
   .memo-preset-btn { padding: 8px; font-size: 12px; font-weight: 600; background: #e7f3ff; border: 1px solid #007bff; color: #007bff; border-radius: 6px; }
   .memo-preset-btn:active { background: #007bff; color: #fff; }
   .memo-preset-btn.active { background: #007bff; color: #fff; }
-  
   .expiry-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
   .expiry-row label { font-size: 12px; font-weight: 700; white-space: nowrap; color: #555; }
   .expiry-row input { flex: 1; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 6px; }
-  
   .row-actions { display: flex; gap: 6px; margin-top: 8px; }
   .row-remove { flex: 1; background: #dc3545; color: #fff; border: none; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 600; }
   .row-collapse { flex: 1; background: #6c757d; color: #fff; border: none; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 600; }
-  
   .item-row.collapsed .qty-big-row,
   .item-row.collapsed .quick-btns,
   .item-row.collapsed .memo-section,
@@ -136,21 +119,17 @@
   .item-row.collapsed { padding: 10px; border-color: #ccc; }
   .item-row.collapsed .row-title { margin: 0; font-size: 14px; }
   .item-row.collapsed .row-actions { margin-top: 6px; }
-  
   .submit-area { padding: 16px 10px 40px; display: flex; flex-direction: column; gap: 8px; }
   button.primary { background: #007bff; color: #fff; border: none; padding: 16px; width: 100%; border-radius: 8px; font-size: 17px; font-weight: 700; }
   button.primary:disabled { background: #ccc; }
   button.draft { background: #ffc107; color: #000; border: none; padding: 14px; width: 100%; border-radius: 8px; font-size: 15px; font-weight: 700; }
   button.draft:disabled { background: #ccc; }
-  
   .submit-hint { background: #fff8e1; border: 1px solid #ffc107; padding: 8px; border-radius: 6px; font-size: 12px; color: #856404; text-align: center; margin-bottom: 4px; }
-  
   .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
   .modal-bg.show { display: flex; }
   .modal { background: #fff; border-radius: 12px; padding: 20px; max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto; }
   .modal h2 { margin: 0 0 12px; text-align: center; }
   .modal .close-btn { width: 100%; margin-top: 12px; padding: 12px; background: #6c757d; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; }
-  
   .calc-display { background: #f8f9fa; padding: 14px; border-radius: 8px; font-size: 22px; font-weight: 700; text-align: right; margin-bottom: 10px; min-height: 60px; word-break: break-all; }
   .calc-display .formula { font-size: 13px; color: #666; font-weight: 400; min-height: 18px; }
   .calc-display .result { font-size: 26px; color: #007bff; }
@@ -164,7 +143,6 @@
   .calc-grid .eq { background: #28a745; color: #fff; }
   .calc-grid .clr { background: #dc3545; color: #fff; }
   .calc-apply { width: 100%; padding: 14px; background: #007bff; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; }
-  
   .save-indicator { position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.75); color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 13px; opacity: 0; transition: opacity 0.3s; z-index: 999; pointer-events: none; }
   .save-indicator.show { opacity: 1; }
 </style>
@@ -175,24 +153,20 @@
 
 <div class="sticky-top">
   <div id="banner" class="banner loading">⏳ 로딩 중...</div>
-  
   <div class="save-status" id="saveStatus">
     <span id="saveStatusText">💾 자동 저장: 대기 중</span>
     <span id="saveStatusTime"></span>
   </div>
-  
   <div class="surveyor-row">
     <label>조사자</label>
     <input type="text" id="surveyor" placeholder="이름 입력">
   </div>
-  
   <div class="summary-bar">
     <div class="sum-total">조사<b id="sumTotal">0</b></div>
     <div class="sum-match">일치<b id="sumMatch">0</b></div>
     <div class="sum-over">초과<b id="sumOver">0</b></div>
     <div class="sum-short">부족<b id="sumShort">0</b></div>
   </div>
-  
   <div class="dropdown">
     <input type="text" id="search" placeholder="🔍 클릭하여 품목 추가" autocomplete="off">
     <div class="dropdown-list" id="searchList"></div>
@@ -238,8 +212,8 @@
   <div class="modal" style="text-align:center;">
     <h2 id="successTitle" style="color:#28a745">✅ 제출 완료</h2>
     <p id="successText"></p>
-    <button class="primary" onclick="resetAll()">새로 입력하기</button>
-    <button class="close-btn" onclick="closeSuccess()">닫기</button>
+    <button class="primary" id="successResetBtn">새로 입력하기</button>
+    <button class="close-btn" id="successCloseBtn">닫기</button>
   </div>
 </div>
 
@@ -263,14 +237,16 @@
       <button data-k="0">0</button><button data-k=".">.</button><button class="eq" data-k="=">=</button><button class="op" data-k="+">+</button>
     </div>
     <button class="calc-apply" id="calcApply">✅ 이 값으로 입력</button>
-    <button class="close-btn" onclick="closeCalc()">취소</button>
+    <button class="close-btn" id="calcCloseBtn">취소</button>
   </div>
 </div>
 
 <div class="save-indicator" id="saveIndicator">💾 저장됨</div>
 
 <script>
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyXhkpC3W7wnEicqCVeEDUKjO26buHxrHSnncZ-NtXk-J7wFErSl8XKDp8FqBFHHDya/exec'; // ← 본인 URL로 교체
+// ★★★ 이 한 줄만 본인 URL로 바꾸세요 ★★★
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyXhkpC3W7wnEicqCVeEDUKjO26buHxrHSnncZ-NtXk-J7wFErSl8XKDp8FqBFHHDya/exec';
+
 const DRAFT_KEY = 'audit_draft_v3';
 const MEMO_PRESETS = ['추가 재고 확인', '실사재고 입력'];
 
@@ -279,15 +255,21 @@ let items = [];
 let dashFilter = 'all';
 let calcTargetIdx = -1;
 let lastSavedAt = null;
+let calcExpr = '';
+
+function $(id) { return document.getElementById(id); }
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
 function jsonpRequest(url, timeout) {
   return new Promise((resolve, reject) => {
     const cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
     const script = document.createElement('script');
-    const timer = setTimeout(() => { cleanup(); reject(new Error('타임아웃')); }, timeout || 30000);
-    function cleanup() { clearTimeout(timer); delete window[cb]; if (script.parentNode) script.parentNode.removeChild(script); }
+    const timer = setTimeout(() => { cleanup(); reject(new Error('타임아웃 (30초 초과)')); }, timeout || 30000);
+    function cleanup() { clearTimeout(timer); try { delete window[cb]; } catch(e) { window[cb] = undefined; } if (script.parentNode) script.parentNode.removeChild(script); }
     window[cb] = (data) => { cleanup(); resolve(data); };
-    script.onerror = () => { cleanup(); reject(new Error('스크립트 로드 실패')); };
+    script.onerror = () => { cleanup(); reject(new Error('스크립트 로드 실패 (URL 또는 권한 확인)')); };
     const sep = url.indexOf('?') >= 0 ? '&' : '?';
     script.src = url + sep + 'callback=' + cb;
     document.body.appendChild(script);
@@ -295,20 +277,25 @@ function jsonpRequest(url, timeout) {
 }
 
 async function loadProducts() {
+  if (WEB_APP_URL.indexOf('여기에') >= 0 || WEB_APP_URL.indexOf('YOUR_') >= 0) {
+    $('banner').className = 'banner err';
+    $('banner').textContent = '❌ WEB_APP_URL을 본인의 Apps Script URL로 변경하세요';
+    return;
+  }
   try {
     const res = await jsonpRequest(WEB_APP_URL, 30000);
     if (res.result !== 'success') throw new Error(res.message || '응답 오류');
     SYS_PRODUCTS = res.products || [];
     EXTRA_PRODUCTS = res.extraProducts || [];
-    document.getElementById('banner').className = 'banner ok';
-    document.getElementById('banner').textContent = '✅ 전산 ' + SYS_PRODUCTS.length + ' / 추가 ' + EXTRA_PRODUCTS.length + '개 로드';
-    document.getElementById('submitBtn').disabled = false;
-    document.getElementById('draftBtn').disabled = false;
+    $('banner').className = 'banner ok';
+    $('banner').textContent = '✅ 전산 ' + SYS_PRODUCTS.length + ' / 추가 ' + EXTRA_PRODUCTS.length + '개 로드';
+    $('submitBtn').disabled = false;
+    $('draftBtn').disabled = false;
     await loadDashboard();
     checkRestore();
   } catch (e) {
-    document.getElementById('banner').className = 'banner err';
-    document.getElementById('banner').textContent = '❌ ' + e.message;
+    $('banner').className = 'banner err';
+    $('banner').textContent = '❌ ' + e.message;
     checkRestore();
   }
 }
@@ -320,14 +307,14 @@ async function loadDashboard() {
     DASHBOARD = {};
     (res.dashboard || []).forEach(d => { DASHBOARD[d.name + '|' + d.spec] = d; });
     renderDashboard();
-  } catch (e) { console.warn(e); }
+  } catch (e) { console.warn('대시보드 로드 실패', e); }
 }
 
 function renderDashboard() {
-  const search = document.getElementById('dashSearch').value.toLowerCase();
-  const tbody = document.getElementById('dashBody');
+  const search = $('dashSearch').value.toLowerCase();
+  const tbody = $('dashBody');
   tbody.innerHTML = '';
-  let total = 0, done = 0, todo = 0, partial = 0;
+  let total = 0, done = 0, todo = 0;
   const rows = [];
   SYS_PRODUCTS.forEach(p => {
     const key = p.name + '|' + p.spec;
@@ -337,14 +324,11 @@ function renderDashboard() {
     const isDone = totalQty > 0 && draftQty === 0;
     const isPartial = draftQty > 0;
     total++;
-    if (isPartial) partial++;
-    else if (isDone) done++;
-    else todo++;
+    if (isPartial || isDone) done++; else todo++;
     rows.push({
       status: isPartial ? 'partial' : (isDone ? 'done' : 'todo'),
       isExtra: false, name: p.name, spec: p.spec,
-      sysQty: p.sysQty, totalQty, draftQty,
-      surveyors: d ? d.surveyors : []
+      sysQty: p.sysQty, totalQty, draftQty
     });
   });
   Object.keys(DASHBOARD).forEach(key => {
@@ -354,14 +338,13 @@ function renderDashboard() {
       if (!inSys) rows.push({
         status: d.draftQty > 0 ? 'partial' : 'done',
         isExtra: true, name: d.name, spec: d.spec,
-        sysQty: null, totalQty: d.totalQty, draftQty: d.draftQty,
-        surveyors: d.surveyors
+        sysQty: null, totalQty: d.totalQty, draftQty: d.draftQty
       });
     }
   });
-  document.getElementById('dashTotal').textContent = total;
-  document.getElementById('dashDone').textContent = done;
-  document.getElementById('dashTodo').textContent = todo;
+  $('dashTotal').textContent = total;
+  $('dashDone').textContent = done;
+  $('dashTodo').textContent = todo;
   rows.filter(r => {
     if (dashFilter === 'todo' && r.status !== 'todo') return false;
     if (dashFilter === 'done' && r.status !== 'done') return false;
@@ -380,8 +363,8 @@ function renderDashboard() {
   });
 }
 
-const searchInput = document.getElementById('search');
-const searchList = document.getElementById('searchList');
+const searchInput = $('search');
+const searchList = $('searchList');
 
 function renderSearch() {
   const q = searchInput.value.trim().toLowerCase();
@@ -401,15 +384,9 @@ function renderSearch() {
     const d = DASHBOARD[key];
     combined.push({ ...p, isExtra: true, surveyedQty: d ? d.totalQty : 0, remain: null, status: 'extra' });
   });
-  
   const filtered = combined.filter(p => !q || (p.name + ' ' + p.spec).toLowerCase().includes(q));
   filtered.sort((a, b) => {
-    const score = x => {
-      if (x.isExtra) return 3;
-      if (x.status === 'fully-surveyed') return 2;
-      if (x.status === 'partial') return 1;
-      return 0;
-    };
+    const score = x => x.isExtra ? 3 : (x.status === 'fully-surveyed' ? 2 : (x.status === 'partial' ? 1 : 0));
     return score(a) - score(b);
   });
   const shown = filtered.slice(0, 200);
@@ -425,17 +402,14 @@ function renderSearch() {
       else if (p.status === 'partial') cls += ' partial';
       else cls += ' unsurveyed';
       div.className = cls;
-      
-      let extraLabel = p.isExtra ? '<span class="item-extra">[전산재고 불확인]</span> ' : '';
+      const extraLabel = p.isExtra ? '<span class="item-extra">[전산재고 불확인]</span> ' : '';
       let qtyInfo;
-      if (p.isExtra) {
-        qtyInfo = '입력: <b>' + p.surveyedQty + '</b>';
-      } else {
+      if (p.isExtra) qtyInfo = '입력: <b>' + p.surveyedQty + '</b>';
+      else {
         qtyInfo = '전산: <b>' + p.sysQty + '</b> / 입력: <b>' + p.surveyedQty + '</b> / 잔여: ';
         if (p.remain === 0) qtyInfo += '<span class="item-done">완료</span>';
         else qtyInfo += '<span class="item-remain">' + p.remain + '</span>';
       }
-      
       div.innerHTML = '<div class="item-name">' + extraLabel + escapeHtml(p.name) + '</div><div class="item-meta">' + escapeHtml(p.spec) + ' / ' + escapeHtml(p.unit) + '<br>' + qtyInfo + '</div>';
       div.addEventListener('mousedown', e => {
         e.preventDefault();
@@ -471,11 +445,11 @@ function parseSpec(spec) {
 }
 
 function addItem(p) {
-  if (items.find(it => it.name === p.name && it.spec === p.spec)) {
-    const idx = items.findIndex(it => it.name === p.name && it.spec === p.spec);
-    items[idx]._collapsed = false;
+  const existsIdx = items.findIndex(it => it.name === p.name && it.spec === p.spec);
+  if (existsIdx >= 0) {
+    items[existsIdx]._collapsed = false;
     renderItems();
-    setTimeout(() => focusQtyInput(idx), 80);
+    setTimeout(() => focusQtyInput(existsIdx), 80);
     return;
   }
   items.forEach(it => it._collapsed = true);
@@ -524,7 +498,7 @@ function needsMemo(it) {
 }
 
 function renderItems() {
-  const c = document.getElementById('itemsContainer');
+  const c = $('itemsContainer');
   c.innerHTML = '';
   let match = 0, over = 0, short = 0;
   
@@ -555,24 +529,21 @@ function renderItems() {
     const sysQtyText = it.sysQty === null ? '미등록' : it.sysQty;
     const matchBtn = it.sysQty !== null ? '<button class="quick-btn match" data-act="match">✓ 전산일치 (' + it.sysQty + ')</button>' : '<button class="quick-btn match" disabled style="opacity:0.5">일치(불가)</button>';
     
-    // 다른 조사자가 임시저장 중인 정보
     const dashKey = it.name + '|' + it.spec;
     const dashInfo = DASHBOARD[dashKey];
     let otherInfo = '';
     if (dashInfo && dashInfo.totalQty > 0) {
-      otherInfo = ' / 다른조사자 누적: <span class="other-qty">' + dashInfo.totalQty + '</span>';
+      otherInfo = ' / 누적입력: <span class="other-qty">' + dashInfo.totalQty + '</span>';
     }
     
-    // 메모 필수 여부
     const memoRequired = needsMemo(it);
     const memoEmpty = !it.memo || !it.memo.trim();
     const memoLabelCls = memoRequired ? 'memo-label required' : 'memo-label';
     const memoAreaCls = (memoRequired && memoEmpty) ? 'memo-area required-empty' : 'memo-area';
     
-    // 메모 프리셋 버튼
     let presetBtns = '';
     MEMO_PRESETS.forEach(preset => {
-      const active = (it.memo || '').includes(preset) ? ' active' : '';
+      const active = (it.memo || '').indexOf(preset) >= 0 ? ' active' : '';
       presetBtns += '<button class="memo-preset-btn' + active + '" data-preset="' + escapeHtml(preset) + '">' + escapeHtml(preset) + '</button>';
     });
     
@@ -603,7 +574,7 @@ function renderItems() {
       '</div>' +
       '<div class="expiry-row">' +
         '<label>📅 유통기한</label>' +
-        '<input type="text" inputmode="numeric" placeholder="예: 2026-12-31 또는 자유 입력" value="' + escapeHtml(it.expiry) + '">' +
+        '<input type="text" placeholder="예: 2026-12-31 또는 자유 입력" value="' + escapeHtml(it.expiry) + '">' +
       '</div>' +
       '<div class="row-actions">' +
         '<button class="row-collapse" data-act="collapse">' + (it._collapsed ? '🔽 펼치기' : '🔼 접기') + '</button>' +
@@ -638,13 +609,12 @@ function renderItems() {
         e.stopPropagation();
         const preset = btn.dataset.preset;
         const current = items[idx].memo || '';
-        if (current.includes(preset)) {
+        if (current.indexOf(preset) >= 0) {
           items[idx].memo = current.replace(preset, '').replace(/,\s*,/g, ',').replace(/^,\s*|\s*,$/g, '').trim();
         } else {
           items[idx].memo = current ? current + ', ' + preset : preset;
         }
-        renderItems();
-        saveLocal();
+        renderItems(); saveLocal();
       };
     });
     
@@ -657,21 +627,19 @@ function renderItems() {
     c.appendChild(div);
   });
   
-  document.getElementById('sumTotal').textContent = items.length;
-  document.getElementById('sumMatch').textContent = match;
-  document.getElementById('sumOver').textContent = over;
-  document.getElementById('sumShort').textContent = short;
-  document.getElementById('btnCount').textContent = items.length;
-  document.getElementById('draftCount').textContent = items.length;
+  $('sumTotal').textContent = items.length;
+  $('sumMatch').textContent = match;
+  $('sumOver').textContent = over;
+  $('sumShort').textContent = short;
+  $('btnCount').textContent = items.length;
+  $('draftCount').textContent = items.length;
 }
 
-// 계산기
-let calcExpr = '';
 function openCalc(idx) {
   calcTargetIdx = idx; calcExpr = '';
   const it = items[idx];
-  document.getElementById('calcContext').innerHTML = '<b>' + escapeHtml(it.name) + '</b><br>규격: ' + escapeHtml(it.spec) + ' / 단위: ' + escapeHtml(it.unit);
-  const presetsDiv = document.getElementById('calcPresets');
+  $('calcContext').innerHTML = '<b>' + escapeHtml(it.name) + '</b><br>규격: ' + escapeHtml(it.spec) + ' / 단위: ' + escapeHtml(it.unit);
+  const presetsDiv = $('calcPresets');
   presetsDiv.innerHTML = '';
   const presets = parseSpec(it.spec);
   presets.forEach(p => {
@@ -689,11 +657,11 @@ function openCalc(idx) {
     presetsDiv.innerHTML = '<div style="grid-column:span 2; padding:8px; background:#f8f9fa; border-radius:6px; font-size:12px; color:#666; text-align:center;">규격에서 환산을 추출하지 못했습니다.<br>아래 계산기로 직접 입력하세요.</div>';
   }
   updateCalcDisplay();
-  document.getElementById('calcModal').classList.add('show');
+  $('calcModal').classList.add('show');
 }
-function closeCalc() { document.getElementById('calcModal').classList.remove('show'); }
+function closeCalc() { $('calcModal').classList.remove('show'); }
 function updateCalcDisplay() {
-  document.getElementById('calcFormula').textContent = calcExpr.replace(/\*/g, '×').replace(/\//g, '÷') || '\u00A0';
+  $('calcFormula').textContent = calcExpr.replace(/\*/g, '×').replace(/\//g, '÷') || '\u00A0';
   let result = 0;
   try {
     if (calcExpr && /^[\d+\-*/.()  ]+$/.test(calcExpr)) {
@@ -701,10 +669,9 @@ function updateCalcDisplay() {
       if (!isFinite(result) || isNaN(result)) result = 0;
     }
   } catch (e) { result = 0; }
-  document.getElementById('calcResult').textContent = formatNum(result);
-  document.getElementById('calcResult').dataset.value = result;
+  $('calcResult').textContent = (Math.round(result * 100) / 100).toLocaleString('ko-KR');
+  $('calcResult').dataset.value = result;
 }
-function formatNum(n) { if (!isFinite(n)) return '0'; return (Math.round(n * 100) / 100).toLocaleString('ko-KR'); }
 document.querySelectorAll('.calc-grid button').forEach(btn => {
   btn.onclick = () => {
     const k = btn.dataset.k;
@@ -712,44 +679,47 @@ document.querySelectorAll('.calc-grid button').forEach(btn => {
     else if (k === '←') calcExpr = calcExpr.slice(0, -1);
     else if (k === '=') {
       updateCalcDisplay();
-      const val = parseFloat(document.getElementById('calcResult').dataset.value || '0');
-      calcExpr = String(val);
+      calcExpr = String(parseFloat($('calcResult').dataset.value || '0'));
     }
     else calcExpr += k;
     updateCalcDisplay();
   };
 });
-document.getElementById('calcApply').onclick = () => {
+$('calcApply').onclick = () => {
   updateCalcDisplay();
-  const val = parseFloat(document.getElementById('calcResult').dataset.value || '0');
+  const val = parseFloat($('calcResult').dataset.value || '0');
   if (calcTargetIdx >= 0) setQty(calcTargetIdx, val);
   closeCalc();
 };
+$('calcCloseBtn').onclick = closeCalc;
 
-// ===== 임시저장 =====
-document.getElementById('draftBtn').onclick = async () => {
-  const surveyor = document.getElementById('surveyor').value.trim();
+function showSuccess(title, htmlText) {
+  const t = $('successTitle'), x = $('successText'), m = $('successModal');
+  if (t) t.textContent = title;
+  if (x) x.innerHTML = htmlText;
+  if (m) m.classList.add('show');
+  else alert(title + '\n' + htmlText.replace(/<[^>]+>/g, ''));
+}
+function closeSuccess() { const m = $('successModal'); if (m) m.classList.remove('show'); }
+$('successCloseBtn').onclick = closeSuccess;
+$('successResetBtn').onclick = () => {
+  closeSuccess();
+  items = []; renderItems(); loadDashboard();
+  updateSaveStatus('cleared');
+};
+
+$('draftBtn').onclick = async () => {
+  const surveyor = $('surveyor').value.trim();
   if (!surveyor) { alert('조사자 이름을 입력하세요.'); return; }
   if (items.length === 0) { alert('품목을 1개 이상 추가하세요.'); return; }
-  
-  const btn = document.getElementById('draftBtn');
+  const btn = $('draftBtn');
   btn.disabled = true; btn.textContent = '임시저장 중...';
   try {
     await postData({ mode: 'draft', surveyor, items });
     items.forEach(it => { it._draftSubmitted = true; });
     saveLocal(true);
     renderItems();
-    
-    // 안전하게 요소 확인 후 설정
-    const titleEl = document.getElementById('successTitle');
-    const textEl = document.getElementById('successText');
-    const modalEl = document.getElementById('successModal');
-    
-    if (titleEl) titleEl.textContent = '💾 임시저장 완료';
-    if (textEl) textEl.innerHTML = items.length + '개 품목 임시저장 완료.<br>현황판에 반영되어 다른 조사자가 확인 가능합니다.<br><br>이상 없으면 <b>최종제출</b>을 눌러주세요.';
-    if (modalEl) modalEl.classList.add('show');
-    else alert('💾 임시저장 완료\n' + items.length + '개 품목이 임시저장되었습니다.');
-    
+    showSuccess('💾 임시저장 완료', items.length + '개 품목 임시저장 완료.<br>현황판에 반영되어 다른 조사자가 확인 가능합니다.<br><br>이상 없으면 <b>최종제출</b>을 눌러주세요.');
     setTimeout(loadDashboard, 1000);
   } catch (e) {
     alert('임시저장 실패: ' + e.message);
@@ -758,15 +728,13 @@ document.getElementById('draftBtn').onclick = async () => {
   }
 };
 
-// ===== 최종제출 =====
-document.getElementById('submitBtn').onclick = async () => {
-  const surveyor = document.getElementById('surveyor').value.trim();
+$('submitBtn').onclick = async () => {
+  const surveyor = $('surveyor').value.trim();
   if (!surveyor) { alert('조사자 이름을 입력하세요.'); return; }
   if (items.length === 0) { alert('품목을 1개 이상 추가하세요.'); return; }
-  
   const noMemo = items.filter(it => needsMemo(it) && (!it.memo || !it.memo.trim()));
   if (noMemo.length > 0) {
-    alert('차이가 발생한 ' + noMemo.length + '개 품목에 메모(사유)가 비어 있습니다.\n\n메모를 입력해주세요.\n(자주 쓰는 사유 버튼을 활용하세요)');
+    alert('차이가 발생한 ' + noMemo.length + '개 품목에 메모(사유)가 비어 있습니다.\n메모를 입력해주세요.');
     const idx = items.indexOf(noMemo[0]);
     items[idx]._collapsed = false;
     renderItems();
@@ -776,60 +744,16 @@ document.getElementById('submitBtn').onclick = async () => {
     }, 100);
     return;
   }
-  
   if (!confirm('최종제출 하시겠습니까?\n시트에 확정 저장되며 임시저장 내역은 제거됩니다.')) return;
-  
-  const btn = document.getElementById('submitBtn');
+  const btn = $('submitBtn');
   btn.disabled = true; btn.textContent = '제출 중...';
   try {
     await postData({ mode: 'final', surveyor, items });
-    
-    const titleEl = document.getElementById('successTitle');
-    const textEl = document.getElementById('successText');
-    const modalEl = document.getElementById('successModal');
-    
-    if (titleEl) titleEl.textContent = '✅ 최종제출 완료';
-    if (textEl) textEl.textContent = items.length + '개 품목이 실사결과 시트에 저장되었습니다.';
-    if (modalEl) modalEl.classList.add('show');
-    else alert('✅ 최종제출 완료\n' + items.length + '개 품목 저장됨');
-    
+    showSuccess('✅ 최종제출 완료', items.length + '개 품목이 실사결과 시트에 저장되었습니다.');
     localStorage.removeItem(DRAFT_KEY);
     setTimeout(loadDashboard, 1500);
   } catch (e) {
-    alert('제출 실패: ' + e.message + '\n\n입력한 데이터는 자동저장되어 있으니 다시 시도해 주세요.');
-  } finally {
-    btn.disabled = false; btn.textContent = '📤 최종제출 (' + items.length + '개)';
-  }
-};
-  
-  // 메모 필수 강제
-  const noMemo = items.filter(it => needsMemo(it) && (!it.memo || !it.memo.trim()));
-  if (noMemo.length > 0) {
-    alert('차이가 발생한 ' + noMemo.length + '개 품목에 메모(사유)가 비어 있습니다.\n\n메모를 입력해주세요.\n(자주 쓰는 사유 버튼을 활용하세요)');
-    // 첫 번째 누락 항목으로 스크롤
-    const idx = items.indexOf(noMemo[0]);
-    items[idx]._collapsed = false;
-    renderItems();
-    setTimeout(() => {
-      const el = document.querySelector('[data-idx="' + idx + '"] .memo-area');
-      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus(); }
-    }, 100);
-    return;
-  }
-  
-  if (!confirm('최종제출 하시겠습니까?\n시트에 확정 저장되며 임시저장 내역은 제거됩니다.')) return;
-  
-  const btn = document.getElementById('submitBtn');
-  btn.disabled = true; btn.textContent = '제출 중...';
-  try {
-    await postData({ mode: 'final', surveyor, items });
-    document.getElementById('successTitle').textContent = '✅ 최종제출 완료';
-    document.getElementById('successText').textContent = items.length + '개 품목이 실사결과 시트에 저장되었습니다.';
-    document.getElementById('successModal').classList.add('show');
-    localStorage.removeItem(DRAFT_KEY);
-    setTimeout(loadDashboard, 1500);
-  } catch (e) {
-    alert('제출 실패: ' + e.message + '\n\n입력한 데이터는 자동저장되어 있으니 다시 시도해 주세요.');
+    alert('제출 실패: ' + e.message + '\n입력 데이터는 자동저장되어 있으니 다시 시도해 주세요.');
   } finally {
     btn.disabled = false; btn.textContent = '📤 최종제출 (' + items.length + '개)';
   }
@@ -858,24 +782,16 @@ function postData(payload) {
   });
 }
 
-function closeSuccess() { document.getElementById('successModal').classList.remove('show'); }
-function resetAll() {
-  closeSuccess();
-  items = []; renderItems(); loadDashboard();
-  updateSaveStatus('cleared');
-}
-
-// 자동 저장
 let saveDebounce;
 function saveLocal(immediate) {
   clearTimeout(saveDebounce);
   const doSave = () => {
     try {
-      const surveyor = document.getElementById('surveyor').value;
+      const surveyor = $('surveyor').value;
       localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor, items, ts: Date.now() }));
       lastSavedAt = new Date();
       updateSaveStatus('saved');
-      const ind = document.getElementById('saveIndicator');
+      const ind = $('saveIndicator');
       ind.classList.add('show');
       clearTimeout(ind._t);
       ind._t = setTimeout(() => ind.classList.remove('show'), 1200);
@@ -886,9 +802,7 @@ function saveLocal(immediate) {
 }
 
 function updateSaveStatus(state) {
-  const el = document.getElementById('saveStatus');
-  const txt = document.getElementById('saveStatusText');
-  const time = document.getElementById('saveStatusTime');
+  const el = $('saveStatus'), txt = $('saveStatusText'), time = $('saveStatusTime');
   el.className = 'save-status';
   if (state === 'saving') { el.classList.add('saving'); txt.textContent = '💾 저장 중...'; }
   else if (state === 'saved') { el.classList.add('saved'); txt.textContent = '✅ 자동 저장됨'; }
@@ -898,27 +812,23 @@ function updateSaveStatus(state) {
   if (lastSavedAt) time.textContent = '마지막: ' + lastSavedAt.toLocaleTimeString('ko-KR');
 }
 
-document.getElementById('surveyor').addEventListener('input', () => saveLocal());
+$('surveyor').addEventListener('input', () => saveLocal());
 window.addEventListener('beforeunload', () => {
   try {
-    const surveyor = document.getElementById('surveyor').value;
+    const surveyor = $('surveyor').value;
     if (items.length > 0 || surveyor) localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor, items, ts: Date.now() }));
   } catch (e) {}
 });
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') {
     try {
-      const surveyor = document.getElementById('surveyor').value;
+      const surveyor = $('surveyor').value;
       if (items.length > 0 || surveyor) localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor, items, ts: Date.now() }));
     } catch (e) {}
   }
 });
 setInterval(() => { if (items.length > 0) saveLocal(true); }, 5000);
-
-// 현황판 자동 갱신
-setInterval(() => {
-  if (document.getElementById('dashPanel').classList.contains('show')) loadDashboard();
-}, 15000);
+setInterval(() => { if ($('dashPanel').classList.contains('show')) loadDashboard(); }, 15000);
 
 function checkRestore() {
   const raw = localStorage.getItem(DRAFT_KEY);
@@ -933,22 +843,22 @@ function checkRestore() {
     else if (minutesAgo < 60) timeStr = minutesAgo + '분 전';
     else if (minutesAgo < 1440) timeStr = Math.floor(minutesAgo / 60) + '시간 전';
     else timeStr = Math.floor(minutesAgo / 1440) + '일 전';
-    const area = document.getElementById('restoreArea');
+    const area = $('restoreArea');
     area.innerHTML = 
       '<div class="restore-banner">' +
       '<h3>💾 이전 입력 데이터가 있습니다</h3>' +
       '<div class="info">저장 시각: ' + savedDate.toLocaleString('ko-KR') + ' (' + timeStr + ')<br>조사자: <b>' + escapeHtml(d.surveyor || '미입력') + '</b><br>품목 수: <b>' + (d.items ? d.items.length : 0) + '개</b></div>' +
       '<div class="btn-row"><button class="btn-restore" id="btnRestore">📂 이어서 작업</button><button class="btn-discard" id="btnDiscard">🗑️ 새로 시작</button></div>' +
       '</div>';
-    document.getElementById('btnRestore').onclick = () => {
-      document.getElementById('surveyor').value = d.surveyor || '';
+    $('btnRestore').onclick = () => {
+      $('surveyor').value = d.surveyor || '';
       items = (d.items || []).map((it, i) => ({ ...it, _collapsed: i !== 0, _new: false }));
       renderItems();
       lastSavedAt = savedDate;
       updateSaveStatus('saved');
       area.innerHTML = '';
     };
-    document.getElementById('btnDiscard').onclick = () => {
+    $('btnDiscard').onclick = () => {
       if (confirm('이전 입력을 삭제할까요? 복구 불가합니다.')) {
         localStorage.removeItem(DRAFT_KEY);
         area.innerHTML = '';
@@ -958,14 +868,14 @@ function checkRestore() {
   } catch (e) {}
 }
 
-document.getElementById('dashToggle').onclick = () => {
-  const p = document.getElementById('dashPanel');
+$('dashToggle').onclick = () => {
+  const p = $('dashPanel');
   p.classList.toggle('show');
-  document.getElementById('dashToggle').textContent = p.classList.contains('show') ? '📊 현황 닫기' : '📊 전체 재고조사 현황 보기';
+  $('dashToggle').textContent = p.classList.contains('show') ? '📊 현황 닫기' : '📊 전체 재고조사 현황 보기';
   if (p.classList.contains('show')) loadDashboard();
 };
-document.getElementById('dashRefresh').onclick = loadDashboard;
-document.getElementById('dashSearch').addEventListener('input', renderDashboard);
+$('dashRefresh').onclick = loadDashboard;
+$('dashSearch').addEventListener('input', renderDashboard);
 document.querySelectorAll('.dash-filter button').forEach(btn => {
   btn.onclick = () => {
     document.querySelectorAll('.dash-filter button').forEach(b => b.classList.remove('active'));
@@ -974,10 +884,6 @@ document.querySelectorAll('.dash-filter button').forEach(btn => {
     renderDashboard();
   };
 });
-
-function escapeHtml(s) {
-  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
 
 loadProducts();
 updateSaveStatus('idle');
