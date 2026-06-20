@@ -9,19 +9,16 @@
   body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; margin: 0; padding: 0; background: #f5f6fa; color: #222; }
   h1 { font-size: 18px; margin: 10px; text-align: center; }
   
-  /* 상단 고정 영역 */
   .sticky-top { position: sticky; top: 0; z-index: 50; background: #f5f6fa; padding: 8px 10px; border-bottom: 2px solid #ddd; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
   .banner { padding: 8px; border-radius: 6px; text-align: center; font-weight: 600; margin-bottom: 6px; font-size: 13px; }
   .banner.loading { background: #fff3cd; color: #856404; }
   .banner.ok { background: #d4edda; color: #155724; }
   .banner.err { background: #f8d7da; color: #721c24; }
   
-  /* 자동 저장 상태 */
   .save-status { display: flex; justify-content: space-between; align-items: center; background: #e7f3ff; padding: 5px 8px; border-radius: 5px; font-size: 11px; margin-bottom: 6px; color: #004085; }
   .save-status.saving { background: #fff3cd; color: #856404; }
   .save-status.saved { background: #d4edda; color: #155724; }
   
-  /* 복원 알림 배너 */
   .restore-banner { background: #fff8e1; border: 2px solid #ffc107; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
   .restore-banner h3 { margin: 0 0 6px; font-size: 14px; color: #856404; }
   .restore-banner .info { font-size: 12px; color: #555; margin-bottom: 8px; }
@@ -51,12 +48,15 @@
   .dropdown-item .item-name { font-weight: 600; }
   .dropdown-item .item-meta { font-size: 12px; color: #666; margin-top: 3px; }
   .dropdown-item .item-extra { color: #b8860b; font-weight: 700; }
+  .dropdown-item .item-remain { color: #dc3545; font-weight: 700; }
+  .dropdown-item .item-done { color: #28a745; font-weight: 600; }
   .dropdown-item.unsurveyed { background: #fff5f5; border-left: 4px solid #dc3545; }
   .dropdown-item.unsurveyed .item-name::before { content: '🔴 '; }
-  .dropdown-item.surveyed { opacity: 0.6; }
-  .dropdown-item.surveyed .item-name::before { content: '✅ '; }
+  .dropdown-item.partial { background: #fff8e1; border-left: 4px solid #ffc107; }
+  .dropdown-item.partial .item-name::before { content: '🟡 '; }
+  .dropdown-item.fully-surveyed { opacity: 0.55; }
+  .dropdown-item.fully-surveyed .item-name::before { content: '✅ '; }
   
-  /* 본문 */
   .main { padding: 10px; }
   
   .dash-toggle { background: #17a2b8; color: #fff; padding: 10px; border-radius: 8px; text-align: center; font-weight: 700; cursor: pointer; margin-bottom: 8px; font-size: 14px; }
@@ -70,29 +70,31 @@
   .dash-table th { background: #f0f0f0; font-size: 10px; }
   .dash-row-done { color: #28a745; }
   .dash-row-todo { background: #fff5f5; color: #721c24; font-weight: 600; }
-  .dash-filter { display: flex; gap: 4px; margin-bottom: 6px; }
-  .dash-filter button { flex: 1; padding: 8px 4px; border: 1px solid #ccc; background: #fff; border-radius: 6px; font-size: 12px; }
+  .dash-row-partial { background: #fff8e1; color: #856404; }
+  .dash-filter { display: flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap; }
+  .dash-filter button { flex: 1; padding: 8px 4px; border: 1px solid #ccc; background: #fff; border-radius: 6px; font-size: 11px; min-width: 60px; }
   .dash-filter button.active { background: #007bff; color: #fff; border-color: #007bff; }
+  .draft-badge { display: inline-block; background: #ffc107; color: #000; font-size: 9px; padding: 1px 4px; border-radius: 3px; margin-left: 3px; font-weight: 700; }
   
-  /* 입력 행 */
   .item-row { background: #fff; border: 2px solid #007bff; border-radius: 10px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
   .item-row.extra { border-color: #b8860b; background: #fffbf0; }
+  .item-row.draft { border-color: #ffc107; }
   .item-row.new { animation: highlight 1.5s; }
   @keyframes highlight { 0% { background: #fff3cd; } 100% { background: #fff; } }
   
   .row-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; word-break: break-all; line-height: 1.3; }
   .type-tag { display: inline-block; background: #b8860b; color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-right: 4px; vertical-align: middle; }
+  .draft-tag { display: inline-block; background: #ffc107; color: #000; font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-right: 4px; vertical-align: middle; font-weight: 700; }
   .row-meta { font-size: 13px; color: #444; margin-bottom: 10px; background: #f8f9fa; padding: 6px 8px; border-radius: 6px; }
   .row-meta .sys-qty { font-size: 16px; font-weight: 700; color: #007bff; }
+  .row-meta .other-qty { color: #856404; font-weight: 700; }
   
-  /* 큰 수량 입력 */
   .qty-big-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
   .qty-btn-big { width: 60px; height: 60px; font-size: 28px; border: 2px solid #007bff; background: #fff; color: #007bff; border-radius: 10px; font-weight: 800; flex-shrink: 0; }
   .qty-btn-big:active { background: #007bff; color: #fff; }
   .qty-input-big { flex: 1; text-align: center; font-size: 26px; font-weight: 800; padding: 12px; border: 2px solid #007bff; border-radius: 10px; width: 100%; min-width: 0; }
   .qty-input-big:focus { border-color: #0056b3; background: #fffde7; outline: none; }
   
-  /* 빠른 버튼 */
   .quick-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 8px; }
   .quick-btn { padding: 10px 4px; font-size: 13px; font-weight: 700; border: 1px solid #ccc; background: #fff; border-radius: 6px; }
   .quick-btn:active { background: #e9ecef; }
@@ -107,32 +109,48 @@
   .diff-short { background: #f8d7da; color: #721c24; }
   .diff-na { background: #e2e3e5; color: #383d41; font-size: 12px; }
   
-  .memo-area { width: 100%; min-height: 50px; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 6px; margin-top: 8px; resize: vertical; }
+  .memo-section { margin-top: 8px; }
+  .memo-label { font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #555; }
+  .memo-label.required { color: #dc3545; }
+  .memo-label.required::after { content: ' *필수'; font-size: 11px; }
+  .memo-area { width: 100%; min-height: 50px; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 6px; resize: vertical; }
+  .memo-area.required-empty { border-color: #dc3545; background: #fff5f5; }
+  .memo-presets { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 4px; margin-bottom: 6px; }
+  .memo-preset-btn { padding: 8px; font-size: 12px; font-weight: 600; background: #e7f3ff; border: 1px solid #007bff; color: #007bff; border-radius: 6px; }
+  .memo-preset-btn:active { background: #007bff; color: #fff; }
+  .memo-preset-btn.active { background: #007bff; color: #fff; }
+  
+  .expiry-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+  .expiry-row label { font-size: 12px; font-weight: 700; white-space: nowrap; color: #555; }
+  .expiry-row input { flex: 1; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 6px; }
+  
   .row-actions { display: flex; gap: 6px; margin-top: 8px; }
   .row-remove { flex: 1; background: #dc3545; color: #fff; border: none; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 600; }
   .row-collapse { flex: 1; background: #6c757d; color: #fff; border: none; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 600; }
   
   .item-row.collapsed .qty-big-row,
   .item-row.collapsed .quick-btns,
-  .item-row.collapsed .memo-area,
+  .item-row.collapsed .memo-section,
+  .item-row.collapsed .expiry-row,
   .item-row.collapsed .row-meta { display: none; }
   .item-row.collapsed { padding: 10px; border-color: #ccc; }
   .item-row.collapsed .row-title { margin: 0; font-size: 14px; }
   .item-row.collapsed .row-actions { margin-top: 6px; }
   
-  /* 제출 버튼 (고정 해제) */
-  .submit-area { padding: 16px 10px 40px; }
+  .submit-area { padding: 16px 10px 40px; display: flex; flex-direction: column; gap: 8px; }
   button.primary { background: #007bff; color: #fff; border: none; padding: 16px; width: 100%; border-radius: 8px; font-size: 17px; font-weight: 700; }
   button.primary:disabled { background: #ccc; }
+  button.draft { background: #ffc107; color: #000; border: none; padding: 14px; width: 100%; border-radius: 8px; font-size: 15px; font-weight: 700; }
+  button.draft:disabled { background: #ccc; }
   
-  /* 모달 */
+  .submit-hint { background: #fff8e1; border: 1px solid #ffc107; padding: 8px; border-radius: 6px; font-size: 12px; color: #856404; text-align: center; margin-bottom: 4px; }
+  
   .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
   .modal-bg.show { display: flex; }
   .modal { background: #fff; border-radius: 12px; padding: 20px; max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto; }
   .modal h2 { margin: 0 0 12px; text-align: center; }
   .modal .close-btn { width: 100%; margin-top: 12px; padding: 12px; background: #6c757d; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; }
   
-  /* 계산기 */
   .calc-display { background: #f8f9fa; padding: 14px; border-radius: 8px; font-size: 22px; font-weight: 700; text-align: right; margin-bottom: 10px; min-height: 60px; word-break: break-all; }
   .calc-display .formula { font-size: 13px; color: #666; font-weight: 400; min-height: 18px; }
   .calc-display .result { font-size: 26px; color: #007bff; }
@@ -155,7 +173,6 @@
 
 <h1>📦 다이클로 센터 실사재고조사</h1>
 
-<!-- 상단 고정: 검색 + 요약 -->
 <div class="sticky-top">
   <div id="banner" class="banner loading">⏳ 로딩 중...</div>
   
@@ -183,7 +200,6 @@
 </div>
 
 <div class="main">
-  <!-- 복원 안내 영역 -->
   <div id="restoreArea"></div>
   
   <div class="dash-toggle" id="dashToggle">📊 전체 재고조사 현황 보기</div>
@@ -196,6 +212,7 @@
     <div class="dash-filter">
       <button class="active" data-filter="all">전체</button>
       <button data-filter="todo">미조사</button>
+      <button data-filter="partial">임시저장</button>
       <button data-filter="done">완료</button>
     </div>
     <input type="text" id="dashSearch" placeholder="🔍 품목 검색" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; margin-bottom:6px;">
@@ -210,22 +227,22 @@
   
   <div id="itemsContainer"></div>
   
-  <!-- 제출 버튼 (페이지 아래쪽 자연 위치) -->
   <div class="submit-area">
-    <button class="primary" id="submitBtn" disabled>📤 제출하기 (<span id="btnCount">0</span>개)</button>
+    <div class="submit-hint">💡 <b>임시저장</b>: 다른 조사자가 내 입력을 현황판에서 확인 가능. <b>최종제출</b>: 시트에 확정 저장.</div>
+    <button class="draft" id="draftBtn" disabled>💾 임시저장 (<span id="draftCount">0</span>개) - 현황판 공유</button>
+    <button class="primary" id="submitBtn" disabled>📤 최종제출 (<span id="btnCount">0</span>개)</button>
   </div>
 </div>
 
-<!-- 완료 모달 -->
 <div class="modal-bg" id="successModal">
   <div class="modal" style="text-align:center;">
-    <h2 style="color:#28a745">✅ 제출 완료</h2>
+    <h2 id="successTitle" style="color:#28a745">✅ 제출 완료</h2>
     <p id="successText"></p>
     <button class="primary" onclick="resetAll()">새로 입력하기</button>
+    <button class="close-btn" onclick="closeSuccess()">닫기</button>
   </div>
 </div>
 
-<!-- 계산기 모달 -->
 <div class="modal-bg" id="calcModal">
   <div class="modal">
     <h2>🧮 수량 계산기</h2>
@@ -240,22 +257,10 @@
       <button data-k="←">←</button>
       <button class="op" data-k="(">(</button>
       <button class="op" data-k=")">)</button>
-      <button data-k="7">7</button>
-      <button data-k="8">8</button>
-      <button data-k="9">9</button>
-      <button class="op" data-k="/">÷</button>
-      <button data-k="4">4</button>
-      <button data-k="5">5</button>
-      <button data-k="6">6</button>
-      <button class="op" data-k="*">×</button>
-      <button data-k="1">1</button>
-      <button data-k="2">2</button>
-      <button data-k="3">3</button>
-      <button class="op" data-k="-">−</button>
-      <button data-k="0">0</button>
-      <button data-k=".">.</button>
-      <button class="eq" data-k="=">=</button>
-      <button class="op" data-k="+">+</button>
+      <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button class="op" data-k="/">÷</button>
+      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button class="op" data-k="*">×</button>
+      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button class="op" data-k="-">−</button>
+      <button data-k="0">0</button><button data-k=".">.</button><button class="eq" data-k="=">=</button><button class="op" data-k="+">+</button>
     </div>
     <button class="calc-apply" id="calcApply">✅ 이 값으로 입력</button>
     <button class="close-btn" onclick="closeCalc()">취소</button>
@@ -265,8 +270,9 @@
 <div class="save-indicator" id="saveIndicator">💾 저장됨</div>
 
 <script>
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyXhkpC3W7wnEicqCVeEDUKjO26buHxrHSnncZ-NtXk-J7wFErSl8XKDp8FqBFHHDya/exec'; // ← 본인 URL로 교체
-const DRAFT_KEY = 'audit_draft_v2';
+const WEB_APP_URL = 'https://script.google.com/macros/library/d/18YCmWPFRWnu1Auitw9fVY7MIW0u-ENqzd-cPqh1kHuuEHOcnxkOoiXxh/4'; // ← 본인 URL로 교체
+const DRAFT_KEY = 'audit_draft_v3';
+const MEMO_PRESETS = ['추가 재고 확인', '실사재고 입력'];
 
 let SYS_PRODUCTS = [], EXTRA_PRODUCTS = [], DASHBOARD = {};
 let items = [];
@@ -274,7 +280,6 @@ let dashFilter = 'all';
 let calcTargetIdx = -1;
 let lastSavedAt = null;
 
-// ===== JSONP =====
 function jsonpRequest(url, timeout) {
   return new Promise((resolve, reject) => {
     const cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
@@ -298,12 +303,13 @@ async function loadProducts() {
     document.getElementById('banner').className = 'banner ok';
     document.getElementById('banner').textContent = '✅ 전산 ' + SYS_PRODUCTS.length + ' / 추가 ' + EXTRA_PRODUCTS.length + '개 로드';
     document.getElementById('submitBtn').disabled = false;
+    document.getElementById('draftBtn').disabled = false;
     await loadDashboard();
-    checkRestore();   // 데이터 로드 후 복원 확인
+    checkRestore();
   } catch (e) {
     document.getElementById('banner').className = 'banner err';
     document.getElementById('banner').textContent = '❌ ' + e.message;
-    checkRestore();   // 오프라인 상태에서도 복원 시도
+    checkRestore();
   }
 }
 
@@ -321,41 +327,59 @@ function renderDashboard() {
   const search = document.getElementById('dashSearch').value.toLowerCase();
   const tbody = document.getElementById('dashBody');
   tbody.innerHTML = '';
-  let total = 0, done = 0, todo = 0;
+  let total = 0, done = 0, todo = 0, partial = 0;
   const rows = [];
   SYS_PRODUCTS.forEach(p => {
     const key = p.name + '|' + p.spec;
     const d = DASHBOARD[key];
-    const isDone = d && d.totalQty > 0;
+    const totalQty = d ? d.totalQty : 0;
+    const draftQty = d ? d.draftQty : 0;
+    const isDone = totalQty > 0 && draftQty === 0;
+    const isPartial = draftQty > 0;
     total++;
-    if (isDone) done++; else todo++;
-    rows.push({ isDone, isExtra: false, name: p.name, spec: p.spec, sysQty: p.sysQty, totalQty: d ? d.totalQty : 0, surveyors: d ? d.surveyors : [] });
+    if (isPartial) partial++;
+    else if (isDone) done++;
+    else todo++;
+    rows.push({
+      status: isPartial ? 'partial' : (isDone ? 'done' : 'todo'),
+      isExtra: false, name: p.name, spec: p.spec,
+      sysQty: p.sysQty, totalQty, draftQty,
+      surveyors: d ? d.surveyors : []
+    });
   });
   Object.keys(DASHBOARD).forEach(key => {
     const d = DASHBOARD[key];
     if (d.type === '[전산재고 불확인]') {
       const inSys = SYS_PRODUCTS.some(p => (p.name + '|' + p.spec) === key);
-      if (!inSys) rows.push({ isDone: true, isExtra: true, name: d.name, spec: d.spec, sysQty: null, totalQty: d.totalQty, surveyors: d.surveyors });
+      if (!inSys) rows.push({
+        status: d.draftQty > 0 ? 'partial' : 'done',
+        isExtra: true, name: d.name, spec: d.spec,
+        sysQty: null, totalQty: d.totalQty, draftQty: d.draftQty,
+        surveyors: d.surveyors
+      });
     }
   });
   document.getElementById('dashTotal').textContent = total;
   document.getElementById('dashDone').textContent = done;
   document.getElementById('dashTodo').textContent = todo;
   rows.filter(r => {
-    if (dashFilter === 'todo' && r.isDone) return false;
-    if (dashFilter === 'done' && !r.isDone) return false;
+    if (dashFilter === 'todo' && r.status !== 'todo') return false;
+    if (dashFilter === 'done' && r.status !== 'done') return false;
+    if (dashFilter === 'partial' && r.status !== 'partial') return false;
     if (search && !(r.name + r.spec).toLowerCase().includes(search)) return false;
     return true;
   }).forEach(r => {
     const tr = document.createElement('tr');
-    tr.className = r.isDone ? 'dash-row-done' : 'dash-row-todo';
-    const status = r.isExtra ? '🟡' : (r.isDone ? '✅' : '🔴');
-    tr.innerHTML = '<td>' + status + '</td><td>' + escapeHtml(r.name) + '<br><small>' + escapeHtml(r.spec) + '</small></td><td>' + (r.sysQty === null ? '-' : r.sysQty) + '</td><td><b>' + r.totalQty + '</b></td>';
+    if (r.status === 'partial') tr.className = 'dash-row-partial';
+    else if (r.status === 'done') tr.className = 'dash-row-done';
+    else tr.className = 'dash-row-todo';
+    const icon = r.isExtra ? '🟡' : (r.status === 'partial' ? '🟡' : (r.status === 'done' ? '✅' : '🔴'));
+    const draftBadge = r.draftQty > 0 ? '<span class="draft-badge">임시 ' + r.draftQty + '</span>' : '';
+    tr.innerHTML = '<td>' + icon + '</td><td>' + escapeHtml(r.name) + '<br><small>' + escapeHtml(r.spec) + '</small></td><td>' + (r.sysQty === null ? '-' : r.sysQty) + '</td><td><b>' + r.totalQty + '</b>' + draftBadge + '</td>';
     tbody.appendChild(tr);
   });
 }
 
-// ===== 검색 =====
 const searchInput = document.getElementById('search');
 const searchList = document.getElementById('searchList');
 
@@ -364,14 +388,28 @@ function renderSearch() {
   const combined = [];
   SYS_PRODUCTS.forEach(p => {
     const key = p.name + '|' + p.spec;
-    const surveyed = DASHBOARD[key] && DASHBOARD[key].totalQty > 0;
-    combined.push({ ...p, isExtra: false, surveyed });
+    const d = DASHBOARD[key];
+    const surveyedQty = d ? d.totalQty : 0;
+    const remain = Math.max(0, (p.sysQty || 0) - surveyedQty);
+    let status = 'unsurveyed';
+    if (d && d.draftQty > 0) status = 'partial';
+    else if (surveyedQty >= p.sysQty && p.sysQty > 0) status = 'fully-surveyed';
+    combined.push({ ...p, isExtra: false, surveyedQty, remain, status });
   });
-  EXTRA_PRODUCTS.forEach(p => combined.push({ ...p, isExtra: true, surveyed: false }));
+  EXTRA_PRODUCTS.forEach(p => {
+    const key = p.name + '|' + p.spec;
+    const d = DASHBOARD[key];
+    combined.push({ ...p, isExtra: true, surveyedQty: d ? d.totalQty : 0, remain: null, status: 'extra' });
+  });
   
   const filtered = combined.filter(p => !q || (p.name + ' ' + p.spec).toLowerCase().includes(q));
   filtered.sort((a, b) => {
-    const score = x => x.isExtra ? 2 : (x.surveyed ? 1 : 0);
+    const score = x => {
+      if (x.isExtra) return 3;
+      if (x.status === 'fully-surveyed') return 2;
+      if (x.status === 'partial') return 1;
+      return 0;
+    };
     return score(a) - score(b);
   });
   const shown = filtered.slice(0, 200);
@@ -383,11 +421,22 @@ function renderSearch() {
       const div = document.createElement('div');
       let cls = 'dropdown-item';
       if (p.isExtra) cls += ' extra-item';
-      else if (p.surveyed) cls += ' surveyed';
+      else if (p.status === 'fully-surveyed') cls += ' fully-surveyed';
+      else if (p.status === 'partial') cls += ' partial';
       else cls += ' unsurveyed';
       div.className = cls;
+      
       let extraLabel = p.isExtra ? '<span class="item-extra">[전산재고 불확인]</span> ' : '';
-      div.innerHTML = '<div class="item-name">' + extraLabel + escapeHtml(p.name) + '</div><div class="item-meta">' + escapeHtml(p.spec) + ' / ' + escapeHtml(p.unit) + (p.isExtra ? '' : ' / 전산: <b>' + p.sysQty + '</b>') + '</div>';
+      let qtyInfo;
+      if (p.isExtra) {
+        qtyInfo = '입력: <b>' + p.surveyedQty + '</b>';
+      } else {
+        qtyInfo = '전산: <b>' + p.sysQty + '</b> / 입력: <b>' + p.surveyedQty + '</b> / 잔여: ';
+        if (p.remain === 0) qtyInfo += '<span class="item-done">완료</span>';
+        else qtyInfo += '<span class="item-remain">' + p.remain + '</span>';
+      }
+      
+      div.innerHTML = '<div class="item-name">' + extraLabel + escapeHtml(p.name) + '</div><div class="item-meta">' + escapeHtml(p.spec) + ' / ' + escapeHtml(p.unit) + '<br>' + qtyInfo + '</div>';
       div.addEventListener('mousedown', e => {
         e.preventDefault();
         addItem(p);
@@ -404,7 +453,6 @@ searchInput.addEventListener('focus', renderSearch);
 searchInput.addEventListener('input', renderSearch);
 searchInput.addEventListener('blur', () => setTimeout(() => searchList.classList.remove('show'), 200));
 
-// ===== 규격 파싱 =====
 function parseSpec(spec) {
   if (!spec) return [];
   const presets = [];
@@ -412,17 +460,16 @@ function parseSpec(spec) {
   const re1 = /(\d+(?:\.\d+)?)([A-Z가-힣]+)=([A-Z가-힣]+)/g;
   let m;
   while ((m = re1.exec(s)) !== null) {
-    presets.push({ label: '1' + m[3] + ' = ' + m[1] + m[2], multiplier: parseFloat(m[1]), fromUnit: m[3], toUnit: m[2] });
+    presets.push({ label: '1' + m[3] + ' = ' + m[1] + m[2], multiplier: parseFloat(m[1]) });
   }
   const re2 = /(\d+)([A-Z가-힣]+)\(?(\d+)([A-Z가-힣]+)\)?\*(\d+)([A-Z가-힣]+)=([A-Z가-힣]+)/g;
   while ((m = re2.exec(s)) !== null) {
     const total = parseFloat(m[3]) * parseFloat(m[5]);
-    presets.push({ label: '1' + m[7] + ' = ' + total + m[4], multiplier: total, fromUnit: m[7], toUnit: m[4] });
+    presets.push({ label: '1' + m[7] + ' = ' + total + m[4], multiplier: total });
   }
   return presets;
 }
 
-// ===== 입력 행 추가 =====
 function addItem(p) {
   if (items.find(it => it.name === p.name && it.spec === p.spec)) {
     const idx = items.findIndex(it => it.name === p.name && it.spec === p.spec);
@@ -431,16 +478,15 @@ function addItem(p) {
     setTimeout(() => focusQtyInput(idx), 80);
     return;
   }
-  
   items.forEach(it => it._collapsed = true);
   items.unshift({
     name: p.name, spec: p.spec, unit: p.unit,
     sysQty: p.isExtra ? null : p.sysQty,
     type: p.isExtra ? '[전산재고 불확인]' : '전산재고',
-    actualQty: 0, memo: '', _collapsed: false, _new: true
+    actualQty: 0, memo: '', expiry: '',
+    _collapsed: false, _new: true, _draftSubmitted: false
   });
   renderItems();
-  // 새 행의 수량 입력칸으로 자동 포커스 + 전체 선택
   setTimeout(() => focusQtyInput(0), 80);
   saveLocal(true);
 }
@@ -450,10 +496,7 @@ function focusQtyInput(idx) {
   if (!row) return;
   row.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const qty = row.querySelector('.qty-input-big');
-  if (qty) {
-    qty.focus();
-    try { qty.select(); } catch(e) {}
-  }
+  if (qty) { qty.focus(); try { qty.select(); } catch(e) {} }
 }
 
 function removeItem(idx) { items.splice(idx, 1); renderItems(); saveLocal(true); }
@@ -471,8 +514,14 @@ function setMatch(idx) {
     renderItems(); saveLocal(true);
   }
 }
-function setMemo(idx, val) { items[idx].memo = val; saveLocal(); }
+function setMemo(idx, val) { items[idx].memo = val; renderItems(); saveLocal(); }
+function setExpiry(idx, val) { items[idx].expiry = val; saveLocal(); }
 function toggleCollapse(idx) { items[idx]._collapsed = !items[idx]._collapsed; renderItems(); }
+
+function needsMemo(it) {
+  if (it.sysQty === null) return false;
+  return it.actualQty !== it.sysQty;
+}
 
 function renderItems() {
   const c = document.getElementById('itemsContainer');
@@ -481,7 +530,12 @@ function renderItems() {
   
   items.forEach((it, idx) => {
     const div = document.createElement('div');
-    div.className = 'item-row' + (it.type === '[전산재고 불확인]' ? ' extra' : '') + (it._collapsed ? ' collapsed' : '') + (it._new ? ' new' : '');
+    let rowCls = 'item-row';
+    if (it.type === '[전산재고 불확인]') rowCls += ' extra';
+    if (it._draftSubmitted) rowCls += ' draft';
+    if (it._collapsed) rowCls += ' collapsed';
+    if (it._new) rowCls += ' new';
+    div.className = rowCls;
     div.setAttribute('data-idx', idx);
     if (it._new) setTimeout(() => { it._new = false; }, 1500);
     
@@ -490,24 +544,41 @@ function renderItems() {
       diffHtml = '<div class="diff-box diff-na">📌 전산재고 미등록 (차이 산정 불가)</div>';
     } else {
       const diff = it.actualQty - it.sysQty;
-      if (diff === 0 && it.actualQty > 0) {
-        diffHtml = '<div class="diff-box diff-match">✅ 일치 (' + it.actualQty + ')</div>'; match++;
-      } else if (diff === 0) {
-        diffHtml = '<div class="diff-box diff-na">실사수량 입력 필요</div>';
-      } else if (diff > 0) {
-        diffHtml = '<div class="diff-box diff-over">📈 초과 +' + diff + '</div>'; over++;
-      } else {
-        diffHtml = '<div class="diff-box diff-short">📉 부족 ' + diff + '</div>'; short++;
-      }
+      if (diff === 0 && it.actualQty > 0) { diffHtml = '<div class="diff-box diff-match">✅ 일치 (' + it.actualQty + ')</div>'; match++; }
+      else if (diff === 0) { diffHtml = '<div class="diff-box diff-na">실사수량 입력 필요</div>'; }
+      else if (diff > 0) { diffHtml = '<div class="diff-box diff-over">📈 초과 +' + diff + '</div>'; over++; }
+      else { diffHtml = '<div class="diff-box diff-short">📉 부족 ' + diff + '</div>'; short++; }
     }
     
     const typeTag = it.type === '[전산재고 불확인]' ? '<span class="type-tag">불확인</span>' : '';
+    const draftTag = it._draftSubmitted ? '<span class="draft-tag">임시저장됨</span>' : '';
     const sysQtyText = it.sysQty === null ? '미등록' : it.sysQty;
     const matchBtn = it.sysQty !== null ? '<button class="quick-btn match" data-act="match">✓ 전산일치 (' + it.sysQty + ')</button>' : '<button class="quick-btn match" disabled style="opacity:0.5">일치(불가)</button>';
     
+    // 다른 조사자가 임시저장 중인 정보
+    const dashKey = it.name + '|' + it.spec;
+    const dashInfo = DASHBOARD[dashKey];
+    let otherInfo = '';
+    if (dashInfo && dashInfo.totalQty > 0) {
+      otherInfo = ' / 다른조사자 누적: <span class="other-qty">' + dashInfo.totalQty + '</span>';
+    }
+    
+    // 메모 필수 여부
+    const memoRequired = needsMemo(it);
+    const memoEmpty = !it.memo || !it.memo.trim();
+    const memoLabelCls = memoRequired ? 'memo-label required' : 'memo-label';
+    const memoAreaCls = (memoRequired && memoEmpty) ? 'memo-area required-empty' : 'memo-area';
+    
+    // 메모 프리셋 버튼
+    let presetBtns = '';
+    MEMO_PRESETS.forEach(preset => {
+      const active = (it.memo || '').includes(preset) ? ' active' : '';
+      presetBtns += '<button class="memo-preset-btn' + active + '" data-preset="' + escapeHtml(preset) + '">' + escapeHtml(preset) + '</button>';
+    });
+    
     div.innerHTML =
-      '<div class="row-title">' + typeTag + escapeHtml(it.name) + '</div>' +
-      '<div class="row-meta">' + escapeHtml(it.spec) + ' · ' + escapeHtml(it.unit) + ' · 전산: <span class="sys-qty">' + sysQtyText + '</span></div>' +
+      '<div class="row-title">' + typeTag + draftTag + escapeHtml(it.name) + '</div>' +
+      '<div class="row-meta">' + escapeHtml(it.spec) + ' · ' + escapeHtml(it.unit) + ' · 전산: <span class="sys-qty">' + sysQtyText + '</span>' + otherInfo + '</div>' +
       '<div class="qty-big-row">' +
         '<button class="qty-btn-big" data-act="minus">−</button>' +
         '<input type="number" inputmode="decimal" class="qty-input-big" value="' + it.actualQty + '" min="0">' +
@@ -525,7 +596,15 @@ function renderItems() {
         '<button class="quick-btn" data-act="p100">+100</button>' +
       '</div>' +
       diffHtml +
-      '<textarea class="memo-area" placeholder="메모 (차이 사유 등)">' + escapeHtml(it.memo) + '</textarea>' +
+      '<div class="memo-section">' +
+        '<div class="' + memoLabelCls + '">📝 메모' + (memoRequired ? ' (차이 발생 시 필수)' : '') + '</div>' +
+        '<div class="memo-presets">' + presetBtns + '</div>' +
+        '<textarea class="' + memoAreaCls + '" placeholder="차이 사유 또는 메모">' + escapeHtml(it.memo) + '</textarea>' +
+      '</div>' +
+      '<div class="expiry-row">' +
+        '<label>📅 유통기한</label>' +
+        '<input type="text" inputmode="numeric" placeholder="예: 2026-12-31 또는 자유 입력" value="' + escapeHtml(it.expiry) + '">' +
+      '</div>' +
       '<div class="row-actions">' +
         '<button class="row-collapse" data-act="collapse">' + (it._collapsed ? '🔽 펼치기' : '🔼 접기') + '</button>' +
         '<button class="row-remove" data-act="remove">🗑️ 삭제</button>' +
@@ -553,11 +632,27 @@ function renderItems() {
         else if (a === 'remove') { if (confirm('삭제하시겠습니까?')) removeItem(idx); }
       };
     });
+    
+    div.querySelectorAll('.memo-preset-btn').forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const preset = btn.dataset.preset;
+        const current = items[idx].memo || '';
+        if (current.includes(preset)) {
+          items[idx].memo = current.replace(preset, '').replace(/,\s*,/g, ',').replace(/^,\s*|\s*,$/g, '').trim();
+        } else {
+          items[idx].memo = current ? current + ', ' + preset : preset;
+        }
+        renderItems();
+        saveLocal();
+      };
+    });
+    
     const qtyInput = div.querySelector('.qty-input-big');
     qtyInput.onchange = (e) => setQty(idx, e.target.value);
-    // 포커스 시 전체 선택
     qtyInput.onfocus = (e) => { try { e.target.select(); } catch(err) {} };
     div.querySelector('.memo-area').oninput = (e) => setMemo(idx, e.target.value);
+    div.querySelector('.expiry-row input').oninput = (e) => setExpiry(idx, e.target.value);
     
     c.appendChild(div);
   });
@@ -567,13 +662,13 @@ function renderItems() {
   document.getElementById('sumOver').textContent = over;
   document.getElementById('sumShort').textContent = short;
   document.getElementById('btnCount').textContent = items.length;
+  document.getElementById('draftCount').textContent = items.length;
 }
 
-// ===== 계산기 =====
+// 계산기
 let calcExpr = '';
 function openCalc(idx) {
-  calcTargetIdx = idx;
-  calcExpr = '';
+  calcTargetIdx = idx; calcExpr = '';
   const it = items[idx];
   document.getElementById('calcContext').innerHTML = '<b>' + escapeHtml(it.name) + '</b><br>규격: ' + escapeHtml(it.spec) + ' / 단위: ' + escapeHtml(it.unit);
   const presetsDiv = document.getElementById('calcPresets');
@@ -609,10 +704,7 @@ function updateCalcDisplay() {
   document.getElementById('calcResult').textContent = formatNum(result);
   document.getElementById('calcResult').dataset.value = result;
 }
-function formatNum(n) {
-  if (!isFinite(n)) return '0';
-  return (Math.round(n * 100) / 100).toLocaleString('ko-KR');
-}
+function formatNum(n) { if (!isFinite(n)) return '0'; return (Math.round(n * 100) / 100).toLocaleString('ko-KR'); }
 document.querySelectorAll('.calc-grid button').forEach(btn => {
   btn.onclick = () => {
     const k = btn.dataset.k;
@@ -634,27 +726,67 @@ document.getElementById('calcApply').onclick = () => {
   closeCalc();
 };
 
-// ===== 제출 =====
+// ===== 임시저장 =====
+document.getElementById('draftBtn').onclick = async () => {
+  const surveyor = document.getElementById('surveyor').value.trim();
+  if (!surveyor) { alert('조사자 이름을 입력하세요.'); return; }
+  if (items.length === 0) { alert('품목을 1개 이상 추가하세요.'); return; }
+  
+  const btn = document.getElementById('draftBtn');
+  btn.disabled = true; btn.textContent = '임시저장 중...';
+  try {
+    await postData({ mode: 'draft', surveyor, items });
+    // 임시저장 표시
+    items.forEach(it => { it._draftSubmitted = true; });
+    saveLocal(true);
+    renderItems();
+    document.getElementById('successTitle').textContent = '💾 임시저장 완료';
+    document.getElementById('successText').innerHTML = items.length + '개 품목 임시저장 완료.<br>현황판에 반영되어 다른 조사자가 확인 가능합니다.<br><br>이상 없으면 <b>최종제출</b>을 눌러주세요.';
+    document.getElementById('successModal').classList.add('show');
+    setTimeout(loadDashboard, 1000);
+  } catch (e) {
+    alert('임시저장 실패: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = '💾 임시저장 (' + items.length + '개) - 현황판 공유';
+  }
+};
+
+// ===== 최종제출 =====
 document.getElementById('submitBtn').onclick = async () => {
   const surveyor = document.getElementById('surveyor').value.trim();
   if (!surveyor) { alert('조사자 이름을 입력하세요.'); return; }
   if (items.length === 0) { alert('품목을 1개 이상 추가하세요.'); return; }
-  const needMemo = items.filter(it => it.sysQty !== null && it.actualQty !== it.sysQty && !it.memo.trim());
-  if (needMemo.length > 0) {
-    if (!confirm('차이가 있는데 메모 없는 품목 ' + needMemo.length + '개. 그대로 제출할까요?')) return;
+  
+  // 메모 필수 강제
+  const noMemo = items.filter(it => needsMemo(it) && (!it.memo || !it.memo.trim()));
+  if (noMemo.length > 0) {
+    alert('차이가 발생한 ' + noMemo.length + '개 품목에 메모(사유)가 비어 있습니다.\n\n메모를 입력해주세요.\n(자주 쓰는 사유 버튼을 활용하세요)');
+    // 첫 번째 누락 항목으로 스크롤
+    const idx = items.indexOf(noMemo[0]);
+    items[idx]._collapsed = false;
+    renderItems();
+    setTimeout(() => {
+      const el = document.querySelector('[data-idx="' + idx + '"] .memo-area');
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus(); }
+    }, 100);
+    return;
   }
+  
+  if (!confirm('최종제출 하시겠습니까?\n시트에 확정 저장되며 임시저장 내역은 제거됩니다.')) return;
+  
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.textContent = '제출 중...';
   try {
-    await postData({ surveyor, items });
-    document.getElementById('successText').textContent = items.length + '개 품목 저장 완료';
+    await postData({ mode: 'final', surveyor, items });
+    document.getElementById('successTitle').textContent = '✅ 최종제출 완료';
+    document.getElementById('successText').textContent = items.length + '개 품목이 실사결과 시트에 저장되었습니다.';
     document.getElementById('successModal').classList.add('show');
     localStorage.removeItem(DRAFT_KEY);
     setTimeout(loadDashboard, 1500);
   } catch (e) {
     alert('제출 실패: ' + e.message + '\n\n입력한 데이터는 자동저장되어 있으니 다시 시도해 주세요.');
   } finally {
-    btn.disabled = false; btn.textContent = '📤 제출하기 (' + items.length + '개)';
+    btn.disabled = false; btn.textContent = '📤 최종제출 (' + items.length + '개)';
   }
 };
 
@@ -662,74 +794,50 @@ function postData(payload) {
   return new Promise((resolve, reject) => {
     const iframeName = 'pf_' + Date.now();
     const iframe = document.createElement('iframe');
-    iframe.name = iframeName;
-    iframe.style.display = 'none';
+    iframe.name = iframeName; iframe.style.display = 'none';
     document.body.appendChild(iframe);
-    
     const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = WEB_APP_URL;
-    form.target = iframeName;
-    // enctype 제거 (기본값 application/x-www-form-urlencoded 사용)
-    
-    // payload를 'data' 필드에 JSON 문자열로 담아 전송
+    form.method = 'POST'; form.action = WEB_APP_URL; form.target = iframeName;
     const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'data';
-    input.value = JSON.stringify(payload);
+    input.type = 'hidden'; input.name = 'data'; input.value = JSON.stringify(payload);
     form.appendChild(input);
     document.body.appendChild(form);
-    
     let done = false;
     iframe.onload = () => {
       if (done) return; done = true;
-      setTimeout(() => {
-        if (iframe.parentNode) document.body.removeChild(iframe);
-        if (form.parentNode) document.body.removeChild(form);
-      }, 100);
+      setTimeout(() => { if (iframe.parentNode) document.body.removeChild(iframe); if (form.parentNode) document.body.removeChild(form); }, 100);
       resolve();
     };
-    setTimeout(() => {
-      if (!done) { done = true; reject(new Error('타임아웃')); }
-    }, 30000);
+    setTimeout(() => { if (!done) { done = true; reject(new Error('타임아웃')); } }, 30000);
     form.submit();
   });
 }
 
+function closeSuccess() { document.getElementById('successModal').classList.remove('show'); }
 function resetAll() {
-  document.getElementById('successModal').classList.remove('show');
+  closeSuccess();
   items = []; renderItems(); loadDashboard();
   updateSaveStatus('cleared');
 }
 
-// ===== 자동 저장 (강화) =====
+// 자동 저장
 let saveDebounce;
 function saveLocal(immediate) {
-  // 디바운스 (immediate=true면 즉시)
   clearTimeout(saveDebounce);
   const doSave = () => {
     try {
       const surveyor = document.getElementById('surveyor').value;
-      const data = { surveyor, items, ts: Date.now() };
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor, items, ts: Date.now() }));
       lastSavedAt = new Date();
       updateSaveStatus('saved');
-      // 화면 우하단 인디케이터
       const ind = document.getElementById('saveIndicator');
       ind.classList.add('show');
       clearTimeout(ind._t);
       ind._t = setTimeout(() => ind.classList.remove('show'), 1200);
-    } catch (e) {
-      updateSaveStatus('error');
-      console.error('저장 실패', e);
-    }
+    } catch (e) { updateSaveStatus('error'); }
   };
-  if (immediate) {
-    doSave();
-  } else {
-    updateSaveStatus('saving');
-    saveDebounce = setTimeout(doSave, 400);  // 0.4초로 단축
-  }
+  if (immediate) doSave();
+  else { updateSaveStatus('saving'); saveDebounce = setTimeout(doSave, 400); }
 }
 
 function updateSaveStatus(state) {
@@ -737,64 +845,42 @@ function updateSaveStatus(state) {
   const txt = document.getElementById('saveStatusText');
   const time = document.getElementById('saveStatusTime');
   el.className = 'save-status';
-  if (state === 'saving') {
-    el.classList.add('saving');
-    txt.textContent = '💾 저장 중...';
-  } else if (state === 'saved') {
-    el.classList.add('saved');
-    txt.textContent = '✅ 자동 저장됨';
-  } else if (state === 'error') {
-    txt.textContent = '⚠️ 저장 오류';
-  } else if (state === 'cleared') {
-    txt.textContent = '💾 자동 저장: 대기 중';
-    time.textContent = '';
-    return;
-  } else {
-    txt.textContent = '💾 자동 저장: 대기 중';
-  }
-  if (lastSavedAt) {
-    time.textContent = '마지막 저장: ' + lastSavedAt.toLocaleTimeString('ko-KR');
-  }
+  if (state === 'saving') { el.classList.add('saving'); txt.textContent = '💾 저장 중...'; }
+  else if (state === 'saved') { el.classList.add('saved'); txt.textContent = '✅ 자동 저장됨'; }
+  else if (state === 'error') { txt.textContent = '⚠️ 저장 오류'; }
+  else if (state === 'cleared') { txt.textContent = '💾 자동 저장: 대기 중'; time.textContent = ''; return; }
+  else { txt.textContent = '💾 자동 저장: 대기 중'; }
+  if (lastSavedAt) time.textContent = '마지막: ' + lastSavedAt.toLocaleTimeString('ko-KR');
 }
 
-// 조사자 이름 변경 시 즉시 저장
 document.getElementById('surveyor').addEventListener('input', () => saveLocal());
-
-// 페이지 이탈/숨김 시 강제 저장 (배터리 방전 대비)
 window.addEventListener('beforeunload', () => {
   try {
     const surveyor = document.getElementById('surveyor').value;
-    if (items.length > 0 || surveyor) {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor, items, ts: Date.now() }));
-    }
+    if (items.length > 0 || surveyor) localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor, items, ts: Date.now() }));
   } catch (e) {}
 });
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') {
     try {
       const surveyor = document.getElementById('surveyor').value;
-      if (items.length > 0 || surveyor) {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor, items, ts: Date.now() }));
-      }
+      if (items.length > 0 || surveyor) localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor, items, ts: Date.now() }));
     } catch (e) {}
   }
 });
+setInterval(() => { if (items.length > 0) saveLocal(true); }, 5000);
 
-// 5초마다 백업 저장 (배터리 갑작스러운 종료 대비)
+// 현황판 자동 갱신
 setInterval(() => {
-  if (items.length > 0) saveLocal(true);
-}, 5000);
+  if (document.getElementById('dashPanel').classList.contains('show')) loadDashboard();
+}, 15000);
 
-// ===== 복원 =====
 function checkRestore() {
   const raw = localStorage.getItem(DRAFT_KEY);
   if (!raw) return;
   try {
     const d = JSON.parse(raw);
-    if (!d.items || d.items.length === 0) {
-      if (!d.surveyor) { localStorage.removeItem(DRAFT_KEY); return; }
-    }
-    
+    if ((!d.items || d.items.length === 0) && !d.surveyor) { localStorage.removeItem(DRAFT_KEY); return; }
     const savedDate = new Date(d.ts);
     const minutesAgo = Math.floor((Date.now() - d.ts) / 60000);
     let timeStr;
@@ -802,22 +888,13 @@ function checkRestore() {
     else if (minutesAgo < 60) timeStr = minutesAgo + '분 전';
     else if (minutesAgo < 1440) timeStr = Math.floor(minutesAgo / 60) + '시간 전';
     else timeStr = Math.floor(minutesAgo / 1440) + '일 전';
-    
     const area = document.getElementById('restoreArea');
     area.innerHTML = 
       '<div class="restore-banner">' +
       '<h3>💾 이전 입력 데이터가 있습니다</h3>' +
-      '<div class="info">' +
-      '저장 시각: ' + savedDate.toLocaleString('ko-KR') + ' (' + timeStr + ')<br>' +
-      '조사자: <b>' + escapeHtml(d.surveyor || '미입력') + '</b><br>' +
-      '품목 수: <b>' + (d.items ? d.items.length : 0) + '개</b>' +
-      '</div>' +
-      '<div class="btn-row">' +
-      '<button class="btn-restore" id="btnRestore">📂 이어서 작업</button>' +
-      '<button class="btn-discard" id="btnDiscard">🗑️ 새로 시작</button>' +
-      '</div>' +
+      '<div class="info">저장 시각: ' + savedDate.toLocaleString('ko-KR') + ' (' + timeStr + ')<br>조사자: <b>' + escapeHtml(d.surveyor || '미입력') + '</b><br>품목 수: <b>' + (d.items ? d.items.length : 0) + '개</b></div>' +
+      '<div class="btn-row"><button class="btn-restore" id="btnRestore">📂 이어서 작업</button><button class="btn-discard" id="btnDiscard">🗑️ 새로 시작</button></div>' +
       '</div>';
-    
     document.getElementById('btnRestore').onclick = () => {
       document.getElementById('surveyor').value = d.surveyor || '';
       items = (d.items || []).map((it, i) => ({ ...it, _collapsed: i !== 0, _new: false }));
@@ -827,16 +904,15 @@ function checkRestore() {
       area.innerHTML = '';
     };
     document.getElementById('btnDiscard').onclick = () => {
-      if (confirm('이전 입력 데이터를 삭제할까요? 복구 불가합니다.')) {
+      if (confirm('이전 입력을 삭제할까요? 복구 불가합니다.')) {
         localStorage.removeItem(DRAFT_KEY);
         area.innerHTML = '';
         updateSaveStatus('cleared');
       }
     };
-  } catch (e) { console.warn(e); }
+  } catch (e) {}
 }
 
-// ===== 대시보드 토글 =====
 document.getElementById('dashToggle').onclick = () => {
   const p = document.getElementById('dashPanel');
   p.classList.toggle('show');
@@ -853,9 +929,6 @@ document.querySelectorAll('.dash-filter button').forEach(btn => {
     renderDashboard();
   };
 });
-setInterval(() => {
-  if (document.getElementById('dashPanel').classList.contains('show')) loadDashboard();
-}, 15000);
 
 function escapeHtml(s) {
   return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
