@@ -6,7 +6,7 @@
 <title>다이클로 센터 실사재고조사</title>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; margin: 0; padding: 0; background: #f5f6fa; color: #222; padding-bottom: 100px; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; margin: 0; padding: 0; background: #f5f6fa; color: #222; }
   h1 { font-size: 18px; margin: 10px; text-align: center; }
   
   /* 상단 고정 영역 */
@@ -15,6 +15,20 @@
   .banner.loading { background: #fff3cd; color: #856404; }
   .banner.ok { background: #d4edda; color: #155724; }
   .banner.err { background: #f8d7da; color: #721c24; }
+  
+  /* 자동 저장 상태 */
+  .save-status { display: flex; justify-content: space-between; align-items: center; background: #e7f3ff; padding: 5px 8px; border-radius: 5px; font-size: 11px; margin-bottom: 6px; color: #004085; }
+  .save-status.saving { background: #fff3cd; color: #856404; }
+  .save-status.saved { background: #d4edda; color: #155724; }
+  
+  /* 복원 알림 배너 */
+  .restore-banner { background: #fff8e1; border: 2px solid #ffc107; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+  .restore-banner h3 { margin: 0 0 6px; font-size: 14px; color: #856404; }
+  .restore-banner .info { font-size: 12px; color: #555; margin-bottom: 8px; }
+  .restore-banner .btn-row { display: flex; gap: 6px; }
+  .restore-banner button { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 700; font-size: 13px; }
+  .restore-banner .btn-restore { background: #28a745; color: #fff; }
+  .restore-banner .btn-discard { background: #6c757d; color: #fff; }
   
   .surveyor-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
   .surveyor-row label { font-weight: 700; font-size: 13px; white-space: nowrap; }
@@ -76,6 +90,7 @@
   .qty-btn-big { width: 60px; height: 60px; font-size: 28px; border: 2px solid #007bff; background: #fff; color: #007bff; border-radius: 10px; font-weight: 800; flex-shrink: 0; }
   .qty-btn-big:active { background: #007bff; color: #fff; }
   .qty-input-big { flex: 1; text-align: center; font-size: 26px; font-weight: 800; padding: 12px; border: 2px solid #007bff; border-radius: 10px; width: 100%; min-width: 0; }
+  .qty-input-big:focus { border-color: #0056b3; background: #fffde7; outline: none; }
   
   /* 빠른 버튼 */
   .quick-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 8px; }
@@ -105,9 +120,9 @@
   .item-row.collapsed .row-title { margin: 0; font-size: 14px; }
   .item-row.collapsed .row-actions { margin-top: 6px; }
   
-  /* 하단 고정 버튼 */
-  .bottom-fixed { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 10px; border-top: 2px solid #ddd; z-index: 90; box-shadow: 0 -2px 6px rgba(0,0,0,0.1); }
-  button.primary { background: #007bff; color: #fff; border: none; padding: 14px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: 700; }
+  /* 제출 버튼 (고정 해제) */
+  .submit-area { padding: 16px 10px 40px; }
+  button.primary { background: #007bff; color: #fff; border: none; padding: 16px; width: 100%; border-radius: 8px; font-size: 17px; font-weight: 700; }
   button.primary:disabled { background: #ccc; }
   
   /* 모달 */
@@ -132,7 +147,7 @@
   .calc-grid .clr { background: #dc3545; color: #fff; }
   .calc-apply { width: 100%; padding: 14px; background: #007bff; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; }
   
-  .save-indicator { position: fixed; bottom: 80px; right: 10px; background: rgba(0,0,0,0.7); color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 12px; opacity: 0; transition: opacity 0.3s; z-index: 999; }
+  .save-indicator { position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.75); color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 13px; opacity: 0; transition: opacity 0.3s; z-index: 999; pointer-events: none; }
   .save-indicator.show { opacity: 1; }
 </style>
 </head>
@@ -143,6 +158,11 @@
 <!-- 상단 고정: 검색 + 요약 -->
 <div class="sticky-top">
   <div id="banner" class="banner loading">⏳ 로딩 중...</div>
+  
+  <div class="save-status" id="saveStatus">
+    <span id="saveStatusText">💾 자동 저장: 대기 중</span>
+    <span id="saveStatusTime"></span>
+  </div>
   
   <div class="surveyor-row">
     <label>조사자</label>
@@ -163,6 +183,9 @@
 </div>
 
 <div class="main">
+  <!-- 복원 안내 영역 -->
+  <div id="restoreArea"></div>
+  
   <div class="dash-toggle" id="dashToggle">📊 전체 재고조사 현황 보기</div>
   <div class="dash-panel" id="dashPanel">
     <div class="dash-stats">
@@ -186,10 +209,11 @@
   </div>
   
   <div id="itemsContainer"></div>
-</div>
-
-<div class="bottom-fixed">
-  <button class="primary" id="submitBtn" disabled>📤 제출하기 (<span id="btnCount">0</span>개)</button>
+  
+  <!-- 제출 버튼 (페이지 아래쪽 자연 위치) -->
+  <div class="submit-area">
+    <button class="primary" id="submitBtn" disabled>📤 제출하기 (<span id="btnCount">0</span>개)</button>
+  </div>
 </div>
 
 <!-- 완료 모달 -->
@@ -210,9 +234,7 @@
       <div class="formula" id="calcFormula">&nbsp;</div>
       <div class="result" id="calcResult">0</div>
     </div>
-    
     <div id="calcPresets" class="calc-presets"></div>
-    
     <div class="calc-grid">
       <button class="clr" data-k="C">C</button>
       <button data-k="←">←</button>
@@ -240,15 +262,17 @@
   </div>
 </div>
 
-<div class="save-indicator" id="saveIndicator">💾 자동 저장됨</div>
+<div class="save-indicator" id="saveIndicator">💾 저장됨</div>
 
 <script>
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyXhkpC3W7wnEicqCVeEDUKjO26buHxrHSnncZ-NtXk-J7wFErSl8XKDp8FqBFHHDya/exec'; // ← 본인 URL로 교체
+const DRAFT_KEY = 'audit_draft_v2';
 
 let SYS_PRODUCTS = [], EXTRA_PRODUCTS = [], DASHBOARD = {};
 let items = [];
 let dashFilter = 'all';
 let calcTargetIdx = -1;
+let lastSavedAt = null;
 
 // ===== JSONP =====
 function jsonpRequest(url, timeout) {
@@ -275,10 +299,11 @@ async function loadProducts() {
     document.getElementById('banner').textContent = '✅ 전산 ' + SYS_PRODUCTS.length + ' / 추가 ' + EXTRA_PRODUCTS.length + '개 로드';
     document.getElementById('submitBtn').disabled = false;
     await loadDashboard();
-    restoreLocal();
+    checkRestore();   // 데이터 로드 후 복원 확인
   } catch (e) {
     document.getElementById('banner').className = 'banner err';
     document.getElementById('banner').textContent = '❌ ' + e.message;
+    checkRestore();   // 오프라인 상태에서도 복원 시도
   }
 }
 
@@ -379,68 +404,59 @@ searchInput.addEventListener('focus', renderSearch);
 searchInput.addEventListener('input', renderSearch);
 searchInput.addEventListener('blur', () => setTimeout(() => searchList.classList.remove('show'), 200));
 
-// ===== 규격 파싱 (계산기 프리셋용) =====
-// 예: "25EA=BOX", "1PAK(100EA)*10PAK=BOX" 같은 문자열에서 환산 단위 추출
+// ===== 규격 파싱 =====
 function parseSpec(spec) {
   if (!spec) return [];
   const presets = [];
   const s = String(spec).toUpperCase().replace(/\s/g, '');
-  
-  // 패턴 1: 숫자+단위=단위  예) 25EA=BOX, 12개=박스
   const re1 = /(\d+(?:\.\d+)?)([A-Z가-힣]+)=([A-Z가-힣]+)/g;
   let m;
   while ((m = re1.exec(s)) !== null) {
     presets.push({ label: '1' + m[3] + ' = ' + m[1] + m[2], multiplier: parseFloat(m[1]), fromUnit: m[3], toUnit: m[2] });
   }
-  
-  // 패턴 2: 숫자+단위*숫자+단위=단위  예) 1PAK(100EA)*10PAK=BOX
   const re2 = /(\d+)([A-Z가-힣]+)\(?(\d+)([A-Z가-힣]+)\)?\*(\d+)([A-Z가-힣]+)=([A-Z가-힣]+)/g;
   while ((m = re2.exec(s)) !== null) {
     const total = parseFloat(m[3]) * parseFloat(m[5]);
     presets.push({ label: '1' + m[7] + ' = ' + total + m[4], multiplier: total, fromUnit: m[7], toUnit: m[4] });
   }
-  
   return presets;
 }
 
 // ===== 입력 행 추가 =====
 function addItem(p) {
   if (items.find(it => it.name === p.name && it.spec === p.spec)) {
-    // 이미 있으면 해당 행으로 스크롤
     const idx = items.findIndex(it => it.name === p.name && it.spec === p.spec);
-    const el = document.querySelector('[data-idx="' + idx + '"]');
-    if (el) {
-      el.classList.remove('collapsed');
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('new');
-      setTimeout(() => el.classList.remove('new'), 1500);
-    }
+    items[idx]._collapsed = false;
+    renderItems();
+    setTimeout(() => focusQtyInput(idx), 80);
     return;
   }
   
-  // 기존 행은 자동 접기 (한 화면에 작업 중인 것만 펼침)
   items.forEach(it => it._collapsed = true);
-  
-  items.unshift({  // 맨 앞에 추가
+  items.unshift({
     name: p.name, spec: p.spec, unit: p.unit,
     sysQty: p.isExtra ? null : p.sysQty,
     type: p.isExtra ? '[전산재고 불확인]' : '전산재고',
     actualQty: 0, memo: '', _collapsed: false, _new: true
   });
   renderItems();
-  // 새 행이 화면 중앙에 보이게
-  setTimeout(() => {
-    const first = document.querySelector('.item-row');
-    if (first) first.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 50);
-  saveLocal();
+  // 새 행의 수량 입력칸으로 자동 포커스 + 전체 선택
+  setTimeout(() => focusQtyInput(0), 80);
+  saveLocal(true);
 }
 
-function removeItem(idx) {
-  items.splice(idx, 1);
-  renderItems();
-  saveLocal();
+function focusQtyInput(idx) {
+  const row = document.querySelector('[data-idx="' + idx + '"]');
+  if (!row) return;
+  row.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const qty = row.querySelector('.qty-input-big');
+  if (qty) {
+    qty.focus();
+    try { qty.select(); } catch(e) {}
+  }
 }
+
+function removeItem(idx) { items.splice(idx, 1); renderItems(); saveLocal(true); }
 function changeQty(idx, delta) {
   items[idx].actualQty = Math.max(0, Math.round(((items[idx].actualQty || 0) + delta) * 100) / 100);
   renderItems(); saveLocal();
@@ -452,14 +468,11 @@ function setQty(idx, val) {
 function setMatch(idx) {
   if (items[idx].sysQty !== null) {
     items[idx].actualQty = items[idx].sysQty;
-    renderItems(); saveLocal();
+    renderItems(); saveLocal(true);
   }
 }
 function setMemo(idx, val) { items[idx].memo = val; saveLocal(); }
-function toggleCollapse(idx) {
-  items[idx]._collapsed = !items[idx]._collapsed;
-  renderItems();
-}
+function toggleCollapse(idx) { items[idx]._collapsed = !items[idx]._collapsed; renderItems(); }
 
 function renderItems() {
   const c = document.getElementById('itemsContainer');
@@ -518,7 +531,6 @@ function renderItems() {
         '<button class="row-remove" data-act="remove">🗑️ 삭제</button>' +
       '</div>';
     
-    // 접힌 상태에서는 제목 클릭 시 펼침
     if (it._collapsed) {
       div.querySelector('.row-title').style.cursor = 'pointer';
       div.querySelector('.row-title').onclick = () => toggleCollapse(idx);
@@ -541,7 +553,10 @@ function renderItems() {
         else if (a === 'remove') { if (confirm('삭제하시겠습니까?')) removeItem(idx); }
       };
     });
-    div.querySelector('.qty-input-big').onchange = (e) => setQty(idx, e.target.value);
+    const qtyInput = div.querySelector('.qty-input-big');
+    qtyInput.onchange = (e) => setQty(idx, e.target.value);
+    // 포커스 시 전체 선택
+    qtyInput.onfocus = (e) => { try { e.target.select(); } catch(err) {} };
     div.querySelector('.memo-area').oninput = (e) => setMemo(idx, e.target.value);
     
     c.appendChild(div);
@@ -560,10 +575,7 @@ function openCalc(idx) {
   calcTargetIdx = idx;
   calcExpr = '';
   const it = items[idx];
-  document.getElementById('calcContext').innerHTML = 
-    '<b>' + escapeHtml(it.name) + '</b><br>규격: ' + escapeHtml(it.spec) + ' / 단위: ' + escapeHtml(it.unit);
-  
-  // 프리셋 생성
+  document.getElementById('calcContext').innerHTML = '<b>' + escapeHtml(it.name) + '</b><br>규격: ' + escapeHtml(it.spec) + ' / 단위: ' + escapeHtml(it.unit);
   const presetsDiv = document.getElementById('calcPresets');
   presetsDiv.innerHTML = '';
   const presets = parseSpec(it.spec);
@@ -572,36 +584,24 @@ function openCalc(idx) {
     b.className = 'calc-preset-btn';
     b.innerHTML = '💡 ' + p.label + '<br><small>× ' + p.multiplier + ' 적용</small>';
     b.onclick = () => {
-      // 현재 expr 끝에 *multiplier 추가 (또는 그냥 곱하기)
-      if (calcExpr === '' || /[+\-*/(]$/.test(calcExpr)) {
-        calcExpr += p.multiplier;
-      } else {
-        calcExpr += '*' + p.multiplier;
-      }
+      if (calcExpr === '' || /[+\-*/(]$/.test(calcExpr)) calcExpr += p.multiplier;
+      else calcExpr += '*' + p.multiplier;
       updateCalcDisplay();
     };
     presetsDiv.appendChild(b);
   });
-  
-  // 복합 계산 예시 안내
   if (presets.length === 0) {
-    presetsDiv.innerHTML = '<div style="grid-column:span 2; padding:8px; background:#f8f9fa; border-radius:6px; font-size:12px; color:#666; text-align:center;">규격에서 환산 단위를 자동 추출하지 못했습니다.<br>아래 계산기로 직접 입력하세요.<br>예: 9 × 7 × 8 × 25 = 12,600</div>';
+    presetsDiv.innerHTML = '<div style="grid-column:span 2; padding:8px; background:#f8f9fa; border-radius:6px; font-size:12px; color:#666; text-align:center;">규격에서 환산을 추출하지 못했습니다.<br>아래 계산기로 직접 입력하세요.</div>';
   }
-  
   updateCalcDisplay();
   document.getElementById('calcModal').classList.add('show');
 }
-
-function closeCalc() {
-  document.getElementById('calcModal').classList.remove('show');
-}
-
+function closeCalc() { document.getElementById('calcModal').classList.remove('show'); }
 function updateCalcDisplay() {
   document.getElementById('calcFormula').textContent = calcExpr.replace(/\*/g, '×').replace(/\//g, '÷') || '\u00A0';
   let result = 0;
   try {
     if (calcExpr && /^[\d+\-*/.()  ]+$/.test(calcExpr)) {
-      // eslint-disable-next-line
       result = Function('"use strict"; return (' + calcExpr + ')')();
       if (!isFinite(result) || isNaN(result)) result = 0;
     }
@@ -609,13 +609,10 @@ function updateCalcDisplay() {
   document.getElementById('calcResult').textContent = formatNum(result);
   document.getElementById('calcResult').dataset.value = result;
 }
-
 function formatNum(n) {
   if (!isFinite(n)) return '0';
-  const rounded = Math.round(n * 100) / 100;
-  return rounded.toLocaleString('ko-KR');
+  return (Math.round(n * 100) / 100).toLocaleString('ko-KR');
 }
-
 document.querySelectorAll('.calc-grid button').forEach(btn => {
   btn.onclick = () => {
     const k = btn.dataset.k;
@@ -630,13 +627,10 @@ document.querySelectorAll('.calc-grid button').forEach(btn => {
     updateCalcDisplay();
   };
 });
-
 document.getElementById('calcApply').onclick = () => {
   updateCalcDisplay();
   const val = parseFloat(document.getElementById('calcResult').dataset.value || '0');
-  if (calcTargetIdx >= 0) {
-    setQty(calcTargetIdx, val);
-  }
+  if (calcTargetIdx >= 0) setQty(calcTargetIdx, val);
   closeCalc();
 };
 
@@ -655,10 +649,10 @@ document.getElementById('submitBtn').onclick = async () => {
     await postData({ surveyor, items });
     document.getElementById('successText').textContent = items.length + '개 품목 저장 완료';
     document.getElementById('successModal').classList.add('show');
-    localStorage.removeItem('audit_draft');
+    localStorage.removeItem(DRAFT_KEY);
     setTimeout(loadDashboard, 1500);
   } catch (e) {
-    alert('제출 실패: ' + e.message);
+    alert('제출 실패: ' + e.message + '\n\n입력한 데이터는 자동저장되어 있으니 다시 시도해 주세요.');
   } finally {
     btn.disabled = false; btn.textContent = '📤 제출하기 (' + items.length + '개)';
   }
@@ -690,37 +684,141 @@ function postData(payload) {
 function resetAll() {
   document.getElementById('successModal').classList.remove('show');
   items = []; renderItems(); loadDashboard();
+  updateSaveStatus('cleared');
 }
 
-// ===== 자동 저장 =====
-let saveTimer;
-function saveLocal() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
+// ===== 자동 저장 (강화) =====
+let saveDebounce;
+function saveLocal(immediate) {
+  // 디바운스 (immediate=true면 즉시)
+  clearTimeout(saveDebounce);
+  const doSave = () => {
+    try {
+      const surveyor = document.getElementById('surveyor').value;
+      const data = { surveyor, items, ts: Date.now() };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+      lastSavedAt = new Date();
+      updateSaveStatus('saved');
+      // 화면 우하단 인디케이터
+      const ind = document.getElementById('saveIndicator');
+      ind.classList.add('show');
+      clearTimeout(ind._t);
+      ind._t = setTimeout(() => ind.classList.remove('show'), 1200);
+    } catch (e) {
+      updateSaveStatus('error');
+      console.error('저장 실패', e);
+    }
+  };
+  if (immediate) {
+    doSave();
+  } else {
+    updateSaveStatus('saving');
+    saveDebounce = setTimeout(doSave, 400);  // 0.4초로 단축
+  }
+}
+
+function updateSaveStatus(state) {
+  const el = document.getElementById('saveStatus');
+  const txt = document.getElementById('saveStatusText');
+  const time = document.getElementById('saveStatusTime');
+  el.className = 'save-status';
+  if (state === 'saving') {
+    el.classList.add('saving');
+    txt.textContent = '💾 저장 중...';
+  } else if (state === 'saved') {
+    el.classList.add('saved');
+    txt.textContent = '✅ 자동 저장됨';
+  } else if (state === 'error') {
+    txt.textContent = '⚠️ 저장 오류';
+  } else if (state === 'cleared') {
+    txt.textContent = '💾 자동 저장: 대기 중';
+    time.textContent = '';
+    return;
+  } else {
+    txt.textContent = '💾 자동 저장: 대기 중';
+  }
+  if (lastSavedAt) {
+    time.textContent = '마지막 저장: ' + lastSavedAt.toLocaleTimeString('ko-KR');
+  }
+}
+
+// 조사자 이름 변경 시 즉시 저장
+document.getElementById('surveyor').addEventListener('input', () => saveLocal());
+
+// 페이지 이탈/숨김 시 강제 저장 (배터리 방전 대비)
+window.addEventListener('beforeunload', () => {
+  try {
     const surveyor = document.getElementById('surveyor').value;
-    localStorage.setItem('audit_draft', JSON.stringify({ surveyor, items, ts: Date.now() }));
-    const ind = document.getElementById('saveIndicator');
-    ind.classList.add('show');
-    setTimeout(() => ind.classList.remove('show'), 1200);
-  }, 800);
-}
-document.getElementById('surveyor').addEventListener('input', saveLocal);
+    if (items.length > 0 || surveyor) {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor, items, ts: Date.now() }));
+    }
+  } catch (e) {}
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    try {
+      const surveyor = document.getElementById('surveyor').value;
+      if (items.length > 0 || surveyor) {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor, items, ts: Date.now() }));
+      }
+    } catch (e) {}
+  }
+});
 
-function restoreLocal() {
-  const raw = localStorage.getItem('audit_draft');
+// 5초마다 백업 저장 (배터리 갑작스러운 종료 대비)
+setInterval(() => {
+  if (items.length > 0) saveLocal(true);
+}, 5000);
+
+// ===== 복원 =====
+function checkRestore() {
+  const raw = localStorage.getItem(DRAFT_KEY);
   if (!raw) return;
   try {
     const d = JSON.parse(raw);
-    if (d.items && d.items.length > 0) {
-      if (confirm('이전 입력(' + d.items.length + '개)을 불러올까요?')) {
-        document.getElementById('surveyor').value = d.surveyor || '';
-        items = d.items.map(it => ({ ...it, _collapsed: false }));
-        renderItems();
-      } else {
-        localStorage.removeItem('audit_draft');
-      }
+    if (!d.items || d.items.length === 0) {
+      if (!d.surveyor) { localStorage.removeItem(DRAFT_KEY); return; }
     }
-  } catch (e) {}
+    
+    const savedDate = new Date(d.ts);
+    const minutesAgo = Math.floor((Date.now() - d.ts) / 60000);
+    let timeStr;
+    if (minutesAgo < 1) timeStr = '방금 전';
+    else if (minutesAgo < 60) timeStr = minutesAgo + '분 전';
+    else if (minutesAgo < 1440) timeStr = Math.floor(minutesAgo / 60) + '시간 전';
+    else timeStr = Math.floor(minutesAgo / 1440) + '일 전';
+    
+    const area = document.getElementById('restoreArea');
+    area.innerHTML = 
+      '<div class="restore-banner">' +
+      '<h3>💾 이전 입력 데이터가 있습니다</h3>' +
+      '<div class="info">' +
+      '저장 시각: ' + savedDate.toLocaleString('ko-KR') + ' (' + timeStr + ')<br>' +
+      '조사자: <b>' + escapeHtml(d.surveyor || '미입력') + '</b><br>' +
+      '품목 수: <b>' + (d.items ? d.items.length : 0) + '개</b>' +
+      '</div>' +
+      '<div class="btn-row">' +
+      '<button class="btn-restore" id="btnRestore">📂 이어서 작업</button>' +
+      '<button class="btn-discard" id="btnDiscard">🗑️ 새로 시작</button>' +
+      '</div>' +
+      '</div>';
+    
+    document.getElementById('btnRestore').onclick = () => {
+      document.getElementById('surveyor').value = d.surveyor || '';
+      items = (d.items || []).map((it, i) => ({ ...it, _collapsed: i !== 0, _new: false }));
+      renderItems();
+      lastSavedAt = savedDate;
+      updateSaveStatus('saved');
+      area.innerHTML = '';
+    };
+    document.getElementById('btnDiscard').onclick = () => {
+      if (confirm('이전 입력 데이터를 삭제할까요? 복구 불가합니다.')) {
+        localStorage.removeItem(DRAFT_KEY);
+        area.innerHTML = '';
+        updateSaveStatus('cleared');
+      }
+    };
+  } catch (e) { console.warn(e); }
 }
 
 // ===== 대시보드 토글 =====
@@ -749,6 +847,7 @@ function escapeHtml(s) {
 }
 
 loadProducts();
+updateSaveStatus('idle');
 </script>
 </body>
 </html>
