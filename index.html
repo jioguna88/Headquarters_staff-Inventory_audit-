@@ -736,13 +736,20 @@ document.getElementById('draftBtn').onclick = async () => {
   btn.disabled = true; btn.textContent = '임시저장 중...';
   try {
     await postData({ mode: 'draft', surveyor, items });
-    // 임시저장 표시
     items.forEach(it => { it._draftSubmitted = true; });
     saveLocal(true);
     renderItems();
-    document.getElementById('successTitle').textContent = '💾 임시저장 완료';
-    document.getElementById('successText').innerHTML = items.length + '개 품목 임시저장 완료.<br>현황판에 반영되어 다른 조사자가 확인 가능합니다.<br><br>이상 없으면 <b>최종제출</b>을 눌러주세요.';
-    document.getElementById('successModal').classList.add('show');
+    
+    // 안전하게 요소 확인 후 설정
+    const titleEl = document.getElementById('successTitle');
+    const textEl = document.getElementById('successText');
+    const modalEl = document.getElementById('successModal');
+    
+    if (titleEl) titleEl.textContent = '💾 임시저장 완료';
+    if (textEl) textEl.innerHTML = items.length + '개 품목 임시저장 완료.<br>현황판에 반영되어 다른 조사자가 확인 가능합니다.<br><br>이상 없으면 <b>최종제출</b>을 눌러주세요.';
+    if (modalEl) modalEl.classList.add('show');
+    else alert('💾 임시저장 완료\n' + items.length + '개 품목이 임시저장되었습니다.');
+    
     setTimeout(loadDashboard, 1000);
   } catch (e) {
     alert('임시저장 실패: ' + e.message);
@@ -756,6 +763,44 @@ document.getElementById('submitBtn').onclick = async () => {
   const surveyor = document.getElementById('surveyor').value.trim();
   if (!surveyor) { alert('조사자 이름을 입력하세요.'); return; }
   if (items.length === 0) { alert('품목을 1개 이상 추가하세요.'); return; }
+  
+  const noMemo = items.filter(it => needsMemo(it) && (!it.memo || !it.memo.trim()));
+  if (noMemo.length > 0) {
+    alert('차이가 발생한 ' + noMemo.length + '개 품목에 메모(사유)가 비어 있습니다.\n\n메모를 입력해주세요.\n(자주 쓰는 사유 버튼을 활용하세요)');
+    const idx = items.indexOf(noMemo[0]);
+    items[idx]._collapsed = false;
+    renderItems();
+    setTimeout(() => {
+      const el = document.querySelector('[data-idx="' + idx + '"] .memo-area');
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus(); }
+    }, 100);
+    return;
+  }
+  
+  if (!confirm('최종제출 하시겠습니까?\n시트에 확정 저장되며 임시저장 내역은 제거됩니다.')) return;
+  
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = '제출 중...';
+  try {
+    await postData({ mode: 'final', surveyor, items });
+    
+    const titleEl = document.getElementById('successTitle');
+    const textEl = document.getElementById('successText');
+    const modalEl = document.getElementById('successModal');
+    
+    if (titleEl) titleEl.textContent = '✅ 최종제출 완료';
+    if (textEl) textEl.textContent = items.length + '개 품목이 실사결과 시트에 저장되었습니다.';
+    if (modalEl) modalEl.classList.add('show');
+    else alert('✅ 최종제출 완료\n' + items.length + '개 품목 저장됨');
+    
+    localStorage.removeItem(DRAFT_KEY);
+    setTimeout(loadDashboard, 1500);
+  } catch (e) {
+    alert('제출 실패: ' + e.message + '\n\n입력한 데이터는 자동저장되어 있으니 다시 시도해 주세요.');
+  } finally {
+    btn.disabled = false; btn.textContent = '📤 최종제출 (' + items.length + '개)';
+  }
+};
   
   // 메모 필수 강제
   const noMemo = items.filter(it => needsMemo(it) && (!it.memo || !it.memo.trim()));
