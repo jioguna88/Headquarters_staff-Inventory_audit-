@@ -8,12 +8,13 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; margin: 0; padding: 0; background: #f5f6fa; color: #222; }
   h1 { font-size: 18px; margin: 10px; text-align: center; }
-  .sticky-top { position: sticky; top: 0; z-index: 50; background: #f5f6fa; padding: 8px 10px; border-bottom: 2px solid #ddd; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+  .top-info { padding: 6px 10px 0; background: #f5f6fa; }
+  .sticky-top { position: sticky; top: 0; z-index: 50; background: #f5f6fa; padding: 6px 10px 8px; border-bottom: 2px solid #ddd; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
   .banner { padding: 8px; border-radius: 6px; text-align: center; font-weight: 600; margin-bottom: 6px; font-size: 13px; }
   .banner.loading { background: #fff3cd; color: #856404; }
   .banner.ok { background: #d4edda; color: #155724; }
   .banner.err { background: #f8d7da; color: #721c24; }
-  .save-status { display: flex; justify-content: space-between; align-items: center; background: #e7f3ff; padding: 5px 8px; border-radius: 5px; font-size: 11px; margin-bottom: 6px; color: #004085; }
+  .save-status { display: flex; justify-content: space-between; align-items: center; background: #e7f3ff; padding: 4px 8px; border-radius: 4px; font-size: 10px; margin-bottom: 4px; color: #004085; }
   .save-status.saving { background: #fff3cd; color: #856404; }
   .save-status.saved { background: #d4edda; color: #155724; }
   .restore-banner { background: #fff8e1; border: 2px solid #ffc107; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
@@ -27,14 +28,14 @@
   .surveyor-row label { font-weight: 700; font-size: 13px; white-space: nowrap; }
   .surveyor-row input { flex: 1; padding: 10px; font-size: 15px; border: 1px solid #ccc; border-radius: 6px; }
   .summary-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 6px; }
-  .summary-bar div { background: #fff; border-radius: 6px; padding: 5px 2px; text-align: center; font-size: 11px; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
-  .summary-bar div b { display: block; font-size: 16px; margin-top: 1px; }
+  .summary-bar div { background: #fff; border-radius: 5px; padding: 3px 2px; text-align: center; font-size: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.06); line-height: 1.2; }
+  .summary-bar div b { display: inline-block; font-size: 14px; margin-left: 3px; }
   .sum-total b { color: #007bff; }
   .sum-match b { color: #28a745; }
   .sum-over b { color: #fd7e14; }
   .sum-short b { color: #dc3545; }
   .dropdown { position: relative; }
-  .dropdown input { width: 100%; padding: 14px; font-size: 16px; border: 2px solid #007bff; border-radius: 8px; background: #fff; font-weight: 600; }
+  .dropdown input { width: 100%; padding: 11px 12px; font-size: 15px; border: 2px solid #007bff; border-radius: 8px; background: #fff; font-weight: 600; }
   .dropdown-list { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ccc; border-radius: 8px; max-height: 50vh; overflow-y: auto; z-index: 100; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-top: 4px; }
   .dropdown-list.show { display: block; }
   .dropdown-item { padding: 14px 12px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 14px; }
@@ -151,12 +152,31 @@
 
 <h1>📦 다이클로 센터 실사재고조사</h1>
 
-<div class="sticky-top">
+<div class="top-info">
   <div id="banner" class="banner loading">⏳ 로딩 중...</div>
   <div class="save-status" id="saveStatus">
     <span id="saveStatusText">💾 자동 저장: 대기 중</span>
     <span id="saveStatusTime"></span>
   </div>
+  <div class="surveyor-row">
+    <label>조사자</label>
+    <input type="text" id="surveyor" placeholder="이름 입력">
+  </div>
+</div>
+
+<div class="sticky-top">
+  <div class="summary-bar">
+    <div class="sum-total">조사<b id="sumTotal">0</b></div>
+    <div class="sum-match">일치<b id="sumMatch">0</b></div>
+    <div class="sum-over">초과<b id="sumOver">0</b></div>
+    <div class="sum-short">부족<b id="sumShort">0</b></div>
+  </div>
+  <div class="dropdown">
+    <input type="text" id="search" placeholder="🔍 품목명/규격 입력하여 검색" autocomplete="off">
+    <div class="dropdown-list" id="searchList"></div>
+  </div>
+</div>
+
   <div class="surveyor-row">
     <label>조사자</label>
     <input type="text" id="surveyor" placeholder="이름 입력">
@@ -582,7 +602,21 @@ function setMatch(idx) {
     renderItems(); saveLocal(true);
   }
 }
-function setMemo(idx, val) { items[idx].memo = val; renderItems(); saveLocal(); }
+function setMemo(idx, val) {
+  items[idx].memo = val;
+  // ✅ 전체 리렌더 대신 메모 영역 스타일만 부분 업데이트
+  const row = document.querySelector('[data-idx="' + idx + '"]');
+  if (row) {
+    const memoArea = row.querySelector('.memo-area');
+    if (memoArea) {
+      const empty = !val || !val.trim();
+      const required = needsMemo(items[idx]);
+      if (required && empty) memoArea.classList.add('required-empty');
+      else memoArea.classList.remove('required-empty');
+    }
+  }
+  saveLocal();
+}
 function setExpiry(idx, val) { items[idx].expiry = val; saveLocal(); }
 function toggleCollapse(idx) { items[idx]._collapsed = !items[idx]._collapsed; renderItems(); }
 function needsMemo(it) { if (it.sysQty === null) return false; return it.actualQty !== it.sysQty; }
@@ -696,18 +730,35 @@ function renderItems() {
     });
     
     div.querySelectorAll('.memo-preset-btn').forEach(btn => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        const preset = btn.dataset.preset;
-        const current = items[idx].memo || '';
-        if (current.indexOf(preset) >= 0) {
-          items[idx].memo = current.replace(preset, '').replace(/,\s*,/g, ',').replace(/^,\s*|\s*,$/g, '').trim();
-        } else {
-          items[idx].memo = current ? current + ', ' + preset : preset;
-        }
-        renderItems(); saveLocal();
-      };
+  btn.onclick = (e) => {
+    e.stopPropagation();
+    const preset = btn.dataset.preset;
+    const current = items[idx].memo || '';
+    let newMemo;
+    if (current.indexOf(preset) >= 0) {
+      newMemo = current.replace(preset, '').replace(/,\s*,/g, ',').replace(/^,\s*|\s*,$/g, '').trim();
+    } else {
+      newMemo = current ? current + ', ' + preset : preset;
+    }
+    items[idx].memo = newMemo;
+    // ✅ textarea 값과 버튼 active 상태만 부분 업데이트
+    const memoArea = div.querySelector('.memo-area');
+    if (memoArea) memoArea.value = newMemo;
+    div.querySelectorAll('.memo-preset-btn').forEach(b => {
+      const p = b.dataset.preset;
+      if (newMemo.indexOf(p) >= 0) b.classList.add('active');
+      else b.classList.remove('active');
     });
+    // 메모 검증 스타일도 업데이트
+    if (memoArea) {
+      const empty = !newMemo || !newMemo.trim();
+      const required = needsMemo(items[idx]);
+      if (required && empty) memoArea.classList.add('required-empty');
+      else memoArea.classList.remove('required-empty');
+    }
+    saveLocal();
+  };
+});
     
     const qtyInput = div.querySelector('.qty-input-big');
     if (qtyInput) {
