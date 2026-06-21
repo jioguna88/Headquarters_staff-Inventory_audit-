@@ -14,6 +14,7 @@
   .banner.loading { background: #fff3cd; color: #856404; }
   .banner.ok { background: #d4edda; color: #155724; }
   .banner.err { background: #f8d7da; color: #721c24; }
+  .dash-row-bigdiff { background: #ffe0b2; color: #bf360c; font-weight: 700; }
   .save-status { display: flex; justify-content: space-between; align-items: center; background: #e7f3ff; padding: 4px 8px; border-radius: 4px; font-size: 10px; margin-bottom: 4px; color: #004085; }
   .save-status.saving { background: #fff3cd; color: #856404; }
   .save-status.saved { background: #d4edda; color: #155724; }
@@ -182,17 +183,18 @@
   
   <div class="dash-toggle" id="dashToggle">📊 전체 재고조사 현황 보기</div>
   <div class="dash-panel" id="dashPanel">
-    <div class="dash-stats">
-      <div>총품목<b id="dashTotal">0</b></div>
-      <div style="color:#28a745">완료<b id="dashDone">0</b></div>
-      <div style="color:#dc3545">미조사<b id="dashTodo">0</b></div>
-    </div>
-    <div class="dash-filter">
-      <button class="active" data-filter="all">전체</button>
-      <button data-filter="todo">미조사</button>
-      <button data-filter="partial">임시저장</button>
-      <button data-filter="done">완료</button>
-    </div>
+    <div class="dash-stats" style="grid-template-columns: repeat(4, 1fr);">
+  <div>총품목<b id="dashTotal">0</b></div>
+  <div style="color:#28a745">완료<b id="dashDone">0</b></div>
+  <div style="color:#dc3545">미조사<b id="dashTodo">0</b></div>
+  <div style="color:#fd7e14">재실사<b id="dashBigDiff">0</b></div>
+</div>
+  <div class="dash-filter">
+  <button class="active" data-filter="all">전체</button>
+  <button data-filter="todo">미조사</button>
+  <button data-filter="bigdiff">⚠️ 재실사</button>
+  <button data-filter="done">완료</button>
+</div>
     <input type="text" id="dashSearch" placeholder="🔍 품목 검색" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; margin-bottom:6px;">
     <div style="max-height:300px; overflow-y:auto;">
       <table class="dash-table">
@@ -206,10 +208,9 @@
   <div id="itemsContainer"></div>
   
   <div class="submit-area">
-    <div class="submit-hint">💡 <b>임시저장</b>: 다른 조사자가 내 입력을 현황판에서 확인 가능. <b>최종제출</b>: 시트에 확정 저장.</div>
-    <button class="draft" id="draftBtn" disabled>💾 임시저장 (<span id="draftCount">0</span>개) - 현황판 공유</button>
-    <button class="primary" id="submitBtn" disabled>📤 최종제출 (<span id="btnCount">0</span>개)</button>
-  </div>
+  <div class="submit-hint">💡 <b>최종제출</b>: 시트에 확정 저장됩니다. 차이가 발생한 품목에는 메모(사유)를 반드시 입력하세요.</div>
+  <button class="primary" id="submitBtn" disabled>📤 최종제출 (<span id="btnCount">0</span>개)</button>
+</div>
 </div>
 
 <div class="modal-bg" id="successModal">
@@ -373,7 +374,6 @@ async function loadProducts() {
       b.textContent = '✅ 전산 ' + SYS_PRODUCTS.length + ' / 추가 ' + EXTRA_PRODUCTS.length + '개 로드';
     }
     const sb = $('submitBtn'); if (sb) sb.disabled = false;
-    const db = $('draftBtn'); if (db) db.disabled = false;
     await loadDashboard();
     checkRestore();
   } catch (e) {
@@ -402,20 +402,20 @@ function renderDashboard() {
   let total = 0, done = 0, todo = 0;
   const rows = [];
   SYS_PRODUCTS.forEach(p => {
-    const key = p.name + '|' + p.spec;
-    const d = DASHBOARD[key];
-    const totalQty = d ? d.totalQty : 0;
-    const draftQty = d ? d.draftQty : 0;
-    const isDone = totalQty > 0 && draftQty === 0;
-    const isPartial = draftQty > 0;
-    total++;
-    if (isPartial || isDone) done++; else todo++;
-    rows.push({
-      status: isPartial ? 'partial' : (isDone ? 'done' : 'todo'),
-      isExtra: false, name: p.name, spec: p.spec,
-      sysQty: p.sysQty, totalQty, draftQty
-    });
+  const key = p.name + '|' + p.spec;
+  const d = DASHBOARD[key];
+  const totalQty = d ? d.totalQty : 0;
+  const diff = totalQty - p.sysQty;
+  const isBigDiff = totalQty > 0 && Math.abs(diff) > 10;  // ✅ 재실사 대상
+  const isDone = totalQty > 0;
+  total++;
+  if (isDone) done++; else todo++;
+  rows.push({
+    status: isBigDiff ? 'bigdiff' : (isDone ? 'done' : 'todo'),
+    isExtra: false, name: p.name, spec: p.spec,
+    sysQty: p.sysQty, totalQty, diff, isBigDiff
   });
+});
   Object.keys(DASHBOARD).forEach(key => {
     const d = DASHBOARD[key];
     if (d.type === '[전산재고 불확인]') {
@@ -431,21 +431,21 @@ function renderDashboard() {
   safeText('dashDone', done);
   safeText('dashTodo', todo);
   rows.filter(r => {
-    if (dashFilter === 'todo' && r.status !== 'todo') return false;
-    if (dashFilter === 'done' && r.status !== 'done') return false;
-    if (dashFilter === 'partial' && r.status !== 'partial') return false;
-    if (search && !(r.name + r.spec).toLowerCase().includes(search)) return false;
-    return true;
-  }).forEach(r => {
-    const tr = document.createElement('tr');
-    if (r.status === 'partial') tr.className = 'dash-row-partial';
-    else if (r.status === 'done') tr.className = 'dash-row-done';
-    else tr.className = 'dash-row-todo';
-    const icon = r.isExtra ? '🟡' : (r.status === 'partial' ? '🟡' : (r.status === 'done' ? '✅' : '🔴'));
-    const draftBadge = r.draftQty > 0 ? '<span class="draft-badge">임시 ' + r.draftQty + '</span>' : '';
-    tr.innerHTML = '<td>' + icon + '</td><td>' + escapeHtml(r.name) + '<br><small>' + escapeHtml(r.spec) + '</small></td><td>' + (r.sysQty === null ? '-' : r.sysQty) + '</td><td><b>' + r.totalQty + '</b>' + draftBadge + '</td>';
-    tbody.appendChild(tr);
-  });
+  if (dashFilter === 'todo' && r.status !== 'todo') return false;
+  if (dashFilter === 'done' && r.status !== 'done') return false;
+  if (dashFilter === 'bigdiff' && !r.isBigDiff) return false;  // ✅
+  if (search && !(r.name + r.spec).toLowerCase().includes(search)) return false;
+  return true;
+}).forEach(r => {
+  const tr = document.createElement('tr');
+  if (r.isBigDiff) tr.className = 'dash-row-bigdiff';
+  else if (r.status === 'done') tr.className = 'dash-row-done';
+  else tr.className = 'dash-row-todo';
+  const icon = r.isBigDiff ? '⚠️' : (r.status === 'done' ? '✅' : '🔴');
+  const diffText = r.isBigDiff ? '<br><small style="color:#dc3545;font-weight:700;">차이 ' + (r.diff > 0 ? '+' : '') + r.diff + '</small>' : '';
+  tr.innerHTML = '<td>' + icon + '</td><td>' + escapeHtml(r.name) + '<br><small>' + escapeHtml(r.spec) + '</small></td><td>' + (r.sysQty === null ? '-' : r.sysQty) + '</td><td><b>' + r.totalQty + '</b>' + diffText + '</td>';
+  tbody.appendChild(tr);
+});
 }
 
 // ===== 검색 =====
@@ -626,12 +626,31 @@ function renderItems() {
     if (it.sysQty === null) {
       diffHtml = '<div class="diff-box diff-na">📌 전산재고 미등록 (차이 산정 불가)</div>';
     } else {
-      const diff = it.actualQty - it.sysQty;
-      if (diff === 0 && it.actualQty > 0) { diffHtml = '<div class="diff-box diff-match">✅ 일치 (' + it.actualQty + ')</div>'; match++; }
-      else if (diff === 0) { diffHtml = '<div class="diff-box diff-na">실사수량 입력 필요</div>'; }
-      else if (diff > 0) { diffHtml = '<div class="diff-box diff-over">📈 초과 +' + diff + '</div>'; over++; }
-      else { diffHtml = '<div class="diff-box diff-short">📉 부족 ' + diff + '</div>'; short++; }
-    }
+  // 다른 조사자가 이미 입력한 누적 수량 (DASHBOARD에서 가져옴)
+  const dashKey = it.name + '|' + it.spec;
+  const dashInfo = DASHBOARD[dashKey];
+  const otherSurveyed = dashInfo ? (dashInfo.totalQty || 0) : 0;
+  
+  // 합산 = 다른 조사자 누적 + 내가 지금 입력한 값
+  const totalCounted = otherSurveyed + it.actualQty;
+  const diff = totalCounted - it.sysQty;  // ✅ 누적 반영된 차이
+  const myDiff = it.actualQty - it.sysQty;  // 내 입력만의 차이 (메모 검증용)
+  const bigDiffWarn = Math.abs(diff) > 10 ? ' <span style="color:#dc3545;font-weight:700;">[재실사 검토]</span>' : '';
+  
+  if (it.actualQty === 0 && otherSurveyed === 0) {
+    diffHtml = '<div class="diff-box diff-na">실사수량 입력 필요 (남은 수량: ' + it.sysQty + ')</div>';
+  } else if (diff === 0) {
+    diffHtml = '<div class="diff-box diff-match">✅ 일치 (누적 ' + totalCounted + ' / 전산 ' + it.sysQty + ')</div>';
+    match++;
+  } else if (diff > 0) {
+    diffHtml = '<div class="diff-box diff-over">📈 초과 +' + diff + ' (누적 ' + totalCounted + ' / 전산 ' + it.sysQty + ')' + bigDiffWarn + '</div>';
+    over++;
+  } else {
+    // ✅ 핵심: 부족일 때 "앞으로 더 찾아야 할 수량" 명확히 표시
+    diffHtml = '<div class="diff-box diff-short">📉 부족 ' + diff + ' (누적 ' + totalCounted + ' / 전산 ' + it.sysQty + ')<br><small>👉 추가로 찾아야 할 수량: <b>' + Math.abs(diff) + '개</b></small>' + bigDiffWarn + '</div>';
+    short++;
+  }
+}
     
     const typeTag = it.type === '[전산재고 불확인]' ? '<span class="type-tag">불확인</span>' : '';
     const draftTag = it._draftSubmitted ? '<span class="draft-tag">임시저장됨</span>' : '';
@@ -839,31 +858,14 @@ safeClick('successResetBtn', () => {
   updateSaveStatus('cleared');
 });
 
-// ===== 임시저장 =====
-safeClick('draftBtn', async () => {
-  const sv = $('surveyor');
-  const surveyor = sv ? sv.value.trim() : '';
-  if (!surveyor) { alert('조사자 이름을 입력하세요.'); return; }
-  if (items.length === 0) { alert('품목을 1개 이상 추가하세요.'); return; }
-  const btn = $('draftBtn');
-  if (btn) { btn.disabled = true; btn.textContent = '임시저장 중...'; }
-  
-  try {
-    await postData({ mode: 'draft', surveyor, items });
-    items.forEach(it => { it._draftSubmitted = true; });
-    saveLocal(true);
-    renderItems();
-    showSuccess('💾 임시저장 완료', items.length + '개 품목 임시저장 완료.<br>현황판에 반영되어 다른 조사자가 확인 가능합니다.<br><br>이상 없으면 <b>최종제출</b>을 눌러주세요.');
-    setTimeout(loadDashboard, 1500);
-  } catch (e) {
-    showSuccess('⚠️ 임시저장 전송됨', '서버 응답 확인 불가하지만 데이터는 전송되었습니다.<br>시트에서 확인해 주세요.');
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '💾 임시저장 (' + items.length + '개) - 현황판 공유'; }
-  }
-});
-
 // ===== 최종제출 =====
+let submitted = false;  // ✅ 중복 제출 방지 플래그
+
 safeClick('submitBtn', async () => {
+  if (submitted) {
+    alert('이미 제출 완료되었습니다.\n새로 작성하려면 페이지를 새로고침(F5) 해주세요.');
+    return;
+  }
   const sv = $('surveyor');
   const surveyor = sv ? sv.value.trim() : '';
   if (!surveyor) { alert('조사자 이름을 입력하세요.'); return; }
@@ -882,19 +884,37 @@ safeClick('submitBtn', async () => {
     return;
   }
   
-  if (!confirm('최종제출 하시겠습니까?\n시트에 확정 저장되며 임시저장 내역은 제거됩니다.')) return;
+  // ✅ 재실사 필요 품목 경고 (차이 절대값 > 10)
+  const bigDiff = items.filter(it => {
+    if (it.sysQty === null) return false;
+    return Math.abs(it.actualQty - it.sysQty) > 10;
+  });
+  let confirmMsg = '최종제출 하시겠습니까?\n시트에 확정 저장됩니다.';
+  if (bigDiff.length > 0) {
+    confirmMsg = '⚠️ 차이가 10개를 초과한 품목이 ' + bigDiff.length + '개 있습니다.\n(재실사가 필요할 수 있는 품목)\n\n' +
+                 bigDiff.slice(0, 5).map(it => '• ' + it.name + ' (차이 ' + (it.actualQty - it.sysQty) + ')').join('\n') +
+                 (bigDiff.length > 5 ? '\n...외 ' + (bigDiff.length - 5) + '개' : '') +
+                 '\n\n그래도 제출하시겠습니까?';
+  }
+  if (!confirm(confirmMsg)) return;
   
   const btn = $('submitBtn');
   if (btn) { btn.disabled = true; btn.textContent = '제출 중...'; }
   
   try {
     await postData({ mode: 'final', surveyor, items });
-    showSuccess('✅ 최종제출 완료', items.length + '개 품목이 실사결과 시트에 저장되었습니다.');
+    submitted = true;  // ✅ 제출 완료 표시
+    showSuccess('✅ 최종제출 완료', 
+      items.length + '개 품목이 실사결과 시트에 저장되었습니다.' +
+      (bigDiff.length > 0 ? '<br><br>⚠️ 차이 10개 초과 품목 ' + bigDiff.length + '개는 재실사 검토 권장' : '') +
+      '<br><br>새로 작성하려면 <b>페이지 새로고침(F5)</b> 해주세요.'
+    );
     try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
     setTimeout(loadDashboard, 1500);
+    // 제출 버튼 영구 비활성화
+    if (btn) { btn.textContent = '✅ 제출 완료 (새로고침 필요)'; btn.disabled = true; }
   } catch (e) {
-    showSuccess('⚠️ 제출 전송됨', '서버 응답 확인 불가하지만 데이터는 전송되었습니다.<br>시트에서 확인해 주세요.<br><br>입력 데이터는 자동저장되어 있습니다.');
-  } finally {
+    showSuccess('⚠️ 제출 전송됨', '서버 응답 확인 불가하지만 데이터는 전송되었습니다.<br>시트에서 확인해 주세요.');
     if (btn) { btn.disabled = false; btn.textContent = '📤 최종제출 (' + items.length + '개)'; }
   }
 });
