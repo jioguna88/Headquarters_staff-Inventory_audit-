@@ -14,7 +14,9 @@
   .banner.loading { background: #fff3cd; color: #856404; }
   .banner.ok { background: #d4edda; color: #155724; }
   .banner.err { background: #f8d7da; color: #721c24; }
-  .dash-row-bigdiff { background: #ffe0b2; color: #bf360c; font-weight: 700; }
+  .dash-row-bigdiff { background: #ffe0b2; color: #bf360c; font-weight: 700; }  
+  .dash-row-over { background: #fff3cd; color: #fd7e14; font-weight: 700; }
+  .dash-row-short { background: #ffe0e0; color: #c62828; font-weight: 700; }
   .save-status { display: flex; justify-content: space-between; align-items: center; background: #e7f3ff; padding: 4px 8px; border-radius: 4px; font-size: 10px; margin-bottom: 4px; color: #004085; }
   .save-status.saving { background: #fff3cd; color: #856404; }
   .save-status.saved { background: #d4edda; color: #155724; }
@@ -80,6 +82,7 @@
   .row-meta { font-size: 13px; color: #444; margin-bottom: 10px; background: #f8f9fa; padding: 6px 8px; border-radius: 6px; }
   .row-meta .sys-qty { font-size: 16px; font-weight: 700; color: #007bff; }
   .row-meta .other-qty { color: #856404; font-weight: 700; }
+  .input-hint { font-size: 11px; color: #007bff; background: #e7f3ff; padding: 6px 8px; border-radius: 6px; margin-bottom: 6px; line-height: 1.4; }
   .qty-big-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
   .qty-btn-big { width: 60px; height: 60px; font-size: 28px; border: 2px solid #007bff; background: #fff; color: #007bff; border-radius: 10px; font-weight: 800; flex-shrink: 0; }
   .qty-btn-big:active { background: #007bff; color: #fff; }
@@ -97,6 +100,11 @@
   .diff-over { background: #fff3cd; color: #856404; }
   .diff-short { background: #f8d7da; color: #721c24; }
   .diff-na { background: #e2e3e5; color: #383d41; font-size: 12px; }
+  .diff-box .calc-detail { font-size: 11px; font-weight: 400; margin-top: 3px; opacity: 0.85; }
+  .exp-required { color: #dc3545; }
+  .expiry-row input.exp-empty { border-color: #dc3545; background: #fff5f5; }
+  .exp-none-btn { padding: 8px 10px; font-size: 12px; font-weight: 700; background: #6c757d; color: #fff; border: none; border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
+  .exp-none-btn:active { background: #495057; }
   .memo-section { margin-top: 8px; }
   .memo-label { font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #555; }
   .memo-label.required { color: #dc3545; }
@@ -117,6 +125,7 @@
   .item-row.collapsed .quick-btns,
   .item-row.collapsed .memo-section,
   .item-row.collapsed .expiry-row,
+  .item-row.collapsed .input-hint,
   .item-row.collapsed .row-meta { display: none; }
   .item-row.collapsed { padding: 10px; border-color: #ccc; }
   .item-row.collapsed .row-title { margin: 0; font-size: 14px; }
@@ -124,8 +133,6 @@
   .submit-area { padding: 16px 10px 40px; display: flex; flex-direction: column; gap: 8px; }
   button.primary { background: #007bff; color: #fff; border: none; padding: 16px; width: 100%; border-radius: 8px; font-size: 17px; font-weight: 700; }
   button.primary:disabled { background: #ccc; }
-  button.draft { background: #ffc107; color: #000; border: none; padding: 14px; width: 100%; border-radius: 8px; font-size: 15px; font-weight: 700; }
-  button.draft:disabled { background: #ccc; }
   .submit-hint { background: #fff8e1; border: 1px solid #ffc107; padding: 8px; border-radius: 6px; font-size: 12px; color: #856404; text-align: center; margin-bottom: 4px; }
   .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
   .modal-bg.show { display: flex; }
@@ -192,7 +199,7 @@
   <div class="dash-filter">
   <button class="active" data-filter="all">전체</button>
   <button data-filter="todo">미조사</button>
-  <button data-filter="bigdiff">⚠️ 재실사</button>
+  <button data-filter="bigdiff">⚠️ 재실사(초과/부족)</button>
   <button data-filter="done">완료</button>
 </div>
     <input type="text" id="dashSearch" placeholder="🔍 품목 검색" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; margin-bottom:6px;">
@@ -208,8 +215,8 @@
   <div id="itemsContainer"></div>
   
   <div class="submit-area">
-  <div class="submit-hint">💡 <b>최종제출</b>: 시트에 확정 저장됩니다. 차이가 발생한 품목에는 메모(사유)를 반드시 입력하세요.</div>
-  <button class="primary" id="submitBtn" disabled>📤 최종제출 (<span id="btnCount">0</span>개)</button>
+  <div class="submit-hint">💡 <b>제출</b> 후 입력 품목은 자동으로 비워지고 누적 현황이 갱신됩니다. 이어서 다른 구역을 조사하세요. 차이 발생 품목은 메모(사유)를 반드시 입력하세요.</div>
+  <button class="primary" id="submitBtn" disabled>📤 제출 (<span id="btnCount">0</span>개)</button>
 </div>
 </div>
 
@@ -217,8 +224,7 @@
   <div class="modal" style="text-align:center;">
     <h2 id="successTitle" style="color:#28a745">✅ 제출 완료</h2>
     <p id="successText"></p>
-    <button class="primary" id="successResetBtn">새로 입력하기</button>
-    <button class="close-btn" id="successCloseBtn">닫기</button>
+    <button class="close-btn" id="successCloseBtn">확인</button>
   </div>
 </div>
 
@@ -254,6 +260,7 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyXhkpC3W7wnEicqCVe
 
 const DRAFT_KEY = 'audit_draft_v3';
 const MEMO_PRESETS = ['추가 재고 확인', '실사재고 입력'];
+const DUP_GUARD_MS = 10000; // 동일내용 중복 제출 가드 (10초)
 
 let SYS_PRODUCTS = [], EXTRA_PRODUCTS = [], DASHBOARD = {};
 let items = [];
@@ -261,6 +268,9 @@ let dashFilter = 'all';
 let calcTargetIdx = -1;
 let lastSavedAt = null;
 let calcExpr = '';
+let isSubmitting = false;        // 전송 중 더블클릭 방지
+let lastSubmitSignature = '';    // 직전 제출 내용 서명
+let lastSubmitTime = 0;          // 직전 제출 시각
 
 // ===== 안전한 DOM 헬퍼 =====
 function $(id) { return document.getElementById(id); }
@@ -273,7 +283,7 @@ function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-// ===== 알림 표시 (절대 에러 안 남) =====
+// ===== 알림 표시 =====
 function showSuccess(title, htmlText) {
   try {
     const t = $('successTitle'), x = $('successText'), m = $('successModal');
@@ -284,7 +294,6 @@ function showSuccess(title, htmlText) {
       return;
     }
   } catch (e) {}
-  // 모달이 없으면 alert로 대체
   alert(title + '\n\n' + String(htmlText).replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ''));
 }
 function closeSuccess() { safeHide('successModal'); }
@@ -313,7 +322,6 @@ function postData(payload) {
   return new Promise((resolve) => {
     let done = false;
     let iframe = null, form = null;
-    
     function finish() {
       if (done) return;
       done = true;
@@ -321,16 +329,14 @@ function postData(payload) {
         try { if (iframe && iframe.parentNode) iframe.parentNode.removeChild(iframe); } catch(e) {}
         try { if (form && form.parentNode) form.parentNode.removeChild(form); } catch(e) {}
       }, 200);
-      resolve();  // 403/오류 상관없이 항상 성공 처리 (POST는 이미 전송됨)
+      resolve();
     }
-    
     try {
       const iframeName = 'pf_' + Date.now();
       iframe = document.createElement('iframe');
       iframe.name = iframeName;
       iframe.style.display = 'none';
       document.body.appendChild(iframe);
-      
       form = document.createElement('form');
       form.method = 'POST';
       form.action = WEB_APP_URL;
@@ -341,13 +347,9 @@ function postData(payload) {
       input.value = JSON.stringify(payload);
       form.appendChild(input);
       document.body.appendChild(form);
-      
       iframe.onload = finish;
       iframe.onerror = finish;
-      
-      // 안전망: 6초 후 자동 완료 처리
       setTimeout(finish, 6000);
-      
       form.submit();
     } catch (e) {
       console.error('POST 오류', e);
@@ -391,6 +393,7 @@ async function loadDashboard() {
     DASHBOARD = {};
     (res.dashboard || []).forEach(d => { DASHBOARD[d.name + '|' + d.spec] = d; });
     renderDashboard();
+    renderItems(); // 누적 갱신 반영
   } catch (e) { console.warn('대시보드 로드 실패', e); }
 }
 
@@ -399,53 +402,77 @@ function renderDashboard() {
   if (!dsEl || !tbody) return;
   const search = dsEl.value.toLowerCase();
   tbody.innerHTML = '';
-  let total = 0, done = 0, todo = 0;
+  let total = 0, done = 0, todo = 0, bigDiffCount = 0;
   const rows = [];
   SYS_PRODUCTS.forEach(p => {
-  const key = p.name + '|' + p.spec;
-  const d = DASHBOARD[key];
-  const totalQty = d ? d.totalQty : 0;
-  const diff = totalQty - p.sysQty;
-  const isBigDiff = totalQty > 0 && Math.abs(diff) > 10;  // ✅ 재실사 대상
-  const isDone = totalQty > 0;
-  total++;
-  if (isDone) done++; else todo++;
-  rows.push({
-    status: isBigDiff ? 'bigdiff' : (isDone ? 'done' : 'todo'),
-    isExtra: false, name: p.name, spec: p.spec,
-    sysQty: p.sysQty, totalQty, diff, isBigDiff
+    const key = p.name + '|' + p.spec;
+    const d = DASHBOARD[key];
+    const totalQty = d ? d.totalQty : 0;
+    const diff = totalQty - p.sysQty;
+    const isBigDiff = totalQty > 0 && Math.abs(diff) > 10;
+    const isDone = totalQty > 0;
+    total++;
+    if (isDone) done++; else todo++;
+    if (isBigDiff) bigDiffCount++;
+    rows.push({
+      status: isBigDiff ? 'bigdiff' : (isDone ? 'done' : 'todo'),
+      isExtra: false, name: p.name, spec: p.spec,
+      sysQty: p.sysQty, totalQty, diff, isBigDiff
+    });
   });
-});
   Object.keys(DASHBOARD).forEach(key => {
     const d = DASHBOARD[key];
     if (d.type === '[전산재고 불확인]') {
       const inSys = SYS_PRODUCTS.some(p => (p.name + '|' + p.spec) === key);
       if (!inSys) rows.push({
-        status: d.draftQty > 0 ? 'partial' : 'done',
+        status: 'done',
         isExtra: true, name: d.name, spec: d.spec,
-        sysQty: null, totalQty: d.totalQty, draftQty: d.draftQty
+        sysQty: null, totalQty: d.totalQty
       });
     }
   });
   safeText('dashTotal', total);
   safeText('dashDone', done);
   safeText('dashTodo', todo);
-  rows.filter(r => {
-  if (dashFilter === 'todo' && r.status !== 'todo') return false;
-  if (dashFilter === 'done' && r.status !== 'done') return false;
-  if (dashFilter === 'bigdiff' && !r.isBigDiff) return false;  // ✅
-  if (search && !(r.name + r.spec).toLowerCase().includes(search)) return false;
-  return true;
-}).forEach(r => {
-  const tr = document.createElement('tr');
-  if (r.isBigDiff) tr.className = 'dash-row-bigdiff';
-  else if (r.status === 'done') tr.className = 'dash-row-done';
-  else tr.className = 'dash-row-todo';
-  const icon = r.isBigDiff ? '⚠️' : (r.status === 'done' ? '✅' : '🔴');
-  const diffText = r.isBigDiff ? '<br><small style="color:#dc3545;font-weight:700;">차이 ' + (r.diff > 0 ? '+' : '') + r.diff + '</small>' : '';
-  tr.innerHTML = '<td>' + icon + '</td><td>' + escapeHtml(r.name) + '<br><small>' + escapeHtml(r.spec) + '</small></td><td>' + (r.sysQty === null ? '-' : r.sysQty) + '</td><td><b>' + r.totalQty + '</b>' + diffText + '</td>';
-  tbody.appendChild(tr);
-});
+  safeText('dashBigDiff', bigDiffCount);
+  let filtered = rows.filter(r => {
+    if (dashFilter === 'todo' && r.status !== 'todo') return false;
+    if (dashFilter === 'done' && r.status !== 'done') return false;
+    if (dashFilter === 'bigdiff' && !r.isBigDiff) return false;
+    if (search && !(r.name + r.spec).toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  // ✅ 재실사 필터: 차이 절대값이 큰 순으로 정렬
+  if (dashFilter === 'bigdiff') {
+    filtered.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+  }
+
+  filtered.forEach(r => {
+    const tr = document.createElement('tr');
+    if (r.isBigDiff) {
+      tr.className = r.diff > 0 ? 'dash-row-over' : 'dash-row-short';
+    } else if (r.status === 'done') {
+      tr.className = 'dash-row-done';
+    } else {
+      tr.className = 'dash-row-todo';
+    }
+    let icon, diffText = '';
+    if (r.isBigDiff) {
+      if (r.diff > 0) {
+        icon = '📈';
+        diffText = '<br><small style="color:#fd7e14;font-weight:700;">초과 +' + r.diff + '</small>';
+      } else {
+        icon = '📉';
+        diffText = '<br><small style="color:#dc3545;font-weight:700;">부족 ' + r.diff + '</small>';
+      }
+    } else {
+      icon = r.status === 'done' ? '✅' : '🔴';
+    }
+    tr.innerHTML = '<td>' + icon + '</td><td>' + escapeHtml(r.name) + '<br><small>' + escapeHtml(r.spec) + '</small></td><td>' + (r.sysQty === null ? '-' : r.sysQty) + '</td><td><b>' + r.totalQty + '</b>' + diffText + '</td>';
+    tbody.appendChild(tr);
+  });
+
 }
 
 // ===== 검색 =====
@@ -455,14 +482,11 @@ const searchList = $('searchList');
 function renderSearch() {
   if (!searchInput || !searchList) return;
   const q = searchInput.value.trim().toLowerCase();
- 
- // ✅ 검색어가 비어있으면 드롭다운 숨김 (전체 노출 방지)
   if (!q) {
     searchList.classList.remove('show');
     searchList.innerHTML = '';
     return;
   }
- 
   const combined = [];
   SYS_PRODUCTS.forEach(p => {
     const key = p.name + '|' + p.spec;
@@ -470,8 +494,8 @@ function renderSearch() {
     const surveyedQty = d ? d.totalQty : 0;
     const remain = Math.max(0, (p.sysQty || 0) - surveyedQty);
     let status = 'unsurveyed';
-    if (d && d.draftQty > 0) status = 'partial';
-    else if (surveyedQty >= p.sysQty && p.sysQty > 0) status = 'fully-surveyed';
+    if (surveyedQty >= p.sysQty && p.sysQty > 0) status = 'fully-surveyed';
+    else if (surveyedQty > 0) status = 'partial';
     combined.push({ ...p, isExtra: false, surveyedQty, remain, status });
   });
   EXTRA_PRODUCTS.forEach(p => {
@@ -501,7 +525,7 @@ function renderSearch() {
       let qtyInfo;
       if (p.isExtra) qtyInfo = '입력: <b>' + p.surveyedQty + '</b>';
       else {
-        qtyInfo = '전산: <b>' + p.sysQty + '</b> / 입력: <b>' + p.surveyedQty + '</b> / 잔여: ';
+        qtyInfo = '전산: <b>' + p.sysQty + '</b> / 누적: <b>' + p.surveyedQty + '</b> / 잔여: ';
         if (p.remain === 0) qtyInfo += '<span class="item-done">완료</span>';
         else qtyInfo += '<span class="item-remain">' + p.remain + '</span>';
       }
@@ -541,6 +565,12 @@ function parseSpec(spec) {
   return presets;
 }
 
+// ===== 누적 계산 헬퍼 =====
+function getOtherSurveyed(it) {
+  const d = DASHBOARD[it.name + '|' + it.spec];
+  return d ? (d.totalQty || 0) : 0;
+}
+
 // ===== 행 관리 =====
 function addItem(p) {
   const existsIdx = items.findIndex(it => it.name === p.name && it.spec === p.spec);
@@ -556,7 +586,7 @@ function addItem(p) {
     sysQty: p.isExtra ? null : p.sysQty,
     type: p.isExtra ? '[전산재고 불확인]' : '전산재고',
     actualQty: 0, memo: '', expiry: '',
-    _collapsed: false, _new: true, _draftSubmitted: false
+    _collapsed: false, _new: true
   });
   renderItems();
   setTimeout(() => focusQtyInput(0), 80);
@@ -581,14 +611,15 @@ function setQty(idx, val) {
   renderItems(); saveLocal();
 }
 function setMatch(idx) {
+  // 방식 A: "전산일치"는 잔여(전산 − 다른 누적)를 채우는 의미
   if (items[idx].sysQty !== null) {
-    items[idx].actualQty = items[idx].sysQty;
+    const remain = Math.max(0, items[idx].sysQty - getOtherSurveyed(items[idx]));
+    items[idx].actualQty = remain;
     renderItems(); saveLocal(true);
   }
 }
 function setMemo(idx, val) {
   items[idx].memo = val;
-  // ✅ 전체 리렌더 대신 메모 영역 스타일만 부분 업데이트
   const row = document.querySelector('[data-idx="' + idx + '"]');
   if (row) {
     const memoArea = row.querySelector('.memo-area');
@@ -603,7 +634,9 @@ function setMemo(idx, val) {
 }
 function setExpiry(idx, val) { items[idx].expiry = val; saveLocal(); }
 function toggleCollapse(idx) { items[idx]._collapsed = !items[idx]._collapsed; renderItems(); }
-function needsMemo(it) { if (it.sysQty === null) return false; return it.actualQty !== it.sysQty; }
+
+// 메모: 모든 품목 필수
+function needsMemo(it) { return true; }
 
 function renderItems() {
   const c = $('itemsContainer');
@@ -615,54 +648,52 @@ function renderItems() {
     const div = document.createElement('div');
     let rowCls = 'item-row';
     if (it.type === '[전산재고 불확인]') rowCls += ' extra';
-    if (it._draftSubmitted) rowCls += ' draft';
     if (it._collapsed) rowCls += ' collapsed';
     if (it._new) rowCls += ' new';
     div.className = rowCls;
     div.setAttribute('data-idx', idx);
     if (it._new) setTimeout(() => { it._new = false; }, 1500);
     
+    const otherSurveyed = it.sysQty === null ? 0 : getOtherSurveyed(it);
     let diffHtml = '';
     if (it.sysQty === null) {
       diffHtml = '<div class="diff-box diff-na">📌 전산재고 미등록 (차이 산정 불가)</div>';
     } else {
-  // 다른 조사자가 이미 입력한 누적 수량 (DASHBOARD에서 가져옴)
-  const dashKey = it.name + '|' + it.spec;
-  const dashInfo = DASHBOARD[dashKey];
-  const otherSurveyed = dashInfo ? (dashInfo.totalQty || 0) : 0;
-  
-  // 합산 = 다른 조사자 누적 + 내가 지금 입력한 값
-  const totalCounted = otherSurveyed + it.actualQty;
-  const diff = totalCounted - it.sysQty;  // ✅ 누적 반영된 차이
-  const myDiff = it.actualQty - it.sysQty;  // 내 입력만의 차이 (메모 검증용)
-  const bigDiffWarn = Math.abs(diff) > 10 ? ' <span style="color:#dc3545;font-weight:700;">[재실사 검토]</span>' : '';
-  
-  if (it.actualQty === 0 && otherSurveyed === 0) {
-    diffHtml = '<div class="diff-box diff-na">실사수량 입력 필요 (남은 수량: ' + it.sysQty + ')</div>';
-  } else if (diff === 0) {
-    diffHtml = '<div class="diff-box diff-match">✅ 일치 (누적 ' + totalCounted + ' / 전산 ' + it.sysQty + ')</div>';
-    match++;
-  } else if (diff > 0) {
-    diffHtml = '<div class="diff-box diff-over">📈 초과 +' + diff + ' (누적 ' + totalCounted + ' / 전산 ' + it.sysQty + ')' + bigDiffWarn + '</div>';
-    over++;
-  } else {
-    // ✅ 핵심: 부족일 때 "앞으로 더 찾아야 할 수량" 명확히 표시
-    diffHtml = '<div class="diff-box diff-short">📉 부족 ' + diff + ' (누적 ' + totalCounted + ' / 전산 ' + it.sysQty + ')<br><small>👉 추가로 찾아야 할 수량: <b>' + Math.abs(diff) + '개</b></small>' + bigDiffWarn + '</div>';
-    short++;
-  }
-}
+      const totalCounted = otherSurveyed + it.actualQty;
+      const diff = totalCounted - it.sysQty;
+      const bigDiffWarn = Math.abs(diff) > 10 ? ' <span style="color:#dc3545;font-weight:700;">[재실사 검토]</span>' : '';
+      const calcDetail = '<div class="calc-detail">기제출 ' + otherSurveyed + ' + 이번 입력 ' + it.actualQty + ' = 누적 ' + totalCounted + ' / 전산 ' + it.sysQty + '</div>';
+      if (it.actualQty === 0 && otherSurveyed === 0) {
+        diffHtml = '<div class="diff-box diff-na">실사수량 입력 필요 (전산 ' + it.sysQty + ')</div>';
+      } else if (diff === 0) {
+        diffHtml = '<div class="diff-box diff-match">✅ 일치 (누적 ' + totalCounted + ' / 전산 ' + it.sysQty + ')' + calcDetail + '</div>';
+        match++;
+      } else if (diff > 0) {
+        diffHtml = '<div class="diff-box diff-over">📈 초과 +' + diff + bigDiffWarn + calcDetail + '</div>';
+        over++;
+      } else {
+        diffHtml = '<div class="diff-box diff-short">📉 부족 ' + diff + '<br><small>👉 추가로 찾아야 할 수량: <b>' + Math.abs(diff) + '개</b></small>' + bigDiffWarn + calcDetail + '</div>';
+        short++;
+      }
+    }
     
     const typeTag = it.type === '[전산재고 불확인]' ? '<span class="type-tag">불확인</span>' : '';
-    const draftTag = it._draftSubmitted ? '<span class="draft-tag">임시저장됨</span>' : '';
     const sysQtyText = it.sysQty === null ? '미등록' : it.sysQty;
-    const matchBtn = it.sysQty !== null ? '<button class="quick-btn match" data-act="match">✓ 전산일치 (' + it.sysQty + ')</button>' : '<button class="quick-btn match" disabled style="opacity:0.5">일치(불가)</button>';
-    
-    const dashKey = it.name + '|' + it.spec;
-    const dashInfo = DASHBOARD[dashKey];
-    let otherInfo = '';
-    if (dashInfo && dashInfo.totalQty > 0) {
-      otherInfo = ' / 누적입력: <span class="other-qty">' + dashInfo.totalQty + '</span>';
+    let matchBtn;
+    if (it.sysQty !== null) {
+      const remain = Math.max(0, it.sysQty - otherSurveyed);
+      matchBtn = '<button class="quick-btn match" data-act="match">✓ 잔여 채움 (' + remain + ')</button>';
+    } else {
+      matchBtn = '<button class="quick-btn match" disabled style="opacity:0.5">일치(불가)</button>';
     }
+    
+    let otherInfo = '';
+    if (otherSurveyed > 0) {
+      otherInfo = ' / 기제출누적: <span class="other-qty">' + otherSurveyed + '</span>';
+    }
+    
+    const hint = it.sysQty === null ? '' :
+      '<div class="input-hint">💡 <b>이번에 발견한 수량만</b> 입력하세요. 기제출 누적(' + otherSurveyed + ')에 자동 합산됩니다.</div>';
     
     const memoRequired = needsMemo(it);
     const memoEmpty = !it.memo || !it.memo.trim();
@@ -676,8 +707,9 @@ function renderItems() {
     });
     
     div.innerHTML =
-      '<div class="row-title">' + typeTag + draftTag + escapeHtml(it.name) + '</div>' +
+      '<div class="row-title">' + typeTag + escapeHtml(it.name) + '</div>' +
       '<div class="row-meta">' + escapeHtml(it.spec) + ' · ' + escapeHtml(it.unit) + ' · 전산: <span class="sys-qty">' + sysQtyText + '</span>' + otherInfo + '</div>' +
+      hint +
       '<div class="qty-big-row">' +
         '<button class="qty-btn-big" data-act="minus">−</button>' +
         '<input type="number" inputmode="decimal" class="qty-input-big" value="' + it.actualQty + '" min="0">' +
@@ -700,9 +732,10 @@ function renderItems() {
         '<div class="memo-presets">' + presetBtns + '</div>' +
         '<textarea class="' + memoAreaCls + '" placeholder="차이 사유 또는 메모">' + escapeHtml(it.memo) + '</textarea>' +
       '</div>' +
-      '<div class="expiry-row">' +
-        '<label>📅 유통기한</label>' +
-        '<input type="text" placeholder="예: 2026-12-31 또는 자유 입력" value="' + escapeHtml(it.expiry) + '">' +
+        '<div class="expiry-row">' +
+        '<label class="' + ((!it.expiry || !it.expiry.trim()) ? "exp-required" : "") + '">📅 유통기한 *필수</label>' +
+        '<input type="text" class="' + ((!it.expiry || !it.expiry.trim()) ? "exp-empty" : "") + '" placeholder="예: 2026-12-31" value="' + escapeHtml(it.expiry) + '">' +
+        '<button class="exp-none-btn" data-act="expnone">소비기한 없음</button>' +
       '</div>' +
       '<div class="row-actions">' +
         '<button class="row-collapse" data-act="collapse">' + (it._collapsed ? '🔽 펼치기' : '🔼 접기') + '</button>' +
@@ -729,39 +762,39 @@ function renderItems() {
         else if (a === 'calc') openCalc(idx);
         else if (a === 'collapse') toggleCollapse(idx);
         else if (a === 'remove') { if (confirm('삭제하시겠습니까?')) removeItem(idx); }
+        else if (a === 'expnone') { items[idx].expiry = '소비기한 없음'; renderItems(); saveLocal(); }
+
       };
     });
     
     div.querySelectorAll('.memo-preset-btn').forEach(btn => {
-  btn.onclick = (e) => {
-    e.stopPropagation();
-    const preset = btn.dataset.preset;
-    const current = items[idx].memo || '';
-    let newMemo;
-    if (current.indexOf(preset) >= 0) {
-      newMemo = current.replace(preset, '').replace(/,\s*,/g, ',').replace(/^,\s*|\s*,$/g, '').trim();
-    } else {
-      newMemo = current ? current + ', ' + preset : preset;
-    }
-    items[idx].memo = newMemo;
-    // ✅ textarea 값과 버튼 active 상태만 부분 업데이트
-    const memoArea = div.querySelector('.memo-area');
-    if (memoArea) memoArea.value = newMemo;
-    div.querySelectorAll('.memo-preset-btn').forEach(b => {
-      const p = b.dataset.preset;
-      if (newMemo.indexOf(p) >= 0) b.classList.add('active');
-      else b.classList.remove('active');
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const preset = btn.dataset.preset;
+        const current = items[idx].memo || '';
+        let newMemo;
+        if (current.indexOf(preset) >= 0) {
+          newMemo = current.replace(preset, '').replace(/,\s*,/g, ',').replace(/^,\s*|\s*,$/g, '').trim();
+        } else {
+          newMemo = current ? current + ', ' + preset : preset;
+        }
+        items[idx].memo = newMemo;
+        const memoArea = div.querySelector('.memo-area');
+        if (memoArea) memoArea.value = newMemo;
+        div.querySelectorAll('.memo-preset-btn').forEach(b => {
+          const p = b.dataset.preset;
+          if (newMemo.indexOf(p) >= 0) b.classList.add('active');
+          else b.classList.remove('active');
+        });
+        if (memoArea) {
+          const empty = !newMemo || !newMemo.trim();
+          const required = needsMemo(items[idx]);
+          if (required && empty) memoArea.classList.add('required-empty');
+          else memoArea.classList.remove('required-empty');
+        }
+        saveLocal();
+      };
     });
-    // 메모 검증 스타일도 업데이트
-    if (memoArea) {
-      const empty = !newMemo || !newMemo.trim();
-      const required = needsMemo(items[idx]);
-      if (required && empty) memoArea.classList.add('required-empty');
-      else memoArea.classList.remove('required-empty');
-    }
-    saveLocal();
-  };
-});
     
     const qtyInput = div.querySelector('.qty-input-big');
     if (qtyInput) {
@@ -781,7 +814,6 @@ function renderItems() {
   safeText('sumOver', over);
   safeText('sumShort', short);
   safeText('btnCount', items.length);
-  safeText('draftCount', items.length);
 }
 
 // ===== 계산기 =====
@@ -852,20 +884,14 @@ safeClick('calcCloseBtn', closeCalc);
 
 // ===== 모달 버튼 =====
 safeClick('successCloseBtn', closeSuccess);
-safeClick('successResetBtn', () => {
-  closeSuccess();
-  items = []; renderItems(); loadDashboard();
-  updateSaveStatus('cleared');
-});
 
-// ===== 최종제출 =====
-let submitted = false;  // ✅ 중복 제출 방지 플래그
+// ===== 제출 (방식 A: 제출 후 자동 비우고 이어서) =====
+function buildSubmitSignature(surveyor, list) {
+  return surveyor + '::' + list.map(it => it.name + '|' + it.spec + '|' + it.actualQty).sort().join(';;');
+}
 
 safeClick('submitBtn', async () => {
-  if (submitted) {
-    alert('이미 제출 완료되었습니다.\n새로 작성하려면 페이지를 새로고침(F5) 해주세요.');
-    return;
-  }
+  if (isSubmitting) return;
   const sv = $('surveyor');
   const surveyor = sv ? sv.value.trim() : '';
   if (!surveyor) { alert('조사자 이름을 입력하세요.'); return; }
@@ -883,39 +909,71 @@ safeClick('submitBtn', async () => {
     }, 100);
     return;
   }
+    // ✅ 유통기한 필수 검증
+  const noExpiry = items.filter(it => !it.expiry || !it.expiry.trim());
+  if (noExpiry.length > 0) {
+    alert('유통기한이 비어 있는 품목이 ' + noExpiry.length + '개 있습니다.\n유통기한을 입력하거나 "소비기한 없음"을 눌러주세요.');
+    const idx = items.indexOf(noExpiry[0]);
+    items[idx]._collapsed = false;
+    renderItems();
+    setTimeout(() => {
+      const el = document.querySelector('[data-idx="' + idx + '"] .expiry-row input');
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus(); }
+    }, 100);
+    return;
+  }
+  // 동일내용 중복 제출 가드 (10초)
+  const signature = buildSubmitSignature(surveyor, items);
+  if (signature === lastSubmitSignature && (Date.now() - lastSubmitTime) < DUP_GUARD_MS) {
+    if (!confirm('⚠️ 방금 같은 내용을 제출했습니다.\n실수가 아니라 정말 추가로 제출하시겠습니까?')) return;
+  }
   
-  // ✅ 재실사 필요 품목 경고 (차이 절대값 > 10)
+  // 재실사 경고 (누적 기준 차이 > 10)
   const bigDiff = items.filter(it => {
     if (it.sysQty === null) return false;
-    return Math.abs(it.actualQty - it.sysQty) > 10;
+    const total = getOtherSurveyed(it) + (it.actualQty || 0);
+    return Math.abs(total - it.sysQty) > 10;
   });
-  let confirmMsg = '최종제출 하시겠습니까?\n시트에 확정 저장됩니다.';
+  let confirmMsg = '제출하시겠습니까?\n제출 후 화면은 비워지고 누적 현황이 갱신됩니다.';
   if (bigDiff.length > 0) {
-    confirmMsg = '⚠️ 차이가 10개를 초과한 품목이 ' + bigDiff.length + '개 있습니다.\n(재실사가 필요할 수 있는 품목)\n\n' +
-                 bigDiff.slice(0, 5).map(it => '• ' + it.name + ' (차이 ' + (it.actualQty - it.sysQty) + ')').join('\n') +
+    confirmMsg = '⚠️ 누적 차이가 10개를 초과한 품목이 ' + bigDiff.length + '개 있습니다.\n(재실사 검토 권장)\n\n' +
+                 bigDiff.slice(0, 5).map(it => '• ' + it.name + ' (누적차이 ' + (getOtherSurveyed(it) + it.actualQty - it.sysQty) + ')').join('\n') +
                  (bigDiff.length > 5 ? '\n...외 ' + (bigDiff.length - 5) + '개' : '') +
                  '\n\n그래도 제출하시겠습니까?';
   }
   if (!confirm(confirmMsg)) return;
   
   const btn = $('submitBtn');
+  isSubmitting = true;
   if (btn) { btn.disabled = true; btn.textContent = '제출 중...'; }
   
+  const submittedCount = items.length;
+  const submittedItems = items.slice();
+  
   try {
-    await postData({ mode: 'final', surveyor, items });
-    submitted = true;  // ✅ 제출 완료 표시
-    showSuccess('✅ 최종제출 완료', 
-      items.length + '개 품목이 실사결과 시트에 저장되었습니다.' +
-      (bigDiff.length > 0 ? '<br><br>⚠️ 차이 10개 초과 품목 ' + bigDiff.length + '개는 재실사 검토 권장' : '') +
-      '<br><br>새로 작성하려면 <b>페이지 새로고침(F5)</b> 해주세요.'
-    );
+    await postData({ mode: 'final', surveyor, items: submittedItems });
+    lastSubmitSignature = signature;
+    lastSubmitTime = Date.now();
+    
+    // 제출 성공 → 화면 비우기 (조사자 이름은 유지)
+    items = [];
     try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
-    setTimeout(loadDashboard, 1500);
-    // 제출 버튼 영구 비활성화
-    if (btn) { btn.textContent = '✅ 제출 완료 (새로고침 필요)'; btn.disabled = true; }
+    renderItems();
+    updateSaveStatus('cleared');
+    
+    showSuccess('✅ 제출 완료',
+      submittedCount + '개 품목이 저장되었습니다.' +
+      (bigDiff.length > 0 ? '<br><br>⚠️ 누적 차이 10개 초과 ' + bigDiff.length + '개는 재실사 검토 권장' : '') +
+      '<br><br>화면이 비워졌습니다. 이어서 다른 구역을 조사하세요.'
+    );
+    
+    // 누적 현황 갱신
+    setTimeout(loadDashboard, 1200);
   } catch (e) {
-    showSuccess('⚠️ 제출 전송됨', '서버 응답 확인 불가하지만 데이터는 전송되었습니다.<br>시트에서 확인해 주세요.');
-    if (btn) { btn.disabled = false; btn.textContent = '📤 최종제출 (' + items.length + '개)'; }
+    showSuccess('⚠️ 제출 전송됨', '서버 응답 확인 불가하지만 데이터는 전송되었습니다.<br>현황 새로고침으로 확인해 주세요.');
+  } finally {
+    isSubmitting = false;
+    if (btn) { btn.disabled = false; btn.textContent = '📤 제출 (' + items.length + '개)'; }
   }
 });
 
