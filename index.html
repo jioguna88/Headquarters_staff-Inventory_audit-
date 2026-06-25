@@ -932,6 +932,10 @@ function openConfirmModal() {
 safeClick('confirmCancelBtn', () => safeHide('confirmModal'));
 safeClick('confirmSubmitBtn', () => { safeHide('confirmModal'); doSubmit(); });
 
+function genSubmissionId(surveyor) {
+  return surveyor + '_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+}
+
 async function doSubmit() {
   if (isSubmitting) return;
   const sv = $('surveyor');
@@ -944,23 +948,60 @@ async function doSubmit() {
     if (it.sysQty === null) return false;
     return Math.abs(getOtherSurveyed(it) + (it.actualQty || 0) - it.sysQty) > 10;
   });
+
   const btn = $('submitBtn');
   isSubmitting = true;
   if (btn) { btn.disabled = true; btn.textContent = '제출 중...'; }
+
   const submittedCount = items.length;
   const submittedItems = items.slice();
+  const submissionId = genSubmissionId(surveyor);
+  // 검증용: 제출 전 각 품목의 누적값 기록
+  const beforeQty = {};
+  submittedItems.forEach(it => { beforeQty[it.name + '|' + it.spec] = getOtherSurveyed(it); });
+  const expectedAdd = {};
+  submittedItems.forEach(it => {
+    const k = it.name + '|' + it.spec;
+    expectedAdd[k] = (expectedAdd[k] || 0) + (it.actualQty || 0);
+  });
+
   try {
-    await postData({ mode: 'final', surveyor, items: submittedItems });
+    await postData({ mode: 'final', surveyor, items: submittedItems, submissionId });
     lastSubmitSignature = signature;
     lastSubmitTime = Date.now();
+
+    // 제출 검증: 대시보드 재로드 후 누적 반영 확인
+    if (btn) btn.textContent = '제출 확인 중...';
+    await new Promise(r => setTimeout(r, 1500));
+    let verified = false;
+    try {
+      const res = await jsonpRequest(WEB_APP_URL + '?action=dashboard', 20000);
+      if (res && res.result === 'success') {
+        const dash = {};
+        (res.dashboard || []).forEach(d => { dash[d.name + '|' + d.spec] = d.totalQty || 0; });
+        verified = Object.keys(expectedAdd).every(k => {
+          const now = dash[k] || 0;
+          return now >= (beforeQty[k] || 0) + expectedAdd[k] - 0.001;
+        });
+        DASHBOARD = {};
+        (res.dashboard || []).forEach(d => { DASHBOARD[d.name + '|' + d.spec] = d; });
+        renderDashboard();
+      }
+    } catch (e) { verified = false; }
+
     items = [];
     try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
     renderItems();
     updateSaveStatus('cleared');
-    showSuccess('✅ 제출 완료', submittedCount + '개 품목이 저장되었습니다.' + (bigDiff.length > 0 ? '<br><br>⚠️ 누적 차이 10개 초과 ' + bigDiff.length + '개는 재실사 검토 권장' : '') + '<br><br>화면이 비워졌습니다. 이어서 다른 구역을 조사하세요.');
+
+    if (verified) {
+      showSuccess('✅ 제출 완료 (확인됨)', submittedCount + '개 품목이 저장·반영 확인되었습니다.' + (bigDiff.length > 0 ? '<br><br>⚠️ 누적 차이 10개 초과 ' + bigDiff.length + '개는 재실사 검토 권장' : '') + '<br><br>이어서 다른 구역을 조사하세요.');
+    } else {
+      showSuccess('⚠️ 제출 반영 미확인', submittedCount + '개 품목을 전송했으나 서버 반영을 확인하지 못했습니다.<br><br>네트워크가 불안정할 수 있습니다. <b>현황판을 새로고침</b>해 누적이 반영됐는지 꼭 확인하세요. 반영 안 됐으면 다시 입력·제출이 필요합니다.');
+    }
     setTimeout(loadDashboard, 1200);
   } catch (e) {
-    showSuccess('⚠️ 제출 전송됨', '서버 응답 확인 불가하지만 데이터는 전송되었습니다.<br>현황 새로고침으로 확인해 주세요.');
+    showSuccess('⚠️ 제출 전송됨', '서버 응답 확인 불가하지만 데이터는 전송되었을 수 있습니다.<br>현황 새로고침으로 확인해 주세요.');
   } finally {
     isSubmitting = false;
     if (btn) { btn.disabled = false; btn.textContent = '📤 제출 (' + items.length + '개)'; }
