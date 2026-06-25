@@ -544,11 +544,12 @@ function renderSearch() {
         qtyInfo = '전산: <b>' + p.sysQty + '</b> / 누적: <b>' + p.surveyedQty + '</b> / 잔여: ';
         if (p.remain === 0) qtyInfo += '<span class="item-done">완료</span>';
         else qtyInfo += '<span class="item-remain">' + p.remain + '</span>';
-        const d = DASHBOARD[key];
+        const d = DASHBOARD[p.name + '|' + p.spec];
         if (d && d.surveyors && d.surveyors.length > 0) {
           qtyInfo += '<br><span style="color:#17a2b8;">👤 ' + d.surveyors.map(escapeHtml).join(', ') + '</span>';
         }
       }
+
       div.innerHTML = '<div class="item-name">' + extraLabel + escapeHtml(p.name) + '</div><div class="item-meta">' + escapeHtml(p.spec) + ' / ' + escapeHtml(p.unit) + '<br>' + qtyInfo + '</div>';
       div.addEventListener('mousedown', e => {
         e.preventDefault();
