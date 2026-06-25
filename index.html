@@ -154,6 +154,20 @@
   .calc-apply { width: 100%; padding: 14px; background: #007bff; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; }
   .save-indicator { position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.75); color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 13px; opacity: 0; transition: opacity 0.3s; z-index: 999; pointer-events: none; }
   .save-indicator.show { opacity: 1; }
+ 
+   /* 큰 글씨 모드 */
+  body.big-mode { font-size: 18px; }
+  body.big-mode .qty-btn-big { width: 72px; height: 72px; font-size: 34px; }
+  body.big-mode .qty-input-big { font-size: 32px; padding: 16px; }
+  body.big-mode .quick-btn { font-size: 16px; padding: 14px 4px; }
+  body.big-mode .quick-btn.match { font-size: 17px; }
+  body.big-mode .dropdown input,
+  body.big-mode #search { font-size: 18px; }
+  body.big-mode .row-title { font-size: 18px; }
+  body.big-mode .diff-box { font-size: 16px; }
+  body.big-mode button.primary { font-size: 20px; padding: 20px; }
+  .big-toggle { position: fixed; bottom: 10px; left: 10px; z-index: 999; background: rgba(0,0,0,0.7); color: #fff; border: none; padding: 10px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+  .big-toggle.active { background: #007bff; }
 </style>
 </head>
 <body>
@@ -253,6 +267,7 @@
 </div>
 
 <div class="save-indicator" id="saveIndicator">💾 저장됨</div>
+<button class="big-toggle" id="bigToggle">🔍 큰 글씨</button>
 
 <script>
 // ★★★ 이 한 줄만 본인 URL로 바꾸세요 ★★★
@@ -268,6 +283,7 @@ let dashFilter = 'all';
 let calcTargetIdx = -1;
 let lastSavedAt = null;
 let calcExpr = '';
+let lastQtyChange = null; // { idx, prev } 직전 수량 변경 기억
 let isSubmitting = false;        // 전송 중 더블클릭 방지
 let lastSubmitSignature = '';    // 직전 제출 내용 서명
 let lastSubmitTime = 0;          // 직전 제출 시각
@@ -524,10 +540,14 @@ function renderSearch() {
       const extraLabel = p.isExtra ? '<span class="item-extra">[전산재고 불확인]</span> ' : '';
       let qtyInfo;
       if (p.isExtra) qtyInfo = '입력: <b>' + p.surveyedQty + '</b>';
-      else {
+            else {
         qtyInfo = '전산: <b>' + p.sysQty + '</b> / 누적: <b>' + p.surveyedQty + '</b> / 잔여: ';
         if (p.remain === 0) qtyInfo += '<span class="item-done">완료</span>';
         else qtyInfo += '<span class="item-remain">' + p.remain + '</span>';
+        const d = DASHBOARD[key];
+        if (d && d.surveyors && d.surveyors.length > 0) {
+          qtyInfo += '<br><span style="color:#17a2b8;">👤 ' + d.surveyors.map(escapeHtml).join(', ') + '</span>';
+        }
       }
       div.innerHTML = '<div class="item-name">' + extraLabel + escapeHtml(p.name) + '</div><div class="item-meta">' + escapeHtml(p.spec) + ' / ' + escapeHtml(p.unit) + '<br>' + qtyInfo + '</div>';
       div.addEventListener('mousedown', e => {
@@ -602,20 +622,31 @@ function focusQtyInput(idx) {
 }
 
 function removeItem(idx) { items.splice(idx, 1); renderItems(); saveLocal(true); }
+function rememberQty(idx) { lastQtyChange = { idx, prev: items[idx].actualQty }; }
+
 function changeQty(idx, delta) {
+  rememberQty(idx);
   items[idx].actualQty = Math.max(0, Math.round(((items[idx].actualQty || 0) + delta) * 100) / 100);
   renderItems(); saveLocal();
 }
 function setQty(idx, val) {
+  rememberQty(idx);
   items[idx].actualQty = Math.max(0, parseFloat(val) || 0);
   renderItems(); saveLocal();
 }
 function setMatch(idx) {
-  // 방식 A: "전산일치"는 잔여(전산 − 다른 누적)를 채우는 의미
   if (items[idx].sysQty !== null) {
+    rememberQty(idx);
     const remain = Math.max(0, items[idx].sysQty - getOtherSurveyed(items[idx]));
     items[idx].actualQty = remain;
     renderItems(); saveLocal(true);
+  }
+}
+function undoQty(idx) {
+  if (lastQtyChange && lastQtyChange.idx === idx) {
+    items[idx].actualQty = lastQtyChange.prev;
+    lastQtyChange = null;
+    renderItems(); saveLocal();
   }
 }
 function setMemo(idx, val) {
@@ -687,9 +718,13 @@ function renderItems() {
       matchBtn = '<button class="quick-btn match" disabled style="opacity:0.5">일치(불가)</button>';
     }
     
-    let otherInfo = '';
+        let otherInfo = '';
     if (otherSurveyed > 0) {
       otherInfo = ' / 기제출누적: <span class="other-qty">' + otherSurveyed + '</span>';
+      const dInfo = DASHBOARD[it.name + '|' + it.spec];
+      if (dInfo && dInfo.surveyors && dInfo.surveyors.length > 0) {
+        otherInfo += ' <span style="color:#17a2b8;font-size:11px;">(👤 ' + dInfo.surveyors.map(escapeHtml).join(', ') + ')</span>';
+      }
     }
     
     const hint = it.sysQty === null ? '' :
@@ -715,9 +750,10 @@ function renderItems() {
         '<input type="number" inputmode="decimal" class="qty-input-big" value="' + it.actualQty + '" min="0">' +
         '<button class="qty-btn-big" data-act="plus">+</button>' +
       '</div>' +
-      '<div class="quick-btns">' +
+            '<div class="quick-btns" style="grid-template-columns:repeat(4,1fr);">' +
         matchBtn +
         '<button class="quick-btn calc" data-act="calc">🧮 계산기</button>' +
+        '<button class="quick-btn" data-act="undo">↩ 되돌리기</button>' +
         '<button class="quick-btn zero" data-act="zero">0으로</button>' +
       '</div>' +
       '<div class="quick-btns" style="grid-template-columns:repeat(4,1fr);">' +
@@ -758,6 +794,7 @@ function renderItems() {
         else if (a === 'p10') changeQty(idx, +10);
         else if (a === 'p100') changeQty(idx, +100);
         else if (a === 'zero') setQty(idx, 0);
+        else if (a === 'undo') undoQty(idx);
         else if (a === 'match') setMatch(idx);
         else if (a === 'calc') openCalc(idx);
         else if (a === 'collapse') toggleCollapse(idx);
@@ -1098,6 +1135,24 @@ document.querySelectorAll('.dash-filter button').forEach(btn => {
     renderDashboard();
   };
 });
+ 
+// ===== 큰 글씨 모드 =====
+(function initBigMode() {
+  const KEY = 'audit_big_mode';
+  let on = false;
+  try { on = localStorage.getItem(KEY) === '1'; } catch(e) {}
+  const btn = $('bigToggle');
+  function apply() {
+    document.body.classList.toggle('big-mode', on);
+    if (btn) btn.classList.toggle('active', on);
+  }
+  if (btn) btn.onclick = () => {
+    on = !on;
+    try { localStorage.setItem(KEY, on ? '1' : '0'); } catch(e) {}
+    apply();
+  };
+  apply();
+})();
 
 // ===== 시작 =====
 loadProducts();
