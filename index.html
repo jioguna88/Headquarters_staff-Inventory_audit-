@@ -56,6 +56,7 @@
   .dropdown-item.unsurveyed .item-name::before { content: '🔴 '; }
   .dropdown-item.partial { background: #fff8e1; border-left: 4px solid #ffc107; }
   .dropdown-item.partial .item-name::before { content: '🟡 '; }
+  .dropdown-item.extra-item { background: #fffbf0; border-left: 4px solid #b8860b; }
   .dropdown-item.fully-surveyed { opacity: 0.55; }
   .dropdown-item.fully-surveyed .item-name::before { content: '✅ '; }
   .main { padding: 10px; }
@@ -102,6 +103,25 @@
   .diff-short { background: #f8d7da; color: #721c24; }
   .diff-na { background: #e2e3e5; color: #383d41; font-size: 12px; }
   .diff-box .calc-detail { font-size: 11px; font-weight: 400; margin-top: 3px; opacity: 0.85; }
+  .barcode-section { margin-top: 8px; background: #f0f7ff; border: 1px solid #b8daff; border-radius: 6px; padding: 8px; }
+  .barcode-label { font-size: 12px; font-weight: 700; color: #004085; margin-bottom: 4px; }
+  .barcode-label.bc-required::after { content: ' *필수'; color: #dc3545; font-size: 11px; }
+  .barcode-value { font-size: 15px; font-weight: 700; font-family: 'Courier New', monospace; margin-bottom: 6px; word-break: break-all; }
+  .barcode-value.none { color: #888; font-weight: 400; font-family: inherit; font-size: 13px; }
+  .barcode-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+  .barcode-btns.two { grid-template-columns: 1fr 1fr; }
+  .bc-btn { padding: 10px 4px; font-size: 12px; font-weight: 700; border: 1px solid #ccc; background: #fff; border-radius: 6px; }
+  .bc-btn:active { background: #e9ecef; }
+  .bc-btn.sel-match { background: #28a745; color: #fff; border-color: #28a745; }
+  .bc-btn.sel-diff { background: #fd7e14; color: #fff; border-color: #fd7e14; }
+  .bc-btn.sel-none { background: #6c757d; color: #fff; border-color: #6c757d; }
+  .barcode-input-row { margin-top: 6px; }
+  .barcode-input-row input { width: 100%; padding: 10px; font-size: 16px; font-family: 'Courier New', monospace; border: 2px solid #fd7e14; border-radius: 6px; }
+  .barcode-input-row input.bc-empty { border-color: #dc3545; background: #fff5f5; }
+  .barcode-result { margin-top: 6px; font-size: 12px; font-weight: 700; padding: 6px 8px; border-radius: 6px; line-height: 1.4; }
+  .bc-ok { background: #d4edda; color: #155724; }
+  .bc-warn { background: #fff3cd; color: #856404; }
+  .bc-err { background: #f8d7da; color: #721c24; }
   .memo-section { margin-top: 8px; }
   .memo-label { font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #555; }
   .memo-label.required { color: #dc3545; }
@@ -127,6 +147,7 @@
   .item-row.collapsed .memo-section,
   .item-row.collapsed .expiry-row,
   .item-row.collapsed .input-hint,
+  .item-row.collapsed .barcode-section,
   .item-row.collapsed .row-meta { display: none; }
   .item-row.collapsed { padding: 10px; border-color: #ccc; }
   .item-row.collapsed .row-title { margin: 0; font-size: 14px; }
@@ -169,6 +190,7 @@
   body.big-mode .dropdown input, body.big-mode #search { font-size: 18px; }
   body.big-mode .row-title { font-size: 18px; }
   body.big-mode .diff-box { font-size: 16px; }
+  body.big-mode .bc-btn { font-size: 14px; padding: 12px 4px; }
   body.big-mode button.primary { font-size: 20px; padding: 20px; }
   .big-toggle { position: fixed; bottom: 10px; left: 10px; z-index: 999; background: rgba(0,0,0,0.7); color: #fff; border: none; padding: 10px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; }
   .big-toggle.active { background: #007bff; }
@@ -202,7 +224,7 @@
     <div class="sum-short">부족<b id="sumShort">0</b></div>
   </div>
   <div class="dropdown">
-    <input type="text" id="search" placeholder="🔍 품목명/규격 입력하여 검색" autocomplete="off">
+    <input type="text" id="search" placeholder="🔍 품목명/규격/바코드 입력하여 검색" autocomplete="off">
     <div class="dropdown-list" id="searchList"></div>
   </div>
 </div>
@@ -238,7 +260,7 @@
   <div id="itemsContainer"></div>
 
   <div class="submit-area">
-    <div class="submit-hint">💡 <b>제출</b> 후 입력 품목은 자동으로 비워지고 누적 현황이 갱신됩니다. 메모와 유통기한은 필수입니다.</div>
+    <div class="submit-hint">💡 <b>제출</b> 후 입력 품목은 자동으로 비워지고 누적 현황이 갱신됩니다. 메모·유통기한·바코드 확인은 필수입니다.</div>
     <button class="primary" id="submitBtn" disabled>📤 제출 (<span id="btnCount">0</span>개)</button>
   </div>
 </div>
@@ -468,7 +490,7 @@ function renderDashboard() {
       let product;
       if (r.isExtra) {
         product = EXTRA_PRODUCTS.find(p => p.name === r.name && p.spec === r.spec);
-        product = product ? { ...product, isExtra: true } : { name: r.name, spec: r.spec, unit: '', isExtra: true };
+        product = product ? { ...product, isExtra: true } : { name: r.name, spec: r.spec, unit: '', barcode: '', isExtra: true };
       } else {
         product = SYS_PRODUCTS.find(p => p.name === r.name && p.spec === r.spec);
         if (!product) return;
@@ -519,7 +541,8 @@ function renderSearch() {
     const d = DASHBOARD[key];
     combined.push({ ...p, isExtra: true, surveyedQty: d ? d.totalQty : 0, remain: null, status: 'extra' });
   });
-  const filtered = combined.filter(p => !q || (p.name + ' ' + p.spec).toLowerCase().includes(q));
+  // 이름/규격/바코드 모두 검색 대상 — 검색창에 바코드를 스캔해도 품목이 나옵니다
+  const filtered = combined.filter(p => !q || (p.name + ' ' + p.spec + ' ' + (p.barcode || '')).toLowerCase().includes(q));
   filtered.sort((a, b) => {
     const score = x => x.isExtra ? 3 : (x.status === 'fully-surveyed' ? 2 : (x.status === 'partial' ? 1 : 0));
     return score(a) - score(b);
@@ -549,7 +572,8 @@ function renderSearch() {
           qtyInfo += '<br><span style="color:#17a2b8;">👤 ' + d.surveyors.map(escapeHtml).join(', ') + '</span>';
         }
       }
-      div.innerHTML = '<div class="item-name">' + extraLabel + escapeHtml(p.name) + '</div><div class="item-meta">' + escapeHtml(p.spec) + ' / ' + escapeHtml(p.unit) + '<br>' + qtyInfo + '</div>';
+      const bcInfo = p.barcode ? '<br>🏷️ ' + escapeHtml(p.barcode) : '';
+      div.innerHTML = '<div class="item-name">' + extraLabel + escapeHtml(p.name) + '</div><div class="item-meta">' + escapeHtml(p.spec) + ' / ' + escapeHtml(p.unit) + bcInfo + '<br>' + qtyInfo + '</div>';
       div.addEventListener('mousedown', e => {
         e.preventDefault();
         addItem(p);
@@ -597,7 +621,9 @@ function addItem(p) {
     name: p.name, spec: p.spec, unit: p.unit,
     sysQty: p.isExtra ? null : p.sysQty,
     type: p.isExtra ? '[전산재고 불확인]' : '전산재고',
-    actualQty: 0, memo: '', expiry: '', _collapsed: false, _new: true
+    actualQty: 0, memo: '', expiry: '',
+    sysBarcode: p.barcode || '', scanBarcode: '', barcodeStatus: '',
+    _collapsed: false, _new: true
   });
   renderItems();
   setTimeout(() => focusQtyInput(0), 80);
@@ -656,6 +682,62 @@ function setExpiry(idx, val) { items[idx].expiry = val; saveLocal(); }
 function toggleCollapse(idx) { items[idx]._collapsed = !items[idx]._collapsed; renderItems(); }
 function needsMemo(it) { return true; }
 
+// ===== 바코드 상태 =====
+// barcodeStatus: 'match'(일치) / 'diff'(다름-수정) / 'none'(바코드 없음) / 'new'(전산 미등록 → 신규 입력) / ''(미확인)
+function setBarcodeStatus(idx, status) {
+  items[idx].barcodeStatus = status;
+  if (status !== 'diff' && status !== 'new') items[idx].scanBarcode = '';
+  renderItems();
+  saveLocal(true);
+}
+function setScanBarcode(idx, val) {
+  items[idx].scanBarcode = String(val || '').trim();
+  const row = document.querySelector('[data-idx="' + idx + '"]');
+  if (row) {
+    const inp = row.querySelector('.bc-input');
+    if (inp) {
+      if (!items[idx].scanBarcode) inp.classList.add('bc-empty');
+      else inp.classList.remove('bc-empty');
+    }
+    const resEl = row.querySelector('.barcode-result');
+    if (resEl) {
+      const r = barcodeResultInfo(items[idx]);
+      resEl.className = 'barcode-result ' + r.cls;
+      resEl.innerHTML = r.html;
+    }
+  }
+  saveLocal();
+}
+function barcodeResultInfo(it) {
+  const st = it.barcodeStatus || '';
+  const sysBc = it.sysBarcode || '';
+  if (st === 'match') return { cls: 'bc-ok', html: '✅ 전산 바코드와 <b>일치</b> 확인됨' };
+  if (st === 'none') return { cls: 'bc-warn', html: sysBc ? '🚫 실물에 바코드 없음으로 기록됩니다 (전산에는 등록되어 있음)' : '🚫 바코드 없음으로 기록됩니다' };
+  if (st === 'diff') {
+    if (it.scanBarcode) return { cls: 'bc-err', html: '⚠️ <b>불일치</b> — 실물: <b>' + escapeHtml(it.scanBarcode) + '</b> / 전산: ' + escapeHtml(sysBc) + '<br>제출 시 [바코드확인필요] 시트에 수정 대상으로 기록됩니다.' };
+    return { cls: 'bc-err', html: '⚠️ 실물 바코드 번호를 입력(스캔)하세요.' };
+  }
+  if (st === 'new') {
+    if (it.scanBarcode) return { cls: 'bc-ok', html: '🆕 신규 바코드 <b>' + escapeHtml(it.scanBarcode) + '</b> 등록 요청으로 기록됩니다.' };
+    return { cls: 'bc-err', html: '⚠️ 실물 바코드 번호를 입력(스캔)하세요.' };
+  }
+  return { cls: 'bc-err', html: '⚠️ 바코드 확인이 필요합니다. 위 버튼 중 하나를 선택하세요.' };
+}
+function isBarcodeIncomplete(it) {
+  const st = it.barcodeStatus || '';
+  if (!st) return true;
+  if ((st === 'diff' || st === 'new') && (!it.scanBarcode || !it.scanBarcode.trim())) return true;
+  return false;
+}
+function barcodeStatusLabel(it) {
+  const st = it.barcodeStatus || '';
+  if (st === 'match') return '<span style="color:#28a745;">바코드 일치</span>';
+  if (st === 'diff') return '<span style="color:#fd7e14;">바코드 불일치</span>';
+  if (st === 'none') return '<span style="color:#6c757d;">바코드 없음</span>';
+  if (st === 'new') return '<span style="color:#007bff;">바코드 신규</span>';
+  return '<span style="color:#dc3545;">바코드 미확인</span>';
+}
+
 function renderItems() {
   const c = $('itemsContainer');
   if (!c) return;
@@ -707,6 +789,39 @@ function renderItems() {
       }
     }
     const hint = it.sysQty === null ? '' : '<div class="input-hint">💡 <b>이번에 발견한 수량만</b> 입력하세요. 기제출 누적(' + otherSurveyed + ')에 자동 합산됩니다.</div>';
+
+    // ----- 바코드 확인 섹션 -----
+    const sysBc = it.sysBarcode || '';
+    const st = it.barcodeStatus || '';
+    let bcButtons;
+    if (sysBc) {
+      bcButtons = '<div class="barcode-btns">' +
+        '<button class="bc-btn' + (st === 'match' ? ' sel-match' : '') + '" data-act="bc-match">✓ 일치</button>' +
+        '<button class="bc-btn' + (st === 'diff' ? ' sel-diff' : '') + '" data-act="bc-diff">✏️ 다름</button>' +
+        '<button class="bc-btn' + (st === 'none' ? ' sel-none' : '') + '" data-act="bc-none">🚫 실물에 없음</button>' +
+        '</div>';
+    } else {
+      bcButtons = '<div class="barcode-btns two">' +
+        '<button class="bc-btn' + (st === 'new' ? ' sel-diff' : '') + '" data-act="bc-new">✏️ 바코드 입력(신규)</button>' +
+        '<button class="bc-btn' + (st === 'none' ? ' sel-none' : '') + '" data-act="bc-none">🚫 바코드 없음</button>' +
+        '</div>';
+    }
+    const bcValueHtml = sysBc
+      ? '<div class="barcode-value">' + escapeHtml(sysBc) + '</div>'
+      : '<div class="barcode-value none">전산 바코드 미등록</div>';
+    let bcInputHtml = '';
+    if (st === 'diff' || st === 'new') {
+      const bcEmpty = !it.scanBarcode || !it.scanBarcode.trim();
+      bcInputHtml = '<div class="barcode-input-row"><input type="text" inputmode="numeric" class="bc-input' + (bcEmpty ? ' bc-empty' : '') + '" placeholder="실물 바코드 번호 입력/스캔" value="' + escapeHtml(it.scanBarcode || '') + '"></div>';
+    }
+    const bcRes = barcodeResultInfo(it);
+    const barcodeHtml =
+      '<div class="barcode-section">' +
+        '<div class="barcode-label bc-required">🏷️ 바코드 확인</div>' +
+        bcValueHtml + bcButtons + bcInputHtml +
+        '<div class="barcode-result ' + bcRes.cls + '">' + bcRes.html + '</div>' +
+      '</div>';
+
     const memoEmpty = !it.memo || !it.memo.trim();
     const memoAreaCls = memoEmpty ? 'memo-area required-empty' : 'memo-area';
     let presetBtns = '';
@@ -737,6 +852,7 @@ function renderItems() {
         '<button class="quick-btn" data-act="p100">+100</button>' +
       '</div>' +
       diffHtml +
+      barcodeHtml +
       '<div class="memo-section">' +
         '<div class="memo-label required">📝 메모</div>' +
         '<div class="memo-presets">' + presetBtns + '</div>' +
@@ -770,6 +886,10 @@ function renderItems() {
         else if (a === 'match') setMatch(idx);
         else if (a === 'calc') openCalc(idx);
         else if (a === 'collapse') toggleCollapse(idx);
+        else if (a === 'bc-match') setBarcodeStatus(idx, 'match');
+        else if (a === 'bc-diff') setBarcodeStatus(idx, 'diff');
+        else if (a === 'bc-none') setBarcodeStatus(idx, 'none');
+        else if (a === 'bc-new') setBarcodeStatus(idx, 'new');
         else if (a === 'expnone') { items[idx].expiry = '소비기한 없음'; renderItems(); saveLocal(); }
         else if (a === 'remove') { if (confirm('삭제하시겠습니까?')) removeItem(idx); }
       };
@@ -799,6 +919,12 @@ function renderItems() {
     if (qtyInput) {
       qtyInput.onchange = (e) => setQty(idx, e.target.value);
       qtyInput.onfocus = (e) => { try { e.target.select(); } catch(err) {} };
+    }
+    const bcInput = div.querySelector('.bc-input');
+    if (bcInput) {
+      bcInput.oninput = (e) => setScanBarcode(idx, e.target.value);
+      // 스캐너는 보통 입력 후 Enter를 보냄 — Enter 시 포커스 해제로 실수 방지
+      bcInput.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); bcInput.blur(); } };
     }
     const memoEl = div.querySelector('.memo-area');
     if (memoEl) memoEl.oninput = (e) => setMemo(idx, e.target.value);
@@ -895,6 +1021,14 @@ safeClick('submitBtn', () => {
     setTimeout(() => { const el = document.querySelector('[data-idx="' + idx + '"] .expiry-row input'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus(); } }, 100);
     return;
   }
+  const noBc = items.filter(isBarcodeIncomplete);
+  if (noBc.length > 0) {
+    alert('바코드 확인이 안 된 품목이 ' + noBc.length + '개 있습니다.\n[일치 / 다름 / 없음] 중 선택하고, "다름·신규"는 실물 바코드를 입력해주세요.');
+    const idx = items.indexOf(noBc[0]);
+    items[idx]._collapsed = false; renderItems();
+    setTimeout(() => { const el = document.querySelector('[data-idx="' + idx + '"] .barcode-section'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+    return;
+  }
   openConfirmModal();
 });
 
@@ -912,7 +1046,10 @@ function openConfirmModal() {
     return Math.abs(b.diff) - Math.abs(a.diff);
   });
   const bigCount = view.filter(v => v.diff !== null && Math.abs(v.diff) > 10).length;
-  sumEl.innerHTML = '총 <b>' + items.length + '개</b> 제출' + (bigCount > 0 ? ' / <span style="color:#dc3545;font-weight:700;">차이 10개 초과: ' + bigCount + '개</span>' : '');
+  const bcIssueCount = items.filter(it => it.barcodeStatus === 'diff' || it.barcodeStatus === 'new').length;
+  sumEl.innerHTML = '총 <b>' + items.length + '개</b> 제출'
+    + (bigCount > 0 ? ' / <span style="color:#dc3545;font-weight:700;">차이 10개 초과: ' + bigCount + '개</span>' : '')
+    + (bcIssueCount > 0 ? ' / <span style="color:#fd7e14;font-weight:700;">바코드 수정대상: ' + bcIssueCount + '개</span>' : '');
   listEl.innerHTML = '';
   view.forEach(v => {
     const it = v.it;
@@ -924,7 +1061,7 @@ function openConfirmModal() {
     else diffHtml = '<span class="cf-diff short">부족 ' + v.diff + '</span>';
     const row = document.createElement('div');
     row.className = 'cf-row' + (isBig ? ' big' : '');
-    row.innerHTML = '<span class="cf-name">' + escapeHtml(it.name) + '<br><small style="color:#888;">이번 ' + it.actualQty + ' / 누적 ' + v.total + (it.sysQty === null ? '' : ' / 전산 ' + it.sysQty) + '</small></span>' + diffHtml;
+    row.innerHTML = '<span class="cf-name">' + escapeHtml(it.name) + '<br><small style="color:#888;">이번 ' + it.actualQty + ' / 누적 ' + v.total + (it.sysQty === null ? '' : ' / 전산 ' + it.sysQty) + ' / ' + barcodeStatusLabel(it) + '</small></span>' + diffHtml;
     listEl.appendChild(row);
   });
   safeShow('confirmModal');
@@ -954,13 +1091,18 @@ async function doSubmit() {
   if (btn) { btn.disabled = true; btn.textContent = '제출 중...'; }
 
   const submittedCount = items.length;
-  const submittedItems = items.slice();
+  const submittedItems = items.map(it => ({
+    name: it.name, spec: it.spec, unit: it.unit, type: it.type,
+    sysQty: it.sysQty, actualQty: it.actualQty,
+    memo: it.memo, expiry: it.expiry,
+    sysBarcode: it.sysBarcode || '', scanBarcode: it.scanBarcode || '', barcodeStatus: it.barcodeStatus || ''
+  }));
   const submissionId = genSubmissionId(surveyor);
   // 검증용: 제출 전 각 품목의 누적값 기록
   const beforeQty = {};
-  submittedItems.forEach(it => { beforeQty[it.name + '|' + it.spec] = getOtherSurveyed(it); });
+  items.forEach(it => { beforeQty[it.name + '|' + it.spec] = getOtherSurveyed(it); });
   const expectedAdd = {};
-  submittedItems.forEach(it => {
+  items.forEach(it => {
     const k = it.name + '|' + it.spec;
     expectedAdd[k] = (expectedAdd[k] || 0) + (it.actualQty || 0);
   });
@@ -1004,7 +1146,8 @@ async function doSubmit() {
     showSuccess('⚠️ 제출 전송됨', '서버 응답 확인 불가하지만 데이터는 전송되었을 수 있습니다.<br>현황 새로고침으로 확인해 주세요.');
   } finally {
     isSubmitting = false;
-    if (btn) { btn.disabled = false; btn.textContent = '📤 제출 (' + items.length + '개)'; }
+    // (버그 수정) textContent로 덮으면 btnCount span이 사라져 이후 개수 갱신이 안 되던 문제 → innerHTML로 span 복원
+    if (btn) { btn.disabled = false; btn.innerHTML = '📤 제출 (<span id="btnCount">' + items.length + '</span>개)'; }
   }
 }
 
@@ -1071,7 +1214,19 @@ function checkRestore() {
     safeClick('btnRestore', () => {
       const sv = $('surveyor');
       if (sv) sv.value = d.surveyor || '';
-      items = (d.items || []).map((it, i) => ({ ...it, _collapsed: i !== 0, _new: false }));
+      // 구버전 임시저장(바코드 필드 없음)도 안전하게 복구
+      items = (d.items || []).map((it, i) => ({
+        sysBarcode: '', scanBarcode: '', barcodeStatus: '',
+        ...it, _collapsed: i !== 0, _new: false
+      }));
+      // 복구된 품목의 전산 바코드가 비어 있으면 현재 마스터에서 다시 채움
+      items.forEach(it => {
+        if (!it.sysBarcode) {
+          const p = SYS_PRODUCTS.find(x => x.name === it.name && x.spec === it.spec)
+            || EXTRA_PRODUCTS.find(x => x.name === it.name && x.spec === it.spec);
+          if (p && p.barcode) it.sysBarcode = p.barcode;
+        }
+      });
       renderItems();
       lastSavedAt = savedDate;
       updateSaveStatus('saved');
