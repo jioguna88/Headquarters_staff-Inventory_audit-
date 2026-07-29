@@ -160,7 +160,7 @@
   .type-tag.box { background: #0ca678; }
   .item-row.cbm-only { border-color: #0ca678; background: #f4fdfa; }
   .item-row.cbm-only .qty-big-row, .item-row.cbm-only .quick-btns, .item-row.cbm-only .diff-box,
-  .item-row.cbm-only .memo-section, .item-row.cbm-only .expiry-row, .item-row.cbm-only .input-hint,
+  .item-row.cbm-only .memo-section, .item-row.cbm-only .expiry-section, .item-row.cbm-only .input-hint,
   .item-row.cbm-only .plt-row, .item-row.cbm-only .barcode-section { display: none; }
   .item-row.collapsed .cbm-section { display: none; }
   .item-cbm-badge { color: #0ca678; font-weight: 700; }
@@ -174,20 +174,23 @@
   .memo-preset-btn { padding: 8px; font-size: 12px; font-weight: 600; background: #e7f3ff; border: 1px solid #007bff; color: #007bff; border-radius: 6px; }
   .memo-preset-btn:active { background: #007bff; color: #fff; }
   .memo-preset-btn.active { background: #007bff; color: #fff; }
-  .expiry-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
-  .expiry-row label { font-size: 12px; font-weight: 700; white-space: nowrap; color: #555; }
-  .expiry-row label.exp-required { color: #dc3545; }
-  .expiry-row input { flex: 1; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 6px; }
+  .expiry-section { margin-top: 8px; }
+  .expiry-row { display: flex; align-items: center; gap: 6px; }
+  .expiry-row input { flex: 1; min-width: 0; padding: 10px; font-size: 15px; border: 1px solid #ccc; border-radius: 6px; }
   .expiry-row input.exp-empty { border-color: #dc3545; background: #fff5f5; }
-  .exp-none-btn { padding: 8px 10px; font-size: 12px; font-weight: 700; background: #6c757d; color: #fff; border: none; border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
+  .exp-hint { font-size: 10px; color: #888; margin-top: 3px; }
+  .exp-none-btn { padding: 10px 12px; font-size: 12px; font-weight: 700; background: #6c757d; color: #fff; border: none; border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
   .exp-none-btn:active { background: #495057; }
+  .collapsed-summary { font-size: 11px; color: #666; margin-top: 3px; line-height: 1.4; }
+  .float-submit { display: none; position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); z-index: 998; background: #007bff; color: #fff; border: none; padding: 13px 24px; border-radius: 26px; font-size: 15px; font-weight: 800; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+  .float-submit:active { background: #0056b3; }
   .row-actions { display: flex; gap: 6px; margin-top: 8px; }
   .row-remove { flex: 1; background: #dc3545; color: #fff; border: none; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 600; }
   .row-collapse { flex: 1; background: #6c757d; color: #fff; border: none; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 600; }
   .item-row.collapsed .qty-big-row,
   .item-row.collapsed .quick-btns,
   .item-row.collapsed .memo-section,
-  .item-row.collapsed .expiry-row,
+  .item-row.collapsed .expiry-section,
   .item-row.collapsed .input-hint,
   .item-row.collapsed .barcode-section,
   .item-row.collapsed .plt-row,
@@ -195,7 +198,7 @@
   .item-row.collapsed { padding: 10px; border-color: #ccc; }
   .item-row.collapsed .row-title { margin: 0; font-size: 14px; }
   .item-row.collapsed .row-actions { margin-top: 6px; }
-  .submit-area { padding: 16px 10px 40px; display: flex; flex-direction: column; gap: 8px; }
+  .submit-area { padding: 16px 10px 90px; display: flex; flex-direction: column; gap: 8px; }
   button.primary { background: #007bff; color: #fff; border: none; padding: 16px; width: 100%; border-radius: 8px; font-size: 17px; font-weight: 700; }
   button.primary:disabled { background: #ccc; }
   .submit-hint { background: #fff8e1; border: 1px solid #ffc107; padding: 8px; border-radius: 6px; font-size: 12px; color: #856404; text-align: center; margin-bottom: 4px; }
@@ -353,6 +356,7 @@
 
 <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none">
 <div class="save-indicator" id="saveIndicator">💾 저장됨</div>
+<button class="float-submit" id="floatSubmit">📤 제출 (0)</button>
 <button class="big-toggle" id="bigToggle">🔍 큰 글씨</button>
 
 <script>
@@ -718,7 +722,8 @@ function focusQtyInput(idx) {
   const row = document.querySelector('[data-idx="' + idx + '"]');
   if (!row) return;
   row.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  const qty = row.querySelector('.qty-input-big');
+  const it = items[idx];
+  const qty = row.querySelector(it && it.cbmOnly ? '.cbm-w' : '.qty-input-big');
   if (qty) { qty.focus(); try { qty.select(); } catch(e) {} }
 }
 
@@ -763,6 +768,14 @@ function setMemo(idx, val) {
   saveLocal();
 }
 function setExpiry(idx, val) { items[idx].expiry = val; saveLocal(); }
+// 숫자 6자리(YYMMDD)/8자리(YYYYMMDD) → YYYY-MM-DD 자동 변환
+function formatExpiry(v) {
+  const raw = String(v == null ? '' : v).trim();
+  const d = raw.replace(/[^0-9]/g, '');
+  if (/^\d{6}$/.test(d) && raw.length <= 8) return '20' + d.slice(0, 2) + '-' + d.slice(2, 4) + '-' + d.slice(4, 6);
+  if (/^\d{8}$/.test(d)) return d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6, 8);
+  return raw;
+}
 function toggleCollapse(idx) { items[idx]._collapsed = !items[idx]._collapsed; renderItems(); }
 function needsMemo(it) { return true; }
 
@@ -1107,8 +1120,28 @@ function renderItems() {
       presetBtns += '<button class="memo-preset-btn' + active + '" data-preset="' + escapeHtml(preset) + '">' + escapeHtml(preset) + '</button>';
     });
     const expEmpty = !it.expiry || !it.expiry.trim();
+    let collapsedSummary = '';
+    if (it._collapsed) {
+      const miss = [];
+      if (it.cbmOnly) {
+        if (!dimsComplete(it)) miss.push('치수');
+      } else {
+        if (!it.memo || !it.memo.trim()) miss.push('메모');
+        if (!it.expiry || !it.expiry.trim()) miss.push('유통기한');
+        if (isBarcodeIncomplete(it)) miss.push('바코드');
+        if (dimsPartial(it)) miss.push('치수(일부만)');
+      }
+      collapsedSummary = '<div class="collapsed-summary">'
+        + (it.cbmOnly ? '박스실측 ' + (dimsComplete(it) ? it.boxW + '×' + it.boxD + '×' + it.boxH + 'cm' : '') : '이번 입력 ' + it.actualQty)
+        + (parseFloat(it.plt) > 0 ? ' · ' + it.plt + 'PLT' : '')
+        + (miss.length > 0
+            ? ' · <span style="color:#dc3545;font-weight:700;">누락: ' + miss.join(', ') + '</span>'
+            : ' · <span style="color:#28a745;font-weight:700;">입력 완료</span>')
+        + '</div>';
+    }
     div.innerHTML =
       '<div class="row-title">' + typeTag + escapeHtml(it.name) + '</div>' +
+      collapsedSummary +
       '<div class="row-meta">' + escapeHtml(it.spec) + ' · ' + escapeHtml(it.unit) + ' · 전산: <span class="sys-qty">' + sysQtyText + '</span>' + otherInfo + '</div>' +
       hint +
       '<div class="qty-big-row">' +
@@ -1137,10 +1170,13 @@ function renderItems() {
         '<div class="memo-presets">' + presetBtns + '</div>' +
         '<textarea class="' + memoAreaCls + '" placeholder="메모 (필수)">' + escapeHtml(it.memo) + '</textarea>' +
       '</div>' +
-      '<div class="expiry-row">' +
-        '<label class="exp-required">📅 유통기한 *필수</label>' +
-        '<input type="text" class="' + (expEmpty ? 'exp-empty' : '') + '" placeholder="예: 2026-12-31" value="' + escapeHtml(it.expiry) + '">' +
-        '<button class="exp-none-btn" data-act="expnone">소비기한 없음</button>' +
+      '<div class="expiry-section">' +
+        '<div class="memo-label required">📅 유통기한</div>' +
+        '<div class="expiry-row">' +
+          '<input type="text" inputmode="numeric" class="' + (expEmpty ? 'exp-empty' : '') + '" placeholder="숫자만 입력 (예: 261231)" value="' + escapeHtml(it.expiry) + '">' +
+          '<button class="exp-none-btn" data-act="expnone">소비기한 없음</button>' +
+        '</div>' +
+        '<div class="exp-hint">숫자 6자리(261231) 또는 8자리(20261231)를 입력하면 날짜로 자동 변환됩니다.</div>' +
       '</div>' +
       '<div class="row-actions">' +
         '<button class="row-collapse" data-act="collapse">' + (it._collapsed ? '🔽 펼치기' : '🔼 접기') + '</button>' +
@@ -1226,7 +1262,17 @@ function renderItems() {
     const memoEl = div.querySelector('.memo-area');
     if (memoEl) memoEl.oninput = (e) => setMemo(idx, e.target.value);
     const expEl = div.querySelector('.expiry-row input');
-    if (expEl) expEl.oninput = (e) => setExpiry(idx, e.target.value);
+    if (expEl) {
+      expEl.oninput = (e) => setExpiry(idx, e.target.value);
+      expEl.onchange = (e) => {
+        const f = formatExpiry(e.target.value);
+        items[idx].expiry = f;
+        e.target.value = f;
+        if (!f || !f.trim()) e.target.classList.add('exp-empty');
+        else e.target.classList.remove('exp-empty');
+        saveLocal();
+      };
+    }
     c.appendChild(div);
   });
   safeText('sumTotal', items.length);
@@ -1234,6 +1280,11 @@ function renderItems() {
   safeText('sumOver', over);
   safeText('sumShort', short);
   safeText('btnCount', items.length);
+  const fs = $('floatSubmit');
+  if (fs) {
+    if (items.length > 0) { fs.style.display = 'block'; fs.textContent = '📤 제출 (' + items.length + ')'; }
+    else fs.style.display = 'none';
+  }
 }
 
 function openCalc(idx) {
@@ -1427,7 +1478,7 @@ async function doSubmit() {
   const expectedAdd = {};
   items.forEach(it => {
     const k = it.name + '|' + it.spec;
-    expectedAdd[k] = (expectedAdd[k] || 0) + (it.actualQty || 0);
+    expectedAdd[k] = (expectedAdd[k] || 0) + (it.cbmOnly ? 0 : (it.actualQty || 0));
   });
 
   try {
@@ -1596,6 +1647,11 @@ document.querySelectorAll('.dash-filter button').forEach(btn => {
   if (btn) btn.onclick = () => { on = !on; try { localStorage.setItem(KEY, on ? '1' : '0'); } catch(e) {} apply(); };
   apply();
 })();
+
+safeClick('floatSubmit', () => {
+  const sb = $('submitBtn');
+  if (sb && !sb.disabled) sb.click();
+});
 
 loadProducts();
 updateSaveStatus('idle');
