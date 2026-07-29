@@ -145,6 +145,25 @@
   .stor-btn { padding: 7px 9px; font-size: 12px; font-weight: 700; border: 1px solid #999; background: #fff; border-radius: 6px; }
   .stor-btn:active { background: #e9ecef; }
   .plt-stats { background: #f3f0ff; border: 1px solid #d6ccff; border-radius: 6px; padding: 6px 8px; font-size: 12px; margin-bottom: 8px; color: #3d2a85; line-height: 1.5; }
+  .cbm-section { margin-top: 8px; background: #e9faf5; border: 1px solid #96e6cf; border-radius: 6px; padding: 8px; }
+  .cbm-label { font-size: 12px; font-weight: 700; color: #0b7a5e; margin-bottom: 6px; }
+  .cbm-dims { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+  .cbm-dims input { flex: 1; min-width: 0; padding: 9px 4px; font-size: 15px; font-weight: 700; text-align: center; border: 2px solid #0ca678; border-radius: 6px; }
+  .cbm-dims .dim-x { font-weight: 700; color: #0b7a5e; flex-shrink: 0; }
+  .cbm-dims input.dim-incomplete { border-color: #dc3545; background: #fff5f5; }
+  .cbm-sub { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #0b7a5e; margin-bottom: 6px; }
+  .cbm-sub input { width: 74px; padding: 8px; font-size: 15px; font-weight: 700; text-align: center; border: 2px solid #0ca678; border-radius: 6px; }
+  .cbm-calc { font-size: 12px; font-weight: 700; background: #d3f9ee; color: #0b5c47; padding: 6px 8px; border-radius: 6px; margin-bottom: 6px; line-height: 1.5; }
+  .cbm-hint { font-size: 10px; color: #4d8a79; font-weight: 400; }
+  .cbm-only-btn { width: 100%; padding: 10px; font-size: 12px; font-weight: 700; background: #fff; color: #0b7a5e; border: 1px dashed #0ca678; border-radius: 6px; }
+  .cbm-only-btn.on { background: #0ca678; color: #fff; border-style: solid; }
+  .type-tag.box { background: #0ca678; }
+  .item-row.cbm-only { border-color: #0ca678; background: #f4fdfa; }
+  .item-row.cbm-only .qty-big-row, .item-row.cbm-only .quick-btns, .item-row.cbm-only .diff-box,
+  .item-row.cbm-only .memo-section, .item-row.cbm-only .expiry-row, .item-row.cbm-only .input-hint,
+  .item-row.cbm-only .plt-row, .item-row.cbm-only .barcode-section { display: none; }
+  .item-row.collapsed .cbm-section { display: none; }
+  .item-cbm-badge { color: #0ca678; font-weight: 700; }
   .memo-section { margin-top: 8px; }
   .memo-label { font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #555; }
   .memo-label.required { color: #dc3545; }
@@ -634,7 +653,9 @@ function renderSearch() {
         }
       }
       const bcInfo = p.barcode ? '<br>🏷️ ' + escapeHtml(p.barcode) : '';
-      div.innerHTML = '<div class="item-name">' + extraLabel + escapeHtml(p.name) + '</div><div class="item-meta">' + escapeHtml(p.spec) + ' / ' + escapeHtml(p.unit) + bcInfo + '<br>' + qtyInfo + '</div>';
+      const dCbm = DASHBOARD[p.name + '|' + p.spec];
+      const cbmBadge = (dCbm && dCbm.hasCbm) ? ' <span class="item-cbm-badge">[CBM✓]</span>' : '';
+      div.innerHTML = '<div class="item-name">' + extraLabel + escapeHtml(p.name) + cbmBadge + '</div><div class="item-meta">' + escapeHtml(p.spec) + ' / ' + escapeHtml(p.unit) + bcInfo + '<br>' + qtyInfo + '</div>';
       div.addEventListener('mousedown', e => {
         e.preventDefault();
         addItem(p);
@@ -685,6 +706,7 @@ function addItem(p) {
     actualQty: 0, memo: '', expiry: '',
     sysBarcode: p.barcode || '', scanBarcode: '', barcodeStatus: '',
     plt: '', storage: p.storage || '', photoData: '',
+    boxW: '', boxD: '', boxH: '', boxPerPlt: '', cbmOnly: false,
     _collapsed: false, _new: true
   });
   renderItems();
@@ -794,10 +816,46 @@ function barcodeResultInfo(it) {
   return { cls: 'bc-err', html: '⚠️ 바코드 확인이 필요합니다. 위 버튼 중 하나를 선택하세요.' };
 }
 function isBarcodeIncomplete(it) {
+  if (it.cbmOnly) return false;
   const st = it.barcodeStatus || '';
   if (!st) return true;
   if ((st === 'diff' || st === 'new') && (!it.scanBarcode || !it.scanBarcode.trim()) && !it.photoData) return true;
   return false;
+}
+
+// ===== 박스 규격(CBM) =====
+function setBoxDim(idx, field, val) {
+  const v = String(val).trim();
+  items[idx][field] = v === '' ? '' : Math.max(0, parseFloat(v) || 0);
+  normalizeDims(items[idx]);
+  renderItems(); saveLocal();
+}
+function setBoxPerPlt(idx, val) {
+  const v = String(val).trim();
+  items[idx].boxPerPlt = v === '' ? '' : Math.max(0, parseFloat(v) || 0);
+  renderItems(); saveLocal();
+}
+// 가로/세로가 모두 있으면 긴 쪽이 가로가 되도록 자동 정렬
+function normalizeDims(it) {
+  const w = parseFloat(it.boxW), d = parseFloat(it.boxD);
+  if (!isNaN(w) && !isNaN(d) && d > w) { it.boxW = d; it.boxD = w; }
+}
+function cbmOf(it) {
+  const w = parseFloat(it.boxW), d = parseFloat(it.boxD), h = parseFloat(it.boxH);
+  if (isNaN(w) || isNaN(d) || isNaN(h) || w <= 0 || d <= 0 || h <= 0) return null;
+  return Math.round(w * d * h / 1000000 * 10000) / 10000;
+}
+// 치수 3개 중 일부만 입력된 상태인지 (전부 or 전무만 허용)
+function dimsPartial(it) {
+  const f = [it.boxW, it.boxD, it.boxH].filter(v => v !== '' && v != null && !isNaN(parseFloat(v)) && parseFloat(v) > 0).length;
+  return f > 0 && f < 3;
+}
+function dimsComplete(it) {
+  return cbmOf(it) !== null;
+}
+function toggleCbmOnly(idx) {
+  items[idx].cbmOnly = !items[idx].cbmOnly;
+  renderItems(); saveLocal(true);
 }
 
 // ===== PLT / 보관구분 =====
@@ -909,6 +967,7 @@ function renderItems() {
     const div = document.createElement('div');
     let rowCls = 'item-row';
     if (it.type === '[전산재고 불확인]') rowCls += ' extra';
+    if (it.cbmOnly) rowCls += ' cbm-only';
     if (it._collapsed) rowCls += ' collapsed';
     if (it._new) rowCls += ' new';
     div.className = rowCls;
@@ -916,7 +975,9 @@ function renderItems() {
     if (it._new) setTimeout(() => { it._new = false; }, 1500);
     const otherSurveyed = it.sysQty === null ? 0 : getOtherSurveyed(it);
     let diffHtml = '';
-    if (it.sysQty === null) {
+    if (it.cbmOnly) {
+      diffHtml = '';
+    } else if (it.sysQty === null) {
       diffHtml = '<div class="diff-box diff-na">📌 전산재고 미등록 (차이 산정 불가)</div>';
     } else {
       const totalCounted = otherSurveyed + it.actualQty;
@@ -933,7 +994,8 @@ function renderItems() {
         diffHtml = '<div class="diff-box diff-short">📉 부족 ' + diff + '<br><small>👉 추가로 찾아야 할 수량: <b>' + Math.abs(diff) + '개</b></small>' + bigDiffWarn + calcDetail + '</div>'; short++;
       }
     }
-    const typeTag = it.type === '[전산재고 불확인]' ? '<span class="type-tag">불확인</span>' : '';
+    let typeTag = it.type === '[전산재고 불확인]' ? '<span class="type-tag">불확인</span>' : '';
+    if (it.cbmOnly) typeTag += '<span class="type-tag box">박스실측</span>';
     const sysQtyText = it.sysQty === null ? '미등록' : it.sysQty;
     let matchBtn;
     if (it.sysQty !== null) {
@@ -1006,6 +1068,37 @@ function renderItems() {
         '<div class="barcode-result ' + bcRes.cls + '">' + bcRes.html + '</div>' +
       '</div>';
 
+    // ----- 박스 규격(CBM) -----
+    const partial = dimsPartial(it);
+    const cbm = cbmOf(it);
+    const bpp = parseFloat(it.boxPerPlt);
+    let cbmCalcHtml = '';
+    if (cbm !== null) {
+      cbmCalcHtml = 'CBM: <b>' + cbm + ' ㎥</b> (' + it.boxW + ' × ' + it.boxD + ' × ' + it.boxH + 'cm)';
+      if (!isNaN(bpp) && bpp > 0) cbmCalcHtml += ' · 1PLT(' + bpp + '박스) ≈ <b>' + (Math.round(cbm * bpp * 10000) / 10000) + ' ㎥</b>';
+    } else if (partial) {
+      cbmCalcHtml = '<span style="color:#dc3545;">가로·세로·높이 3개를 모두 입력해야 저장됩니다.</span>';
+    }
+    const dimCls = partial ? ' dim-incomplete' : '';
+    const cbmRequired = it.cbmOnly && cbm === null;
+    const cbmHtml =
+      '<div class="cbm-section">' +
+        '<div class="cbm-label">박스 규격 · CBM' + (it.cbmOnly ? ' <span style="color:#dc3545;">*치수 필수</span>' : ' (선택 입력)') + '</div>' +
+        '<div class="cbm-dims">' +
+          '<input type="number" inputmode="decimal" class="cbm-w' + (cbmRequired ? ' dim-incomplete' : dimCls) + '" min="0" placeholder="가로 cm" value="' + (it.boxW === '' ? '' : it.boxW) + '">' +
+          '<span class="dim-x">×</span>' +
+          '<input type="number" inputmode="decimal" class="cbm-d' + (cbmRequired ? ' dim-incomplete' : dimCls) + '" min="0" placeholder="세로 cm" value="' + (it.boxD === '' ? '' : it.boxD) + '">' +
+          '<span class="dim-x">×</span>' +
+          '<input type="number" inputmode="decimal" class="cbm-h' + (cbmRequired ? ' dim-incomplete' : dimCls) + '" min="0" placeholder="높이 cm" value="' + (it.boxH === '' ? '' : it.boxH) + '">' +
+        '</div>' +
+        '<div class="cbm-sub">1PLT당 박스 수: <input type="number" inputmode="decimal" class="cbm-bpp" min="0" placeholder="예: 30" value="' + (it.boxPerPlt === '' ? '' : it.boxPerPlt) + '"> 박스</div>' +
+        (cbmCalcHtml ? '<div class="cbm-calc">' + cbmCalcHtml + '</div>' : '') +
+        '<div class="cbm-hint">긴 값을 어느 칸에 넣어도 긴 쪽이 가로가 되도록 자동 정렬됩니다.</div>' +
+        '<button class="cbm-only-btn' + (it.cbmOnly ? ' on' : '') + '" data-act="cbm-only">' +
+          (it.cbmOnly ? '박스 실측만 제출 중 — 일반 실사 입력으로 전환' : '수량 없이 박스 실측만 제출로 전환') +
+        '</button>' +
+      '</div>';
+
     const memoEmpty = !it.memo || !it.memo.trim();
     const memoAreaCls = memoEmpty ? 'memo-area required-empty' : 'memo-area';
     let presetBtns = '';
@@ -1036,6 +1129,7 @@ function renderItems() {
         '<button class="quick-btn" data-act="p100">+100</button>' +
       '</div>' +
       pltHtml +
+      cbmHtml +
       diffHtml +
       barcodeHtml +
       '<div class="memo-section">' +
@@ -1079,6 +1173,7 @@ function renderItems() {
         else if (a === 'plt-one') addPlt(idx, 1);
         else if (a === 'bc-photo') takePhoto(idx);
         else if (a === 'bc-photo-del') { if (confirm('사진을 삭제할까요?')) removePhoto(idx); }
+        else if (a === 'cbm-only') toggleCbmOnly(idx);
         else if (a === 'expnone') { items[idx].expiry = '소비기한 없음'; renderItems(); saveLocal(); }
         else if (a === 'remove') { if (confirm('삭제하시겠습니까?')) removeItem(idx); }
       };
@@ -1123,6 +1218,11 @@ function renderItems() {
     div.querySelectorAll('.stor-btn').forEach(sb => {
       sb.onclick = (e) => { e.stopPropagation(); setStorage(idx, sb.dataset.stor); };
     });
+    const dimW = div.querySelector('.cbm-w'), dimD = div.querySelector('.cbm-d'), dimH = div.querySelector('.cbm-h'), bppEl = div.querySelector('.cbm-bpp');
+    if (dimW) { dimW.onchange = (e) => setBoxDim(idx, 'boxW', e.target.value); dimW.onfocus = (e) => { try { e.target.select(); } catch(err) {} }; }
+    if (dimD) { dimD.onchange = (e) => setBoxDim(idx, 'boxD', e.target.value); dimD.onfocus = (e) => { try { e.target.select(); } catch(err) {} }; }
+    if (dimH) { dimH.onchange = (e) => setBoxDim(idx, 'boxH', e.target.value); dimH.onfocus = (e) => { try { e.target.select(); } catch(err) {} }; }
+    if (bppEl) { bppEl.onchange = (e) => setBoxPerPlt(idx, e.target.value); bppEl.onfocus = (e) => { try { e.target.select(); } catch(err) {} }; }
     const memoEl = div.querySelector('.memo-area');
     if (memoEl) memoEl.oninput = (e) => setMemo(idx, e.target.value);
     const expEl = div.querySelector('.expiry-row input');
@@ -1202,7 +1302,7 @@ safeClick('submitBtn', () => {
   const surveyor = sv ? sv.value.trim() : '';
   if (!surveyor) { alert('조사자 이름을 입력하세요.'); return; }
   if (items.length === 0) { alert('품목을 1개 이상 추가하세요.'); return; }
-  const noMemo = items.filter(it => !it.memo || !it.memo.trim());
+  const noMemo = items.filter(it => !it.cbmOnly && (!it.memo || !it.memo.trim()));
   if (noMemo.length > 0) {
     alert('메모가 비어 있는 품목이 ' + noMemo.length + '개 있습니다.\n모든 품목에 메모를 입력해주세요.');
     const idx = items.indexOf(noMemo[0]);
@@ -1210,12 +1310,22 @@ safeClick('submitBtn', () => {
     setTimeout(() => { const el = document.querySelector('[data-idx="' + idx + '"] .memo-area'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus(); } }, 100);
     return;
   }
-  const noExpiry = items.filter(it => !it.expiry || !it.expiry.trim());
+  const noExpiry = items.filter(it => !it.cbmOnly && (!it.expiry || !it.expiry.trim()));
   if (noExpiry.length > 0) {
     alert('유통기한이 비어 있는 품목이 ' + noExpiry.length + '개 있습니다.\n유통기한을 입력하거나 "소비기한 없음"을 눌러주세요.');
     const idx = items.indexOf(noExpiry[0]);
     items[idx]._collapsed = false; renderItems();
     setTimeout(() => { const el = document.querySelector('[data-idx="' + idx + '"] .expiry-row input'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus(); } }, 100);
+    return;
+  }
+  const badDims = items.filter(it => dimsPartial(it) || (it.cbmOnly && !dimsComplete(it)));
+  if (badDims.length > 0) {
+    const it0 = badDims[0];
+    if (it0.cbmOnly && !dimsComplete(it0)) alert('「박스실측」 품목은 가로·세로·높이 3개를 모두 입력해야 합니다. (' + badDims.length + '개 미완성)');
+    else alert('박스 규격이 일부만 입력된 품목이 ' + badDims.length + '개 있습니다.\n가로·세로·높이 3개를 모두 입력하거나 모두 비워주세요.');
+    const idx = items.indexOf(it0);
+    items[idx]._collapsed = false; renderItems();
+    setTimeout(() => { const el = document.querySelector('[data-idx="' + idx + '"] .cbm-section'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
     return;
   }
   const noBc = items.filter(isBarcodeIncomplete);
@@ -1233,9 +1343,9 @@ function openConfirmModal() {
   const listEl = $('confirmList'), sumEl = $('confirmSummary');
   if (!listEl || !sumEl) { doSubmit(); return; }
   const view = items.map(it => {
-    const other = it.sysQty === null ? 0 : getOtherSurveyed(it);
-    const total = other + (it.actualQty || 0);
-    const diff = it.sysQty === null ? null : (total - it.sysQty);
+    const other = (it.cbmOnly || it.sysQty === null) ? 0 : getOtherSurveyed(it);
+    const total = other + (it.cbmOnly ? 0 : (it.actualQty || 0));
+    const diff = (it.cbmOnly || it.sysQty === null) ? null : (total - it.sysQty);
     return { it, total, diff };
   }).sort((a, b) => {
     if (a.diff === null) return 1;
@@ -1252,13 +1362,24 @@ function openConfirmModal() {
     const it = v.it;
     const isBig = v.diff !== null && Math.abs(v.diff) > 10;
     let diffHtml;
-    if (v.diff === null) diffHtml = '<span class="cf-diff">미등록</span>';
+    if (it.cbmOnly) diffHtml = '<span class="cf-diff" style="color:#0ca678;">박스실측</span>';
+    else if (v.diff === null) diffHtml = '<span class="cf-diff">미등록</span>';
     else if (v.diff === 0) diffHtml = '<span class="cf-diff match">일치</span>';
     else if (v.diff > 0) diffHtml = '<span class="cf-diff over">초과 +' + v.diff + '</span>';
     else diffHtml = '<span class="cf-diff short">부족 ' + v.diff + '</span>';
+    const cbmV = cbmOf(it);
+    let detailLine;
+    if (it.cbmOnly) {
+      detailLine = '박스 ' + it.boxW + '×' + it.boxD + '×' + it.boxH + 'cm / CBM ' + cbmV + (parseFloat(it.boxPerPlt) > 0 ? ' / ' + it.boxPerPlt + '박스·PLT' : '');
+    } else {
+      detailLine = '이번 ' + it.actualQty + ' / 누적 ' + v.total + (it.sysQty === null ? '' : ' / 전산 ' + it.sysQty)
+        + (parseFloat(it.plt) > 0 ? ' / ' + it.plt + ' PLT' : '')
+        + (cbmV !== null ? ' / CBM ' + cbmV : '')
+        + ' / ' + barcodeStatusLabel(it);
+    }
     const row = document.createElement('div');
     row.className = 'cf-row' + (isBig ? ' big' : '');
-    row.innerHTML = '<span class="cf-name">' + escapeHtml(it.name) + '<br><small style="color:#888;">이번 ' + it.actualQty + ' / 누적 ' + v.total + (it.sysQty === null ? '' : ' / 전산 ' + it.sysQty) + (parseFloat(it.plt) > 0 ? ' / 🚛 ' + it.plt + ' PLT' : '') + ' / ' + barcodeStatusLabel(it) + '</small></span>' + diffHtml;
+    row.innerHTML = '<span class="cf-name">' + escapeHtml(it.name) + '<br><small style="color:#888;">' + detailLine + '</small></span>' + diffHtml;
     listEl.appendChild(row);
   });
   safeShow('confirmModal');
@@ -1288,12 +1409,16 @@ async function doSubmit() {
   if (btn) { btn.disabled = true; btn.textContent = '제출 중...'; }
 
   const submittedCount = items.length;
+  items.forEach(it => normalizeDims(it));
   const submittedItems = items.map(it => ({
-    name: it.name, spec: it.spec, unit: it.unit, type: it.type,
-    sysQty: it.sysQty, actualQty: it.actualQty,
+    name: it.name, spec: it.spec, unit: it.unit,
+    type: it.cbmOnly ? '박스실측' : it.type,
+    sysQty: it.cbmOnly ? null : it.sysQty,
+    actualQty: it.cbmOnly ? 0 : it.actualQty,
     memo: it.memo, expiry: it.expiry,
     sysBarcode: it.sysBarcode || '', scanBarcode: it.scanBarcode || '', barcodeStatus: it.barcodeStatus || '',
-    plt: it.plt, storage: it.storage || '', photoData: it.photoData || ''
+    plt: it.cbmOnly ? '' : it.plt, storage: it.storage || '', photoData: it.photoData || '',
+    boxW: it.boxW, boxD: it.boxD, boxH: it.boxH, boxPerPlt: it.boxPerPlt
   }));
   const submissionId = genSubmissionId(surveyor);
   // 검증용: 제출 전 각 품목의 누적값 기록
@@ -1416,6 +1541,7 @@ function checkRestore() {
       items = (d.items || []).map((it, i) => ({
         sysBarcode: '', scanBarcode: '', barcodeStatus: '',
         plt: '', storage: '', photoData: '',
+        boxW: '', boxD: '', boxH: '', boxPerPlt: '', cbmOnly: false,
         ...it, _collapsed: i !== 0, _new: false
       }));
       // 복구된 품목의 전산 바코드/보관구분이 비어 있으면 현재 마스터에서 다시 채움
