@@ -122,6 +122,29 @@
   .bc-ok { background: #d4edda; color: #155724; }
   .bc-warn { background: #fff3cd; color: #856404; }
   .bc-err { background: #f8d7da; color: #721c24; }
+  .bc-format { margin-top: 4px; font-size: 11px; font-weight: 600; padding: 4px 6px; border-radius: 4px; }
+  .bc-format:empty { display: none; }
+  .bc-format.fmt-ok { background: #d4edda; color: #155724; }
+  .bc-format.fmt-bad { background: #f8d7da; color: #721c24; }
+  .bc-format.fmt-etc { background: #e2e3e5; color: #383d41; }
+  .photo-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+  .photo-btn { flex: 1; padding: 10px; font-size: 13px; font-weight: 700; background: #343a40; color: #fff; border: none; border-radius: 6px; }
+  .photo-btn:active { background: #212529; }
+  .photo-thumb { width: 46px; height: 46px; object-fit: cover; border-radius: 6px; border: 2px solid #343a40; flex-shrink: 0; }
+  .photo-del { padding: 10px; background: #dc3545; color: #fff; border: none; border-radius: 6px; font-size: 13px; flex-shrink: 0; }
+  .plt-row { display: flex; align-items: center; gap: 5px; margin-bottom: 8px; background: #f3f0ff; border: 1px solid #d6ccff; border-radius: 6px; padding: 6px 8px; flex-wrap: wrap; }
+  .plt-row label { font-size: 12px; font-weight: 700; color: #5a34c9; white-space: nowrap; }
+  .plt-input { width: 68px; padding: 8px; font-size: 16px; font-weight: 700; text-align: center; border: 2px solid #7c5cd6; border-radius: 6px; }
+  .plt-btn { padding: 8px 10px; font-size: 12px; font-weight: 700; border: 1px solid #7c5cd6; background: #fff; color: #5a34c9; border-radius: 6px; }
+  .plt-btn:active { background: #7c5cd6; color: #fff; }
+  .stor-wrap { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+  .storage-tag { font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 4px; color: #fff; }
+  .stor-frozen { background: #17a2b8; }
+  .stor-chilled { background: #4dabf7; }
+  .stor-ambient { background: #f59f00; }
+  .stor-btn { padding: 7px 9px; font-size: 12px; font-weight: 700; border: 1px solid #999; background: #fff; border-radius: 6px; }
+  .stor-btn:active { background: #e9ecef; }
+  .plt-stats { background: #f3f0ff; border: 1px solid #d6ccff; border-radius: 6px; padding: 6px 8px; font-size: 12px; margin-bottom: 8px; color: #3d2a85; line-height: 1.5; }
   .memo-section { margin-top: 8px; }
   .memo-label { font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #555; }
   .memo-label.required { color: #dc3545; }
@@ -148,6 +171,7 @@
   .item-row.collapsed .expiry-row,
   .item-row.collapsed .input-hint,
   .item-row.collapsed .barcode-section,
+  .item-row.collapsed .plt-row,
   .item-row.collapsed .row-meta { display: none; }
   .item-row.collapsed { padding: 10px; border-color: #ccc; }
   .item-row.collapsed .row-title { margin: 0; font-size: 14px; }
@@ -240,6 +264,7 @@
       <div style="color:#dc3545">미조사<b id="dashTodo">0</b></div>
       <div style="color:#fd7e14">재실사<b id="dashBigDiff">0</b></div>
     </div>
+    <div class="plt-stats" id="pltStats">🚛 PLT 현황 집계 중...</div>
     <div class="dash-filter">
       <button class="active" data-filter="all">전체</button>
       <button data-filter="todo">미조사</button>
@@ -307,6 +332,7 @@
   </div>
 </div>
 
+<input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none">
 <div class="save-indicator" id="saveIndicator">💾 저장됨</div>
 <button class="big-toggle" id="bigToggle">🔍 큰 글씨</button>
 
@@ -466,6 +492,7 @@ function renderDashboard() {
   safeText('dashDone', done);
   safeText('dashTodo', todo);
   safeText('dashBigDiff', bigDiffCount);
+  renderPltStats();
   let filtered = rows.filter(r => {
     if (dashFilter === 'todo' && r.status !== 'todo') return false;
     if (dashFilter === 'done' && r.status !== 'done') return false;
@@ -504,6 +531,40 @@ function renderDashboard() {
     tbody.appendChild(tr);
   });
   updateProgress();
+}
+
+function renderPltStats() {
+  const el = $('pltStats');
+  if (!el) return;
+  const r2 = x => Math.round(x * 100) / 100;
+  const sums = { '냉동': 0, '냉장': 0, '상온': 0, '미지정': 0 };
+  const storMap = {};
+  SYS_PRODUCTS.forEach(p => { storMap[p.name + '|' + p.spec] = p.storage || ''; });
+  // 현재 입력 중(미제출) 품목의 PLT도 포함해 실시간 파악
+  const pending = {};
+  items.forEach(it => {
+    const plt = parseFloat(it.plt) || 0;
+    if (plt > 0) pending[it.name + '|' + it.spec] = (pending[it.name + '|' + it.spec] || 0) + plt;
+  });
+  const allKeys = {};
+  Object.keys(DASHBOARD).forEach(k => allKeys[k] = true);
+  Object.keys(pending).forEach(k => allKeys[k] = true);
+  Object.keys(allKeys).forEach(key => {
+    const d = DASHBOARD[key];
+    const plt = (d ? (d.totalPlt || 0) : 0) + (pending[key] || 0);
+    if (!plt) return;
+    let s = storMap[key] || (d ? (d.storage || '') : '');
+    if (!s) {
+      const localIt = items.find(it => (it.name + '|' + it.spec) === key);
+      if (localIt && localIt.storage) s = localIt.storage;
+    }
+    if (sums[s] === undefined || s === '') sums['미지정'] += plt; else sums[s] += plt;
+  });
+  const total = r2(sums['냉동'] + sums['냉장'] + sums['상온'] + sums['미지정']);
+  el.innerHTML = '🚛 <b>PLT 현황</b> — 🧊 냉동 <b>' + r2(sums['냉동']) + '</b> · ❄️ 냉장 <b>' + r2(sums['냉장']) + '</b> · ☀️ 상온 <b>' + r2(sums['상온']) + '</b>'
+    + (sums['미지정'] > 0 ? ' · 미지정 <b>' + r2(sums['미지정']) + '</b>' : '')
+    + ' / 합계 <b>' + total + '</b> PLT'
+    + (Object.keys(pending).length > 0 ? ' <span style="color:#888;">(미제출 입력분 포함)</span>' : '');
 }
 
 function updateProgress() {
@@ -623,6 +684,7 @@ function addItem(p) {
     type: p.isExtra ? '[전산재고 불확인]' : '전산재고',
     actualQty: 0, memo: '', expiry: '',
     sysBarcode: p.barcode || '', scanBarcode: '', barcodeStatus: '',
+    plt: '', storage: p.storage || '', photoData: '',
     _collapsed: false, _new: true
   });
   renderItems();
@@ -696,8 +758,14 @@ function setScanBarcode(idx, val) {
   if (row) {
     const inp = row.querySelector('.bc-input');
     if (inp) {
-      if (!items[idx].scanBarcode) inp.classList.add('bc-empty');
+      if (!items[idx].scanBarcode && !items[idx].photoData) inp.classList.add('bc-empty');
       else inp.classList.remove('bc-empty');
+    }
+    const fmtEl = row.querySelector('.bc-format');
+    if (fmtEl) {
+      const f = barcodeFormatInfo(items[idx].scanBarcode);
+      fmtEl.className = 'bc-format ' + f.cls;
+      fmtEl.innerHTML = f.html;
     }
     const resEl = row.querySelector('.barcode-result');
     if (resEl) {
@@ -715,19 +783,113 @@ function barcodeResultInfo(it) {
   if (st === 'none') return { cls: 'bc-warn', html: sysBc ? '🚫 실물에 바코드 없음으로 기록됩니다 (전산에는 등록되어 있음)' : '🚫 바코드 없음으로 기록됩니다' };
   if (st === 'diff') {
     if (it.scanBarcode) return { cls: 'bc-err', html: '⚠️ <b>불일치</b> — 실물: <b>' + escapeHtml(it.scanBarcode) + '</b> / 전산: ' + escapeHtml(sysBc) + '<br>제출 시 [바코드확인필요] 시트에 수정 대상으로 기록됩니다.' };
-    return { cls: 'bc-err', html: '⚠️ 실물 바코드 번호를 입력(스캔)하세요.' };
+    if (it.photoData) return { cls: 'bc-warn', html: '📷 사진으로 제출됩니다 — 본사에서 사진을 보고 바코드를 확정합니다.' };
+    return { cls: 'bc-err', html: '⚠️ 실물 바코드 번호를 입력하거나 📷 사진을 촬영하세요.' };
   }
   if (st === 'new') {
     if (it.scanBarcode) return { cls: 'bc-ok', html: '🆕 신규 바코드 <b>' + escapeHtml(it.scanBarcode) + '</b> 등록 요청으로 기록됩니다.' };
-    return { cls: 'bc-err', html: '⚠️ 실물 바코드 번호를 입력(스캔)하세요.' };
+    if (it.photoData) return { cls: 'bc-warn', html: '📷 사진으로 제출됩니다 — 본사에서 사진을 보고 신규 바코드를 등록합니다.' };
+    return { cls: 'bc-err', html: '⚠️ 실물 바코드 번호를 입력하거나 📷 사진을 촬영하세요.' };
   }
   return { cls: 'bc-err', html: '⚠️ 바코드 확인이 필요합니다. 위 버튼 중 하나를 선택하세요.' };
 }
 function isBarcodeIncomplete(it) {
   const st = it.barcodeStatus || '';
   if (!st) return true;
-  if ((st === 'diff' || st === 'new') && (!it.scanBarcode || !it.scanBarcode.trim())) return true;
+  if ((st === 'diff' || st === 'new') && (!it.scanBarcode || !it.scanBarcode.trim()) && !it.photoData) return true;
   return false;
+}
+
+// ===== PLT / 보관구분 =====
+function setPlt(idx, val) {
+  const v = String(val).trim();
+  items[idx].plt = v === '' ? '' : Math.max(0, parseFloat(v) || 0);
+  renderItems(); saveLocal();
+}
+function addPlt(idx, delta) {
+  const cur = parseFloat(items[idx].plt) || 0;
+  items[idx].plt = Math.round((cur + delta) * 100) / 100;
+  renderItems(); saveLocal();
+}
+function setStorage(idx, s) { items[idx].storage = s; renderItems(); saveLocal(true); }
+function storageCls(s) { return s === '냉동' ? 'stor-frozen' : (s === '냉장' ? 'stor-chilled' : 'stor-ambient'); }
+
+// ===== 바코드 형식(EAN/UPC 체크섬) 검증 =====
+function eanCheckDigitOk(code) {
+  if (!/^\d+$/.test(code)) return null;
+  if ([8, 12, 13, 14].indexOf(code.length) < 0) return null;
+  const digits = code.split('').map(Number);
+  const check = digits.pop();
+  let sum = 0;
+  digits.reverse().forEach((d, i) => { sum += d * (i % 2 === 0 ? 3 : 1); });
+  return (10 - (sum % 10)) % 10 === check;
+}
+function barcodeFormatInfo(code) {
+  const c = String(code || '').trim();
+  if (!c) return { cls: '', html: '' };
+  const ok = eanCheckDigitOk(c);
+  if (ok === true) return { cls: 'fmt-ok', html: '✔ 바코드 형식(체크섬) 정상' };
+  if (ok === false) return { cls: 'fmt-bad', html: '⚠️ 체크섬 불일치 — 오타 가능성이 높습니다. 번호를 다시 확인하거나 사진을 남겨주세요.' };
+  return { cls: 'fmt-etc', html: 'ℹ️ 표준(EAN/UPC) 자릿수가 아닙니다 — 내부코드라면 무시해도 됩니다.' };
+}
+
+// ===== 바코드 사진 촬영 =====
+let photoTargetIdx = -1;
+const photoInputEl = $('photoInput');
+if (photoInputEl) {
+  photoInputEl.onchange = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    photoInputEl.value = '';
+    if (!file || photoTargetIdx < 0) return;
+    const idx = photoTargetIdx; photoTargetIdx = -1;
+    try {
+      const dataUrl = await compressImage(file, 1024, 0.6);
+      items[idx].photoData = dataUrl;
+      // 지원 브라우저(안드로이드 크롬 등)는 사진 속 바코드를 자동 인식해 번호칸에 채움
+      tryDetectBarcode(dataUrl).then(code => {
+        if (code && items[idx] && !items[idx].scanBarcode) {
+          items[idx].scanBarcode = code;
+          renderItems(); saveLocal(true);
+        }
+      });
+      renderItems(); saveLocal(true);
+    } catch (err) { alert('사진 처리 실패: ' + err.message); }
+  };
+}
+function takePhoto(idx) { photoTargetIdx = idx; if (photoInputEl) photoInputEl.click(); }
+function removePhoto(idx) { items[idx].photoData = ''; renderItems(); saveLocal(true); }
+function compressImage(file, maxDim, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('파일 읽기 실패'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('이미지 로드 실패'));
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxDim || h > maxDim) {
+          const r = Math.min(maxDim / w, maxDim / h);
+          w = Math.round(w * r); h = Math.round(h * r);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+async function tryDetectBarcode(dataUrl) {
+  try {
+    if (!('BarcodeDetector' in window)) return '';
+    const img = new Image();
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
+    const bd = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf'] });
+    const codes = await bd.detect(img);
+    return (codes && codes.length > 0) ? String(codes[0].rawValue || '') : '';
+  } catch (e) { return ''; }
 }
 function barcodeStatusLabel(it) {
   const st = it.barcodeStatus || '';
@@ -790,6 +952,21 @@ function renderItems() {
     }
     const hint = it.sysQty === null ? '' : '<div class="input-hint">💡 <b>이번에 발견한 수량만</b> 입력하세요. 기제출 누적(' + otherSurveyed + ')에 자동 합산됩니다.</div>';
 
+    // ----- PLT / 보관구분 -----
+    const stor = it.storage || '';
+    let storHtml;
+    if (stor) storHtml = '<span class="storage-tag ' + storageCls(stor) + '">' + escapeHtml(stor) + '</span>';
+    else storHtml = ['냉동','냉장','상온'].map(s => '<button class="stor-btn" data-stor="' + s + '">' + s + '</button>').join('');
+    const pltVal = (it.plt === '' || it.plt == null) ? '' : it.plt;
+    const pltHtml =
+      '<div class="plt-row">' +
+        '<label>🚛 PLT</label>' +
+        '<input type="number" inputmode="decimal" class="plt-input" step="0.5" min="0" placeholder="0" value="' + pltVal + '">' +
+        '<button class="plt-btn" data-act="plt-half">+0.5</button>' +
+        '<button class="plt-btn" data-act="plt-one">+1</button>' +
+        '<span class="stor-wrap">' + storHtml + '</span>' +
+      '</div>';
+
     // ----- 바코드 확인 섹션 -----
     const sysBc = it.sysBarcode || '';
     const st = it.barcodeStatus || '';
@@ -811,8 +988,15 @@ function renderItems() {
       : '<div class="barcode-value none">전산 바코드 미등록</div>';
     let bcInputHtml = '';
     if (st === 'diff' || st === 'new') {
-      const bcEmpty = !it.scanBarcode || !it.scanBarcode.trim();
-      bcInputHtml = '<div class="barcode-input-row"><input type="text" inputmode="numeric" class="bc-input' + (bcEmpty ? ' bc-empty' : '') + '" placeholder="실물 바코드 번호 입력/스캔" value="' + escapeHtml(it.scanBarcode || '') + '"></div>';
+      const bcEmpty = (!it.scanBarcode || !it.scanBarcode.trim()) && !it.photoData;
+      const fmt = barcodeFormatInfo(it.scanBarcode);
+      bcInputHtml =
+        '<div class="barcode-input-row"><input type="text" inputmode="numeric" class="bc-input' + (bcEmpty ? ' bc-empty' : '') + '" placeholder="실물 바코드 번호 입력/스캔" value="' + escapeHtml(it.scanBarcode || '') + '"></div>' +
+        '<div class="bc-format ' + fmt.cls + '">' + fmt.html + '</div>' +
+        '<div class="photo-row">' +
+          '<button class="photo-btn" data-act="bc-photo">📷 바코드 사진 ' + (it.photoData ? '다시 촬영' : '촬영') + '</button>' +
+          (it.photoData ? '<img class="photo-thumb" src="' + it.photoData + '" data-act="bc-photo"><button class="photo-del" data-act="bc-photo-del">🗑</button>' : '') +
+        '</div>';
     }
     const bcRes = barcodeResultInfo(it);
     const barcodeHtml =
@@ -851,6 +1035,7 @@ function renderItems() {
         '<button class="quick-btn" data-act="p10">+10</button>' +
         '<button class="quick-btn" data-act="p100">+100</button>' +
       '</div>' +
+      pltHtml +
       diffHtml +
       barcodeHtml +
       '<div class="memo-section">' +
@@ -890,6 +1075,10 @@ function renderItems() {
         else if (a === 'bc-diff') setBarcodeStatus(idx, 'diff');
         else if (a === 'bc-none') setBarcodeStatus(idx, 'none');
         else if (a === 'bc-new') setBarcodeStatus(idx, 'new');
+        else if (a === 'plt-half') addPlt(idx, 0.5);
+        else if (a === 'plt-one') addPlt(idx, 1);
+        else if (a === 'bc-photo') takePhoto(idx);
+        else if (a === 'bc-photo-del') { if (confirm('사진을 삭제할까요?')) removePhoto(idx); }
         else if (a === 'expnone') { items[idx].expiry = '소비기한 없음'; renderItems(); saveLocal(); }
         else if (a === 'remove') { if (confirm('삭제하시겠습니까?')) removeItem(idx); }
       };
@@ -926,6 +1115,14 @@ function renderItems() {
       // 스캐너는 보통 입력 후 Enter를 보냄 — Enter 시 포커스 해제로 실수 방지
       bcInput.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); bcInput.blur(); } };
     }
+    const pltInput = div.querySelector('.plt-input');
+    if (pltInput) {
+      pltInput.onchange = (e) => setPlt(idx, e.target.value);
+      pltInput.onfocus = (e) => { try { e.target.select(); } catch(err) {} };
+    }
+    div.querySelectorAll('.stor-btn').forEach(sb => {
+      sb.onclick = (e) => { e.stopPropagation(); setStorage(idx, sb.dataset.stor); };
+    });
     const memoEl = div.querySelector('.memo-area');
     if (memoEl) memoEl.oninput = (e) => setMemo(idx, e.target.value);
     const expEl = div.querySelector('.expiry-row input');
@@ -1023,7 +1220,7 @@ safeClick('submitBtn', () => {
   }
   const noBc = items.filter(isBarcodeIncomplete);
   if (noBc.length > 0) {
-    alert('바코드 확인이 안 된 품목이 ' + noBc.length + '개 있습니다.\n[일치 / 다름 / 없음] 중 선택하고, "다름·신규"는 실물 바코드를 입력해주세요.');
+    alert('바코드 확인이 안 된 품목이 ' + noBc.length + '개 있습니다.\n[일치 / 다름 / 없음] 중 선택하고, "다름·신규"는 번호 입력 또는 📷 사진 촬영을 해주세요.');
     const idx = items.indexOf(noBc[0]);
     items[idx]._collapsed = false; renderItems();
     setTimeout(() => { const el = document.querySelector('[data-idx="' + idx + '"] .barcode-section'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
@@ -1061,7 +1258,7 @@ function openConfirmModal() {
     else diffHtml = '<span class="cf-diff short">부족 ' + v.diff + '</span>';
     const row = document.createElement('div');
     row.className = 'cf-row' + (isBig ? ' big' : '');
-    row.innerHTML = '<span class="cf-name">' + escapeHtml(it.name) + '<br><small style="color:#888;">이번 ' + it.actualQty + ' / 누적 ' + v.total + (it.sysQty === null ? '' : ' / 전산 ' + it.sysQty) + ' / ' + barcodeStatusLabel(it) + '</small></span>' + diffHtml;
+    row.innerHTML = '<span class="cf-name">' + escapeHtml(it.name) + '<br><small style="color:#888;">이번 ' + it.actualQty + ' / 누적 ' + v.total + (it.sysQty === null ? '' : ' / 전산 ' + it.sysQty) + (parseFloat(it.plt) > 0 ? ' / 🚛 ' + it.plt + ' PLT' : '') + ' / ' + barcodeStatusLabel(it) + '</small></span>' + diffHtml;
     listEl.appendChild(row);
   });
   safeShow('confirmModal');
@@ -1095,7 +1292,8 @@ async function doSubmit() {
     name: it.name, spec: it.spec, unit: it.unit, type: it.type,
     sysQty: it.sysQty, actualQty: it.actualQty,
     memo: it.memo, expiry: it.expiry,
-    sysBarcode: it.sysBarcode || '', scanBarcode: it.scanBarcode || '', barcodeStatus: it.barcodeStatus || ''
+    sysBarcode: it.sysBarcode || '', scanBarcode: it.scanBarcode || '', barcodeStatus: it.barcodeStatus || '',
+    plt: it.plt, storage: it.storage || '', photoData: it.photoData || ''
   }));
   const submissionId = genSubmissionId(surveyor);
   // 검증용: 제출 전 각 품목의 누적값 기록
@@ -1217,14 +1415,16 @@ function checkRestore() {
       // 구버전 임시저장(바코드 필드 없음)도 안전하게 복구
       items = (d.items || []).map((it, i) => ({
         sysBarcode: '', scanBarcode: '', barcodeStatus: '',
+        plt: '', storage: '', photoData: '',
         ...it, _collapsed: i !== 0, _new: false
       }));
-      // 복구된 품목의 전산 바코드가 비어 있으면 현재 마스터에서 다시 채움
+      // 복구된 품목의 전산 바코드/보관구분이 비어 있으면 현재 마스터에서 다시 채움
       items.forEach(it => {
-        if (!it.sysBarcode) {
-          const p = SYS_PRODUCTS.find(x => x.name === it.name && x.spec === it.spec)
-            || EXTRA_PRODUCTS.find(x => x.name === it.name && x.spec === it.spec);
-          if (p && p.barcode) it.sysBarcode = p.barcode;
+        const p = SYS_PRODUCTS.find(x => x.name === it.name && x.spec === it.spec)
+          || EXTRA_PRODUCTS.find(x => x.name === it.name && x.spec === it.spec);
+        if (p) {
+          if (!it.sysBarcode && p.barcode) it.sysBarcode = p.barcode;
+          if (!it.storage && p.storage) it.storage = p.storage;
         }
       });
       renderItems();
