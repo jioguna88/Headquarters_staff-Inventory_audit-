@@ -377,6 +377,7 @@ let isSubmitting = false;
 let lastSubmitSignature = '';
 let lastSubmitTime = 0;
 let lastQtyChange = null;
+let pendingSub = null; // 미확인 제출 { id, signature } — 재제출 시 같은 ID로 서버 중복 방지
 
 function $(id) { return document.getElementById(id); }
 function safeText(id, text) { const el = $(id); if (el) el.textContent = text; }
@@ -445,7 +446,7 @@ function postData(payload) {
       document.body.appendChild(form);
       iframe.onload = finish;
       iframe.onerror = finish;
-      setTimeout(finish, 6000);
+      setTimeout(finish, 12000);
       form.submit();
     } catch (e) { console.error('POST 오류', e); finish(); }
   });
@@ -1446,6 +1447,12 @@ async function doSubmit() {
   if (isSubmitting) return;
   const sv = $('surveyor');
   const surveyor = sv ? sv.value.trim() : '';
+  // 오프라인이면 전송 시도 자체를 막고 입력을 보존
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    saveLocal(true);
+    showSuccess('📵 오프라인 상태', '현재 네트워크에 연결되어 있지 않습니다.<br><br><b>입력 내용은 이 기기에 안전하게 저장되어 있습니다.</b><br>신호가 잡히는 곳으로 이동한 뒤 <b>제출</b>을 다시 눌러주세요.');
+    return;
+  }
   const signature = buildSubmitSignature(surveyor, items);
   if (signature === lastSubmitSignature && (Date.now() - lastSubmitTime) < DUP_GUARD_MS) {
     if (!confirm('⚠️ 방금 같은 내용을 제출했습니다.\n실수가 아니라 정말 추가로 제출하시겠습니까?')) return;
@@ -1471,53 +1478,74 @@ async function doSubmit() {
     plt: it.cbmOnly ? '' : it.plt, storage: it.storage || '', photoData: it.photoData || '',
     boxW: it.boxW, boxD: it.boxD, boxH: it.boxH, boxPerPlt: it.boxPerPlt
   }));
-  const submissionId = genSubmissionId(surveyor);
-  // 검증용: 제출 전 각 품목의 누적값 기록
-  const beforeQty = {};
-  items.forEach(it => { beforeQty[it.name + '|' + it.spec] = getOtherSurveyed(it); });
+  // 재제출 시 같은 제출ID 재사용 → 서버가 중복을 자동으로 걸러 이중 반영이 없음
+  const isRetry = !!(pendingSub && pendingSub.signature === signature);
+  const submissionId = isRetry ? pendingSub.id : genSubmissionId(surveyor);
+  // 검증 기준(제출 전 누적값)은 첫 시도 시점 값을 보존해 재제출 시 재사용
+  // (첫 전송이 이미 서버에 반영된 뒤 재제출해도 검증이 올바르게 통과되도록)
+  let beforeQty;
+  if (isRetry && pendingSub.before) {
+    beforeQty = pendingSub.before;
+  } else {
+    beforeQty = {};
+    items.forEach(it => { beforeQty[it.name + '|' + it.spec] = getOtherSurveyed(it); });
+  }
+  pendingSub = { id: submissionId, signature: signature, before: beforeQty };
+  saveLocal(true); // 전송 전 제출ID·기준값까지 기기에 저장 (앱이 꺼져도 재제출 안전)
   const expectedAdd = {};
   items.forEach(it => {
     const k = it.name + '|' + it.spec;
     expectedAdd[k] = (expectedAdd[k] || 0) + (it.cbmOnly ? 0 : (it.actualQty || 0));
   });
 
+  let verified = false;
   try {
     await postData({ mode: 'final', surveyor, items: submittedItems, submissionId });
-    lastSubmitSignature = signature;
-    lastSubmitTime = Date.now();
 
-    // 제출 검증: 대시보드 재로드 후 누적 반영 확인
+    // 제출 검증: 대시보드를 최대 3회(2초/4초/6초 간격) 재조회하며 누적 반영 확인
     if (btn) btn.textContent = '제출 확인 중...';
-    await new Promise(r => setTimeout(r, 1500));
-    let verified = false;
-    try {
-      const res = await jsonpRequest(WEB_APP_URL + '?action=dashboard', 20000);
-      if (res && res.result === 'success') {
-        const dash = {};
-        (res.dashboard || []).forEach(d => { dash[d.name + '|' + d.spec] = d.totalQty || 0; });
-        verified = Object.keys(expectedAdd).every(k => {
-          const now = dash[k] || 0;
-          return now >= (beforeQty[k] || 0) + expectedAdd[k] - 0.001;
-        });
-        DASHBOARD = {};
-        (res.dashboard || []).forEach(d => { DASHBOARD[d.name + '|' + d.spec] = d; });
-        renderDashboard();
-      }
-    } catch (e) { verified = false; }
-
-    items = [];
-    try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
-    renderItems();
-    updateSaveStatus('cleared');
-
-    if (verified) {
-      showSuccess('✅ 제출 완료 (확인됨)', submittedCount + '개 품목이 저장·반영 확인되었습니다.' + (bigDiff.length > 0 ? '<br><br>⚠️ 누적 차이 10개 초과 ' + bigDiff.length + '개는 재실사 검토 권장' : '') + '<br><br>이어서 다른 구역을 조사하세요.');
-    } else {
-      showSuccess('⚠️ 제출 반영 미확인', submittedCount + '개 품목을 전송했으나 서버 반영을 확인하지 못했습니다.<br><br>네트워크가 불안정할 수 있습니다. <b>현황판을 새로고침</b>해 누적이 반영됐는지 꼭 확인하세요. 반영 안 됐으면 다시 입력·제출이 필요합니다.');
+    const delays = [2000, 4000, 6000];
+    for (let vi = 0; vi < delays.length && !verified; vi++) {
+      await new Promise(r => setTimeout(r, delays[vi]));
+      try {
+        const res = await jsonpRequest(WEB_APP_URL + '?action=dashboard', 20000);
+        if (res && res.result === 'success') {
+          const dash = {};
+          (res.dashboard || []).forEach(d => { dash[d.name + '|' + d.spec] = d.totalQty || 0; });
+          verified = Object.keys(expectedAdd).every(k => {
+            const now = dash[k] || 0;
+            return now >= (beforeQty[k] || 0) + expectedAdd[k] - 0.001;
+          });
+          DASHBOARD = {};
+          (res.dashboard || []).forEach(d => { DASHBOARD[d.name + '|' + d.spec] = d; });
+          renderDashboard();
+        }
+      } catch (e) {}
     }
-    setTimeout(loadDashboard, 1200);
-  } catch (e) {
-    showSuccess('⚠️ 제출 전송됨', '서버 응답 확인 불가하지만 데이터는 전송되었을 수 있습니다.<br>현황 새로고침으로 확인해 주세요.');
+  } catch (e) { verified = false; }
+
+  try {
+    if (verified) {
+      // ★ 반영이 확인된 경우에만 입력을 비움
+      items = [];
+      pendingSub = null;
+      lastSubmitSignature = signature;
+      lastSubmitTime = Date.now();
+      try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
+      renderItems();
+      updateSaveStatus('cleared');
+      showSuccess('✅ 제출 완료 (확인됨)', submittedCount + '개 품목이 저장·반영 확인되었습니다.' + (bigDiff.length > 0 ? '<br><br>⚠️ 누적 차이 10개 초과 ' + bigDiff.length + '개는 재실사 검토 권장' : '') + '<br><br>이어서 다른 구역을 조사하세요.');
+      setTimeout(loadDashboard, 1200);
+    } else {
+      // ★ 확인 실패 시 입력·임시저장·제출ID를 모두 보존 → 그대로 다시 제출하면 됨
+      saveLocal(true);
+      renderItems();
+      showSuccess('📶 전송 확인 실패 — 입력 보존됨',
+        submittedCount + '개 품목의 서버 반영을 확인하지 못했습니다. (신호 약함/오프라인 가능)<br><br>' +
+        '<b>입력 내용은 지워지지 않고 그대로 남아 있습니다.</b><br>' +
+        '신호가 좋은 곳으로 이동해 <b>제출을 다시</b> 눌러주세요.<br><br>' +
+        '<small>이미 서버에 저장된 상태에서 다시 제출해도 자동으로 중복 없이 처리되니 안심하고 재제출하세요.</small>');
+    }
   } finally {
     isSubmitting = false;
     // (버그 수정) textContent로 덮으면 btnCount span이 사라져 이후 개수 갱신이 안 되던 문제 → innerHTML로 span 복원
@@ -1531,7 +1559,7 @@ function saveLocal(immediate) {
   const doSave = () => {
     try {
       const sv = $('surveyor');
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor: sv ? sv.value : '', items, ts: Date.now() }));
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor: sv ? sv.value : '', items, ts: Date.now(), pendingSub: pendingSub }));
       lastSavedAt = new Date();
       updateSaveStatus('saved');
       const ind = $('saveIndicator');
@@ -1558,11 +1586,11 @@ const surveyorEl = $('surveyor');
 if (surveyorEl) surveyorEl.addEventListener('input', () => saveLocal());
 
 window.addEventListener('beforeunload', () => {
-  try { const sv = $('surveyor'); const s = sv ? sv.value : ''; if (items.length > 0 || s) localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor: s, items, ts: Date.now() })); } catch (e) {}
+  try { const sv = $('surveyor'); const s = sv ? sv.value : ''; if (items.length > 0 || s) localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor: s, items, ts: Date.now(), pendingSub: pendingSub })); } catch (e) {}
 });
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') {
-    try { const sv = $('surveyor'); const s = sv ? sv.value : ''; if (items.length > 0 || s) localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor: s, items, ts: Date.now() })); } catch (e) {}
+    try { const sv = $('surveyor'); const s = sv ? sv.value : ''; if (items.length > 0 || s) localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor: s, items, ts: Date.now(), pendingSub: pendingSub })); } catch (e) {}
   }
 });
 setInterval(() => { if (items.length > 0) saveLocal(true); }, 5000);
@@ -1604,6 +1632,7 @@ function checkRestore() {
           if (!it.storage && p.storage) it.storage = p.storage;
         }
       });
+      pendingSub = d.pendingSub || null;
       renderItems();
       lastSavedAt = savedDate;
       updateSaveStatus('saved');
@@ -1612,6 +1641,7 @@ function checkRestore() {
     safeClick('btnDiscard', () => {
       if (confirm('이전 입력을 삭제할까요? 복구 불가합니다.')) {
         try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
+        pendingSub = null;
         area.innerHTML = '';
         updateSaveStatus('cleared');
       }
@@ -1647,6 +1677,18 @@ document.querySelectorAll('.dash-filter button').forEach(btn => {
   if (btn) btn.onclick = () => { on = !on; try { localStorage.setItem(KEY, on ? '1' : '0'); } catch(e) {} apply(); };
   apply();
 })();
+
+window.addEventListener('online', () => {
+  if (items.length > 0) {
+    const ind = $('saveIndicator');
+    if (ind) {
+      ind.textContent = '📶 네트워크 연결됨 — 제출을 다시 눌러주세요';
+      ind.classList.add('show');
+      clearTimeout(ind._t);
+      ind._t = setTimeout(() => { ind.classList.remove('show'); ind.textContent = '💾 저장됨'; }, 5000);
+    }
+  }
+});
 
 safeClick('floatSubmit', () => {
   const sb = $('submitBtn');
