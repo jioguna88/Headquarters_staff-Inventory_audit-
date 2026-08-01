@@ -914,19 +914,22 @@ if (photoInputEl) {
     photoInputEl.value = '';
     if (!file || photoTargetIdx < 0) return;
     const idx = photoTargetIdx; photoTargetIdx = -1;
+    const target = items[idx]; // 비동기 인식 완료 시점에 목록이 바뀌어도 안전하도록 객체로 고정
+    if (!target) return;
     try {
       const dataUrl = await compressImage(file, 1024, 0.6);
-      items[idx].photoData = dataUrl;
+      target.photoData = dataUrl;
       renderItems(); saveLocal(true);
       // 자동 인식은 저장용보다 큰 해상도로 시도 (성공률 향상)
       compressImage(file, 1600, 0.85).then(detectUrl => tryDetectBarcode(detectUrl)).then(code => {
-        if (code && items[idx]) {
-          if (!items[idx].scanBarcode) {
-            items[idx].scanBarcode = code;
+        const ci = items.indexOf(target);
+        if (code && ci >= 0) {
+          if (!target.scanBarcode) {
+            target.scanBarcode = code;
             renderItems(); saveLocal(true);
           }
           barcodeToast('✅ 바코드 자동 인식: ' + code);
-        } else {
+        } else if (ci >= 0) {
           barcodeToast('📷 사진 저장됨 (자동 인식 실패 — 번호 직접 입력 또는 사진만 제출 가능)');
         }
       }).catch(() => {});
@@ -1037,14 +1040,17 @@ async function zxingDetect(dataUrl) {
   } catch (e) { return ''; }
 }
 
-function barcodeToast(msg) {
+// 중요 알림 토스트: 표시되는 동안 자동저장 표시가 덮어쓰지 않도록 보호(_hold)
+function toast(msg, ms) {
   const ind = $('saveIndicator');
   if (!ind) return;
   ind.textContent = msg;
   ind.classList.add('show');
+  ind._hold = Date.now() + (ms || 3500);
   clearTimeout(ind._t);
-  ind._t = setTimeout(() => { ind.classList.remove('show'); ind.textContent = '💾 저장됨'; }, 3500);
+  ind._t = setTimeout(() => { ind.classList.remove('show'); ind.textContent = '💾 저장됨'; ind._hold = 0; }, ms || 3500);
 }
+function barcodeToast(msg) { toast(msg, 3500); }
 function barcodeStatusLabel(it) {
   const st = it.barcodeStatus || '';
   if (st === 'match') return '<span style="color:#28a745;">바코드 일치</span>';
@@ -1645,7 +1651,12 @@ function saveLocal(immediate) {
       lastSavedAt = new Date();
       updateSaveStatus('saved');
       const ind = $('saveIndicator');
-      if (ind) { ind.classList.add('show'); clearTimeout(ind._t); ind._t = setTimeout(() => ind.classList.remove('show'), 1200); }
+      if (ind && (!ind._hold || Date.now() >= ind._hold)) {
+        ind.textContent = '💾 저장됨';
+        ind.classList.add('show');
+        clearTimeout(ind._t);
+        ind._t = setTimeout(() => ind.classList.remove('show'), 1200);
+      }
     } catch (e) { updateSaveStatus('error'); }
   };
   if (immediate) doSave();
@@ -1761,15 +1772,7 @@ document.querySelectorAll('.dash-filter button').forEach(btn => {
 })();
 
 window.addEventListener('online', () => {
-  if (items.length > 0) {
-    const ind = $('saveIndicator');
-    if (ind) {
-      ind.textContent = '📶 네트워크 연결됨 — 제출을 다시 눌러주세요';
-      ind.classList.add('show');
-      clearTimeout(ind._t);
-      ind._t = setTimeout(() => { ind.classList.remove('show'); ind.textContent = '💾 저장됨'; }, 5000);
-    }
-  }
+  if (items.length > 0) toast('📶 네트워크 연결됨 — 제출을 다시 눌러주세요', 5000);
 });
 
 safeClick('floatSubmit', () => {
