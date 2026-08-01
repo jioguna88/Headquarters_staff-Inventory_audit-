@@ -917,14 +917,19 @@ if (photoInputEl) {
     try {
       const dataUrl = await compressImage(file, 1024, 0.6);
       items[idx].photoData = dataUrl;
-      // 지원 브라우저(안드로이드 크롬 등)는 사진 속 바코드를 자동 인식해 번호칸에 채움
-      tryDetectBarcode(dataUrl).then(code => {
-        if (code && items[idx] && !items[idx].scanBarcode) {
-          items[idx].scanBarcode = code;
-          renderItems(); saveLocal(true);
-        }
-      });
       renderItems(); saveLocal(true);
+      // 자동 인식은 저장용보다 큰 해상도로 시도 (성공률 향상)
+      compressImage(file, 1600, 0.85).then(detectUrl => tryDetectBarcode(detectUrl)).then(code => {
+        if (code && items[idx]) {
+          if (!items[idx].scanBarcode) {
+            items[idx].scanBarcode = code;
+            renderItems(); saveLocal(true);
+          }
+          barcodeToast('✅ 바코드 자동 인식: ' + code);
+        } else {
+          barcodeToast('📷 사진 저장됨 (자동 인식 실패 — 번호 직접 입력 또는 사진만 제출 가능)');
+        }
+      }).catch(() => {});
     } catch (err) { alert('사진 처리 실패: ' + err.message); }
   };
 }
@@ -954,14 +959,91 @@ function compressImage(file, maxDim, quality) {
   });
 }
 async function tryDetectBarcode(dataUrl) {
+  // 1차: 브라우저 내장 BarcodeDetector (안드로이드 크롬 등)
   try {
-    if (!('BarcodeDetector' in window)) return '';
+    if ('BarcodeDetector' in window) {
+      const img = new Image();
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
+      const bd = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf'] });
+      const codes = await bd.detect(img);
+      if (codes && codes.length > 0) return String(codes[0].rawValue || '');
+    }
+  } catch (e) {}
+  // 2차: ZXing 라이브러리 폴백 (아이폰 사파리 등 미지원 기기)
+  return await zxingDetect(dataUrl);
+}
+
+// ZXing 라이브러리 지연 로드 (필요한 기기에서만, CDN 2곳 순차 시도)
+let zxingLoadPromise = null;
+function loadZXing() {
+  if (window.ZXing) return Promise.resolve(true);
+  if (zxingLoadPromise) return zxingLoadPromise;
+  const urls = [
+    'https://cdn.jsdelivr.net/npm/@zxing/library@0.18.6/umd/index.min.js',
+    'https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js'
+  ];
+  zxingLoadPromise = new Promise(resolve => {
+    let i = 0;
+    function next() {
+      if (i >= urls.length) { resolve(false); return; }
+      const s = document.createElement('script');
+      s.src = urls[i++];
+      s.onload = () => resolve(!!window.ZXing);
+      s.onerror = next;
+      document.head.appendChild(s);
+    }
+    next();
+  });
+  return zxingLoadPromise;
+}
+
+function rotateDataUrl(dataUrl, deg) {
+  return new Promise((resolve, reject) => {
     const img = new Image();
-    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = dataUrl; });
-    const bd = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf'] });
-    const codes = await bd.detect(img);
-    return (codes && codes.length > 0) ? String(codes[0].rawValue || '') : '';
+    img.onerror = () => reject(new Error('rotate load fail'));
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.height; canvas.height = img.width;
+      const ctx = canvas.getContext('2d');
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(deg * Math.PI / 180);
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+      resolve(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.src = dataUrl;
+  });
+}
+
+async function zxingDetect(dataUrl) {
+  try {
+    const ok = await loadZXing();
+    if (!ok || !window.ZXing) return '';
+    const hints = new Map();
+    const F = ZXing.BarcodeFormat;
+    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.CODE_128, F.CODE_39, F.ITF]);
+    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+    const reader = new ZXing.BrowserMultiFormatReader(hints);
+    try {
+      const r = await reader.decodeFromImageUrl(dataUrl);
+      if (r && r.getText()) return String(r.getText());
+    } catch (e) {}
+    // 세로로 찍힌 바코드 대응: 90도 회전 후 재시도
+    try {
+      const rot = await rotateDataUrl(dataUrl, 90);
+      const r2 = await reader.decodeFromImageUrl(rot);
+      if (r2 && r2.getText()) return String(r2.getText());
+    } catch (e) {}
+    return '';
   } catch (e) { return ''; }
+}
+
+function barcodeToast(msg) {
+  const ind = $('saveIndicator');
+  if (!ind) return;
+  ind.textContent = msg;
+  ind.classList.add('show');
+  clearTimeout(ind._t);
+  ind._t = setTimeout(() => { ind.classList.remove('show'); ind.textContent = '💾 저장됨'; }, 3500);
 }
 function barcodeStatusLabel(it) {
   const st = it.barcodeStatus || '';
@@ -1694,6 +1776,9 @@ safeClick('floatSubmit', () => {
   const sb = $('submitBtn');
   if (sb && !sb.disabled) sb.click();
 });
+
+// BarcodeDetector 미지원 기기(아이폰 등)는 인식 라이브러리를 미리 백그라운드 로드
+if (!('BarcodeDetector' in window)) setTimeout(() => { loadZXing(); }, 3000);
 
 loadProducts();
 updateSaveStatus('idle');
