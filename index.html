@@ -164,6 +164,20 @@
   .item-row.cbm-only .plt-row, .item-row.cbm-only .barcode-section { display: none; }
   .item-row.collapsed .cbm-section { display: none; }
   .item-cbm-badge { color: #0ca678; font-weight: 700; }
+  .info-panel { background: #eef4ff; border: 1px solid #9fbcf5; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+  .info-title { font-size: 12px; font-weight: 700; color: #1d4fb8; margin-bottom: 6px; }
+  .info-title span { font-weight: 400; color: #5b7bd0; font-size: 11px; }
+  .info-row { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 3px 0; border-bottom: 1px dashed #cdd9f5; }
+  .info-row span { color: #555; flex-shrink: 0; }
+  .info-row b { word-break: break-all; text-align: right; }
+  .info-btns { display: grid; grid-template-columns: 2fr 1fr; gap: 6px; margin-top: 8px; }
+  .info-ok-btn { padding: 13px; background: #28a745; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 800; }
+  .info-ok-btn:active { background: #1e7e34; }
+  .info-edit-btn { padding: 13px 6px; background: #fff; color: #fd7e14; border: 2px solid #fd7e14; border-radius: 8px; font-size: 13px; font-weight: 700; }
+  .info-edit-btn:active { background: #fd7e14; color: #fff; }
+  .info-confirmed { display: flex; justify-content: space-between; align-items: center; background: #d4edda; color: #155724; font-size: 12px; font-weight: 700; padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; }
+  .info-undo-btn { padding: 6px 10px; background: #fff; color: #155724; border: 1px solid #28a745; border-radius: 6px; font-size: 11px; font-weight: 700; }
+  .item-row.collapsed .info-panel, .item-row.collapsed .info-confirmed { display: none; }
   .memo-section { margin-top: 8px; }
   .memo-label { font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #555; }
   .memo-label.required { color: #dc3545; }
@@ -367,7 +381,7 @@ const DRAFT_KEY = 'audit_draft_v3';
 const MEMO_PRESETS = ['추가 재고 확인', '실사재고 입력'];
 const DUP_GUARD_MS = 10000;
 
-let SYS_PRODUCTS = [], EXTRA_PRODUCTS = [], DASHBOARD = {};
+let SYS_PRODUCTS = [], EXTRA_PRODUCTS = [], DASHBOARD = {}, KNOWN = {};
 let items = [];
 let dashFilter = 'all';
 let calcTargetIdx = -1;
@@ -463,6 +477,7 @@ async function loadProducts() {
     if (!res || res.result !== 'success') throw new Error((res && res.message) || '응답 오류');
     SYS_PRODUCTS = res.products || [];
     EXTRA_PRODUCTS = res.extraProducts || [];
+    KNOWN = res.known || {};
     const b = $('banner');
     if (b) { b.className = 'banner ok'; b.textContent = '✅ 전산 ' + SYS_PRODUCTS.length + ' / 추가 ' + EXTRA_PRODUCTS.length + '개 로드'; }
     const sb = $('submitBtn'); if (sb) sb.disabled = false;
@@ -659,7 +674,10 @@ function renderSearch() {
       }
       const bcInfo = p.barcode ? '<br>🏷️ ' + escapeHtml(p.barcode) : '';
       const dCbm = DASHBOARD[p.name + '|' + p.spec];
-      const cbmBadge = (dCbm && dCbm.hasCbm) ? ' <span class="item-cbm-badge">[CBM✓]</span>' : '';
+      const knS = KNOWN[p.name + '|' + p.spec];
+      const fullInfo = !!(knS && knS.bcs && knS.w != null);
+      const cbmBadge = fullInfo ? ' <span class="item-cbm-badge">[정보✓]</span>'
+        : ((dCbm && dCbm.hasCbm) ? ' <span class="item-cbm-badge">[CBM✓]</span>' : '');
       div.innerHTML = '<div class="item-name">' + extraLabel + escapeHtml(p.name) + cbmBadge + '</div><div class="item-meta">' + escapeHtml(p.spec) + ' / ' + escapeHtml(p.unit) + bcInfo + '<br>' + qtyInfo + '</div>';
       div.addEventListener('mousedown', e => {
         e.preventDefault();
@@ -704,14 +722,18 @@ function addItem(p) {
     return;
   }
   items.forEach(it => it._collapsed = true);
+  const kn = KNOWN[p.name + '|' + p.spec] || null;
+  const refBar = (p.barcode || '') || (kn && kn.bcv) || '';
+  const hasKnown = !!(kn && (kn.bcs || kn.w != null || kn.bpp != null));
   items.unshift({
     name: p.name, spec: p.spec, unit: p.unit,
     sysQty: p.isExtra ? null : p.sysQty,
     type: p.isExtra ? '[전산재고 불확인]' : '전산재고',
     actualQty: 0, memo: '', expiry: '',
-    sysBarcode: p.barcode || '', scanBarcode: '', barcodeStatus: '',
-    plt: '', storage: p.storage || '', photoData: '',
+    sysBarcode: refBar, scanBarcode: '', barcodeStatus: '',
+    plt: '', storage: p.storage || (kn && kn.stor) || '', photoData: '',
     boxW: '', boxD: '', boxH: '', boxPerPlt: '', cbmOnly: false,
+    known: kn, infoState: hasKnown ? 'pending' : 'none',
     _collapsed: false, _new: true
   });
   renderItems();
@@ -869,6 +891,47 @@ function dimsComplete(it) {
 }
 function toggleCbmOnly(idx) {
   items[idx].cbmOnly = !items[idx].cbmOnly;
+  renderItems(); saveLocal(true);
+}
+
+// ===== 기확보 정보 간편 확인 모드 =====
+function knownBarCovered(it) {
+  const kn = it.known;
+  if (!kn || !kn.bcs) return false;
+  if (kn.bcs === '바코드없음' && !it.sysBarcode) return true;
+  return !!it.sysBarcode;
+}
+function applyKnownInfo(idx) {
+  const it = items[idx];
+  const kn = it.known;
+  if (!kn) return;
+  if (knownBarCovered(it)) {
+    it.barcodeStatus = (kn.bcs === '바코드없음' && !it.sysBarcode) ? 'none' : 'match';
+    it.scanBarcode = '';
+  }
+  if (kn.w != null) { it.boxW = kn.w; it.boxD = kn.d; it.boxH = kn.h; it._dimsFromKnown = true; }
+  if (kn.bpp != null && (it.boxPerPlt === '' || it.boxPerPlt == null)) it.boxPerPlt = kn.bpp;
+  it.infoState = 'confirmed';
+  renderItems(); saveLocal(true);
+}
+function editKnownInfo(idx) {
+  const it = items[idx];
+  const kn = it.known;
+  // 수정 편의를 위해 기존 값을 미리 채워둠 — 다른 부분만 고치면 됨
+  if (kn && kn.w != null && (it.boxW === '' || it.boxW == null)) { it.boxW = kn.w; it.boxD = kn.d; it.boxH = kn.h; }
+  if (kn && kn.bpp != null && (it.boxPerPlt === '' || it.boxPerPlt == null)) it.boxPerPlt = kn.bpp;
+  it.infoState = 'editing';
+  renderItems(); saveLocal(true);
+}
+function undoKnownInfo(idx) {
+  const it = items[idx];
+  if (it._dimsFromKnown) {
+    it.boxW = ''; it.boxD = ''; it.boxH = '';
+    if (it.known && it.boxPerPlt === it.known.bpp) it.boxPerPlt = '';
+    it._dimsFromKnown = false;
+  }
+  it.barcodeStatus = ''; it.scanBarcode = '';
+  it.infoState = 'pending';
   renderItems(); saveLocal(true);
 }
 
@@ -1163,7 +1226,7 @@ function renderItems() {
         '</div>';
     }
     const bcRes = barcodeResultInfo(it);
-    const barcodeHtml =
+    let barcodeHtml =
       '<div class="barcode-section">' +
         '<div class="barcode-label bc-required">🏷️ 바코드 확인</div>' +
         bcValueHtml + bcButtons + bcInputHtml +
@@ -1183,7 +1246,7 @@ function renderItems() {
     }
     const dimCls = partial ? ' dim-incomplete' : '';
     const cbmRequired = it.cbmOnly && cbm === null;
-    const cbmHtml =
+    let cbmHtml =
       '<div class="cbm-section">' +
         '<div class="cbm-label">박스 규격 · CBM' + (it.cbmOnly ? ' <span style="color:#dc3545;">*치수 필수</span>' : ' (선택 입력)') + '</div>' +
         '<div class="cbm-dims">' +
@@ -1201,6 +1264,38 @@ function renderItems() {
         '</button>' +
       '</div>';
 
+    // ----- 기확보 정보 확인 패널 -----
+    let infoPanelHtml = '';
+    if (it.infoState === 'pending') {
+      const kn = it.known || {};
+      const barLine = it.sysBarcode
+        ? escapeHtml(it.sysBarcode) + (kn.bcs ? ' <small style="color:#5b7bd0;">(' + escapeHtml(kn.bcs) + ' 이력)</small>' : '')
+        : (kn.bcs === '바코드없음' ? '없음 (이전 실사 확인)' : '<span style="color:#999;">미확보</span>');
+      const dimLine = kn.w != null
+        ? kn.w + ' × ' + kn.d + ' × ' + kn.h + ' cm (CBM ' + (Math.round(kn.w * kn.d * kn.h / 1000000 * 10000) / 10000) + '㎥)'
+        : '<span style="color:#999;">미확보</span>';
+      const bppLine = kn.bpp != null ? kn.bpp + '박스/PLT' : '-';
+      infoPanelHtml =
+        '<div class="info-panel">' +
+          '<div class="info-title">📋 기확보 정보 확인 <span>실물과 비교해 주세요</span></div>' +
+          '<div class="info-row"><span>바코드</span><b>' + barLine + '</b></div>' +
+          '<div class="info-row"><span>박스규격</span><b>' + dimLine + '</b></div>' +
+          '<div class="info-row"><span>PLT당 박스</span><b>' + bppLine + '</b></div>' +
+          '<div class="info-btns">' +
+            '<button class="info-ok-btn" data-act="info-ok">✓ 모두 일치</button>' +
+            '<button class="info-edit-btn" data-act="info-edit">✏️ 다름 · 수정</button>' +
+          '</div>' +
+        '</div>';
+    } else if (it.infoState === 'confirmed') {
+      infoPanelHtml = '<div class="info-confirmed"><span>✓ 기존 정보 일치 확인됨</span><button class="info-undo-btn" data-act="info-undo">변경</button></div>';
+    }
+    // 확인 전에는 상세 입력 숨김, 확인 후에는 이미 확인된 항목만 숨김
+    if (it.infoState === 'pending') { cbmHtml = ''; barcodeHtml = ''; }
+    else if (it.infoState === 'confirmed') {
+      if (knownBarCovered(it)) barcodeHtml = '';
+      if (it.known && it.known.w != null) cbmHtml = '';
+    }
+
     const memoEmpty = !it.memo || !it.memo.trim();
     const memoAreaCls = memoEmpty ? 'memo-area required-empty' : 'memo-area';
     let presetBtns = '';
@@ -1215,6 +1310,7 @@ function renderItems() {
       if (it.cbmOnly) {
         if (!dimsComplete(it)) miss.push('치수');
       } else {
+        if (it.infoState === 'pending') miss.push('기존정보 확인');
         if (!it.memo || !it.memo.trim()) miss.push('메모');
         if (!it.expiry || !it.expiry.trim()) miss.push('유통기한');
         if (isBarcodeIncomplete(it)) miss.push('바코드');
@@ -1233,6 +1329,7 @@ function renderItems() {
       collapsedSummary +
       '<div class="row-meta">' + escapeHtml(it.spec) + ' · ' + escapeHtml(it.unit) + ' · 전산: <span class="sys-qty">' + sysQtyText + '</span>' + otherInfo + '</div>' +
       hint +
+      infoPanelHtml +
       '<div class="qty-big-row">' +
         '<button class="qty-btn-big" data-act="minus">−</button>' +
         '<input type="number" inputmode="decimal" class="qty-input-big" value="' + it.actualQty + '" min="0">' +
@@ -1299,6 +1396,9 @@ function renderItems() {
         else if (a === 'bc-photo') takePhoto(idx);
         else if (a === 'bc-photo-del') { if (confirm('사진을 삭제할까요?')) removePhoto(idx); }
         else if (a === 'cbm-only') toggleCbmOnly(idx);
+        else if (a === 'info-ok') applyKnownInfo(idx);
+        else if (a === 'info-edit') editKnownInfo(idx);
+        else if (a === 'info-undo') undoKnownInfo(idx);
         else if (a === 'expnone') { items[idx].expiry = '소비기한 없음'; renderItems(); saveLocal(); }
         else if (a === 'remove') { if (confirm('삭제하시겠습니까?')) removeItem(idx); }
       };
@@ -1442,6 +1542,14 @@ safeClick('submitBtn', () => {
   const surveyor = sv ? sv.value.trim() : '';
   if (!surveyor) { alert('조사자 이름을 입력하세요.'); return; }
   if (items.length === 0) { alert('품목을 1개 이상 추가하세요.'); return; }
+  const pendingInfo = items.filter(it => it.infoState === 'pending');
+  if (pendingInfo.length > 0) {
+    alert('기확보 정보 확인이 필요한 품목이 ' + pendingInfo.length + '개 있습니다.\n[✓ 모두 일치] 또는 [✏️ 다름 · 수정] 중 하나를 눌러주세요.');
+    const idx = items.indexOf(pendingInfo[0]);
+    items[idx]._collapsed = false; renderItems();
+    setTimeout(() => { const el = document.querySelector('[data-idx="' + idx + '"] .info-panel'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+    return;
+  }
   const noMemo = items.filter(it => !it.cbmOnly && (!it.memo || !it.memo.trim()));
   if (noMemo.length > 0) {
     alert('메모가 비어 있는 품목이 ' + noMemo.length + '개 있습니다.\n모든 품목에 메모를 입력해주세요.');
@@ -1714,6 +1822,7 @@ function checkRestore() {
         sysBarcode: '', scanBarcode: '', barcodeStatus: '',
         plt: '', storage: '', photoData: '',
         boxW: '', boxD: '', boxH: '', boxPerPlt: '', cbmOnly: false,
+        known: null, infoState: 'none',
         ...it, _collapsed: i !== 0, _new: false
       }));
       // 복구된 품목의 전산 바코드/보관구분이 비어 있으면 현재 마스터에서 다시 채움
