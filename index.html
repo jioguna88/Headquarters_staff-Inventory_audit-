@@ -194,6 +194,7 @@
   .rq-status button { padding: 6px 10px; background: #fff; border: 1px solid currentColor; border-radius: 6px; font-size: 11px; font-weight: 700; color: inherit; }
   .item-row.rq-hide-qty .qty-big-row, .item-row.rq-hide-qty .quick-btns, .item-row.rq-hide-qty .diff-box, .item-row.rq-hide-qty .input-hint { display: none; }
   .item-row.collapsed .rq-panel, .item-row.collapsed .rq-status { display: none; }
+  .opt-hint { font-size: 10px; color: #8a6cc9; font-weight: 400; }
   .memo-section { margin-top: 8px; }
   .memo-label { font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #555; }
   .memo-label.required { color: #dc3545; }
@@ -338,7 +339,7 @@
   <div id="itemsContainer"></div>
 
   <div class="submit-area">
-    <div class="submit-hint">💡 <b>제출</b> 후 입력 품목은 자동으로 비워지고 누적 현황이 갱신됩니다. 메모·유통기한·바코드 확인은 필수입니다.</div>
+    <div class="submit-hint" id="submitHint">💡 <b>제출</b> 후 입력 품목은 자동으로 비워지고 누적 현황이 갱신됩니다. 메모·유통기한·바코드 확인은 필수입니다.</div>
     <button class="primary" id="submitBtn" disabled>📤 제출 (<span id="btnCount">0</span>개)</button>
   </div>
 </div>
@@ -820,7 +821,7 @@ function formatExpiry(v) {
   return raw;
 }
 function toggleCollapse(idx) { items[idx]._collapsed = !items[idx]._collapsed; renderItems(); }
-function needsMemo(it) { return true; }
+function needsMemo(it) { return !REAUDIT; }
 
 // ===== 바코드 상태 =====
 // barcodeStatus: 'match'(일치) / 'diff'(다름-수정) / 'none'(바코드 없음) / 'new'(전산 미등록 → 신규 입력) / ''(미확인)
@@ -1360,7 +1361,14 @@ function renderItems() {
     }
 
     const memoEmpty = !it.memo || !it.memo.trim();
-    const memoAreaCls = memoEmpty ? 'memo-area required-empty' : 'memo-area';
+    const fieldsRequired = !REAUDIT; // 재실사 모드에서는 메모·유통기한 선택 입력
+    const memoAreaCls = (fieldsRequired && memoEmpty) ? 'memo-area required-empty' : 'memo-area';
+    const memoLabelHtml = fieldsRequired
+      ? '<div class="memo-label required">📝 메모</div>'
+      : '<div class="memo-label">📝 메모 <span class="opt-hint">재실사 모드 — 선택 입력, 비우면 \'재실사 확인\'으로 자동 기록</span></div>';
+    const expLabelHtml = fieldsRequired
+      ? '<div class="memo-label required">📅 유통기한</div>'
+      : '<div class="memo-label">📅 유통기한 <span class="opt-hint">재실사 모드 — 선택 입력</span></div>';
     let presetBtns = '';
     MEMO_PRESETS.forEach(preset => {
       const active = (it.memo || '').indexOf(preset) >= 0 ? ' active' : '';
@@ -1417,14 +1425,14 @@ function renderItems() {
       diffHtml +
       barcodeHtml +
       '<div class="memo-section">' +
-        '<div class="memo-label required">📝 메모</div>' +
+        memoLabelHtml +
         '<div class="memo-presets">' + presetBtns + '</div>' +
-        '<textarea class="' + memoAreaCls + '" placeholder="메모 (필수)">' + escapeHtml(it.memo) + '</textarea>' +
+        '<textarea class="' + memoAreaCls + '" placeholder="' + (fieldsRequired ? '메모 (필수)' : '메모 (선택)') + '">' + escapeHtml(it.memo) + '</textarea>' +
       '</div>' +
       '<div class="expiry-section">' +
-        '<div class="memo-label required">📅 유통기한</div>' +
+        expLabelHtml +
         '<div class="expiry-row">' +
-          '<input type="text" inputmode="numeric" class="' + (expEmpty ? 'exp-empty' : '') + '" placeholder="숫자만 입력 (예: 261231)" value="' + escapeHtml(it.expiry) + '">' +
+          '<input type="text" inputmode="numeric" class="' + ((fieldsRequired && expEmpty) ? 'exp-empty' : '') + '" placeholder="숫자만 입력 (예: 261231)" value="' + escapeHtml(it.expiry) + '">' +
           '<button class="exp-none-btn" data-act="expnone">소비기한 없음</button>' +
         '</div>' +
         '<div class="exp-hint">숫자 6자리(261231) 또는 8자리(20261231)를 입력하면 날짜로 자동 변환됩니다.</div>' +
@@ -1525,7 +1533,7 @@ function renderItems() {
         const f = formatExpiry(e.target.value);
         items[idx].expiry = f;
         e.target.value = f;
-        if (!f || !f.trim()) e.target.classList.add('exp-empty');
+        if ((!f || !f.trim()) && !REAUDIT) e.target.classList.add('exp-empty');
         else e.target.classList.remove('exp-empty');
         saveLocal();
       };
@@ -1953,6 +1961,9 @@ document.querySelectorAll('.dash-filter button').forEach(btn => {
     if (!btn) return;
     btn.classList.toggle('on', REAUDIT);
     btn.textContent = REAUDIT ? '🔁 재실사 모드: ON — 이전 실사수량과 일치/다름만 확인' : '🔁 재실사 모드: OFF';
+    safeHTML('submitHint', REAUDIT
+      ? '🔁 <b>재실사 모드</b> — 품목마다 [일치/다름] 수량 확인만 필수이며, 메모·유통기한은 선택입니다. 빈 메모는 \'재실사 확인\'으로 자동 기록됩니다.'
+      : '💡 <b>제출</b> 후 입력 품목은 자동으로 비워지고 누적 현황이 갱신됩니다. 메모·유통기한·바코드 확인은 필수입니다.');
   }
   if (btn) btn.onclick = () => {
     REAUDIT = !REAUDIT;
