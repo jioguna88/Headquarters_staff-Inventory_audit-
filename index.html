@@ -178,6 +178,22 @@
   .info-confirmed { display: flex; justify-content: space-between; align-items: center; background: #d4edda; color: #155724; font-size: 12px; font-weight: 700; padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; }
   .info-undo-btn { padding: 6px 10px; background: #fff; color: #155724; border: 1px solid #28a745; border-radius: 6px; font-size: 11px; font-weight: 700; }
   .item-row.collapsed .info-panel, .item-row.collapsed .info-confirmed { display: none; }
+  .reaudit-toggle { width: 100%; padding: 9px; font-size: 13px; font-weight: 700; background: #fff; color: #6f42c1; border: 2px dashed #6f42c1; border-radius: 8px; margin-bottom: 6px; }
+  .reaudit-toggle.on { background: #6f42c1; color: #fff; border-style: solid; }
+  .rq-panel { background: #f6f1ff; border: 1px solid #c9b3f0; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+  .rq-title { font-size: 12px; font-weight: 700; color: #5a2ea6; margin-bottom: 4px; }
+  .rq-qty { font-size: 22px; font-weight: 800; color: #5a2ea6; text-align: center; margin: 4px 0 8px; }
+  .rq-qty small { font-size: 12px; font-weight: 400; color: #8a6cc9; }
+  .rq-btns { display: grid; grid-template-columns: 2fr 1fr; gap: 6px; }
+  .rq-ok-btn { padding: 13px; background: #28a745; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 800; }
+  .rq-ok-btn:active { background: #1e7e34; }
+  .rq-edit-btn { padding: 13px 6px; background: #fff; color: #fd7e14; border: 2px solid #fd7e14; border-radius: 8px; font-size: 13px; font-weight: 700; }
+  .rq-status { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 700; padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; }
+  .rq-status.ok { background: #d4edda; color: #155724; }
+  .rq-status.edit { background: #fff3cd; color: #856404; }
+  .rq-status button { padding: 6px 10px; background: #fff; border: 1px solid currentColor; border-radius: 6px; font-size: 11px; font-weight: 700; color: inherit; }
+  .item-row.rq-hide-qty .qty-big-row, .item-row.rq-hide-qty .quick-btns, .item-row.rq-hide-qty .diff-box, .item-row.rq-hide-qty .input-hint { display: none; }
+  .item-row.collapsed .rq-panel, .item-row.collapsed .rq-status { display: none; }
   .memo-section { margin-top: 8px; }
   .memo-label { font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #555; }
   .memo-label.required { color: #dc3545; }
@@ -270,6 +286,7 @@
     <label>조사자</label>
     <input type="text" id="surveyor" placeholder="이름 입력">
   </div>
+  <button class="reaudit-toggle" id="reauditToggle">🔁 재실사 모드: OFF</button>
 </div>
 
 <div class="sticky-top">
@@ -392,6 +409,8 @@ let lastSubmitSignature = '';
 let lastSubmitTime = 0;
 let lastQtyChange = null;
 let pendingSub = null; // 미확인 제출 { id, signature } — 재제출 시 같은 ID로 서버 중복 방지
+let REAUDIT = false; // 재실사 모드: 이전 실사수량(전산수량)과 일치/다름만 확인
+try { REAUDIT = localStorage.getItem('audit_reaudit_mode') === '1'; } catch (e) {}
 
 function $(id) { return document.getElementById(id); }
 function safeText(id, text) { const el = $(id); if (el) el.textContent = text; }
@@ -734,6 +753,7 @@ function addItem(p) {
     plt: '', storage: p.storage || (kn && kn.stor) || '', photoData: '',
     boxW: '', boxD: '', boxH: '', boxPerPlt: '', cbmOnly: false,
     known: kn, infoState: hasKnown ? 'pending' : 'none',
+    qtyState: '',
     _collapsed: false, _new: true
   });
   renderItems();
@@ -923,6 +943,27 @@ function editKnownInfo(idx) {
   it.infoState = 'editing';
   renderItems(); saveLocal(true);
 }
+// ===== 재실사 수량 확인 =====
+function reauditApplies(it) { return REAUDIT && !it.cbmOnly && it.sysQty !== null; }
+function rqOk(idx) {
+  const it = items[idx];
+  rememberQty(idx);
+  it.actualQty = Math.max(0, it.sysQty - getOtherSurveyed(it));
+  it.qtyState = 'ok';
+  renderItems(); saveLocal(true);
+}
+function rqEdit(idx) {
+  items[idx].qtyState = 'edit';
+  renderItems(); saveLocal(true);
+  setTimeout(() => focusQtyInput(idx), 80);
+}
+function rqUndo(idx) {
+  const it = items[idx];
+  it.qtyState = '';
+  it.actualQty = 0;
+  renderItems(); saveLocal(true);
+}
+
 function undoKnownInfo(idx) {
   const it = items[idx];
   if (it._dimsFromKnown) {
@@ -1133,6 +1174,7 @@ function renderItems() {
     let rowCls = 'item-row';
     if (it.type === '[전산재고 불확인]') rowCls += ' extra';
     if (it.cbmOnly) rowCls += ' cbm-only';
+    if (reauditApplies(it) && it.qtyState !== 'edit') rowCls += ' rq-hide-qty';
     if (it._collapsed) rowCls += ' collapsed';
     if (it._new) rowCls += ' new';
     div.className = rowCls;
@@ -1264,6 +1306,27 @@ function renderItems() {
         '</button>' +
       '</div>';
 
+    // ----- 재실사 수량 확인 패널 -----
+    let rqHtml = '';
+    if (reauditApplies(it)) {
+      const remainQty = Math.max(0, it.sysQty - otherSurveyed);
+      if (it.qtyState === 'ok') {
+        rqHtml = '<div class="rq-status ok"><span>✓ 이전 실사수량과 일치 (' + it.actualQty + ' 입력됨)</span><button data-act="rq-undo">변경</button></div>';
+      } else if (it.qtyState === 'edit') {
+        rqHtml = '<div class="rq-status edit"><span>✏️ 수량 다름 — 아래에 실제 수량을 입력하세요 (이전: ' + it.sysQty + ')</span><button data-act="rq-undo">취소</button></div>';
+      } else {
+        rqHtml =
+          '<div class="rq-panel">' +
+            '<div class="rq-title">🔁 재실사 — 이전 실사수량과 비교</div>' +
+            '<div class="rq-qty">' + it.sysQty + (otherSurveyed > 0 ? ' <small>(이번 재실사 기제출 ' + otherSurveyed + ' → 잔여 ' + remainQty + ')</small>' : '') + '</div>' +
+            '<div class="rq-btns">' +
+              '<button class="rq-ok-btn" data-act="rq-ok">✓ 일치 (' + remainQty + ' 입력)</button>' +
+              '<button class="rq-edit-btn" data-act="rq-edit">✏️ 다름</button>' +
+            '</div>' +
+          '</div>';
+      }
+    }
+
     // ----- 기확보 정보 확인 패널 -----
     let infoPanelHtml = '';
     if (it.infoState === 'pending') {
@@ -1311,8 +1374,9 @@ function renderItems() {
         if (!dimsComplete(it)) miss.push('치수');
       } else {
         if (it.infoState === 'pending') miss.push('기존정보 확인');
-        if (!it.memo || !it.memo.trim()) miss.push('메모');
-        if (!it.expiry || !it.expiry.trim()) miss.push('유통기한');
+        if (reauditApplies(it) && !it.qtyState) miss.push('수량확인');
+        if (!REAUDIT && (!it.memo || !it.memo.trim())) miss.push('메모');
+        if (!REAUDIT && (!it.expiry || !it.expiry.trim())) miss.push('유통기한');
         if (isBarcodeIncomplete(it)) miss.push('바코드');
         if (dimsPartial(it)) miss.push('치수(일부만)');
       }
@@ -1330,6 +1394,7 @@ function renderItems() {
       '<div class="row-meta">' + escapeHtml(it.spec) + ' · ' + escapeHtml(it.unit) + ' · 전산: <span class="sys-qty">' + sysQtyText + '</span>' + otherInfo + '</div>' +
       hint +
       infoPanelHtml +
+      rqHtml +
       '<div class="qty-big-row">' +
         '<button class="qty-btn-big" data-act="minus">−</button>' +
         '<input type="number" inputmode="decimal" class="qty-input-big" value="' + it.actualQty + '" min="0">' +
@@ -1399,6 +1464,9 @@ function renderItems() {
         else if (a === 'info-ok') applyKnownInfo(idx);
         else if (a === 'info-edit') editKnownInfo(idx);
         else if (a === 'info-undo') undoKnownInfo(idx);
+        else if (a === 'rq-ok') rqOk(idx);
+        else if (a === 'rq-edit') rqEdit(idx);
+        else if (a === 'rq-undo') rqUndo(idx);
         else if (a === 'expnone') { items[idx].expiry = '소비기한 없음'; renderItems(); saveLocal(); }
         else if (a === 'remove') { if (confirm('삭제하시겠습니까?')) removeItem(idx); }
       };
@@ -1550,7 +1618,15 @@ safeClick('submitBtn', () => {
     setTimeout(() => { const el = document.querySelector('[data-idx="' + idx + '"] .info-panel'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
     return;
   }
-  const noMemo = items.filter(it => !it.cbmOnly && (!it.memo || !it.memo.trim()));
+  const pendingQty = items.filter(it => reauditApplies(it) && !it.qtyState);
+  if (pendingQty.length > 0) {
+    alert('재실사 수량 확인이 안 된 품목이 ' + pendingQty.length + '개 있습니다.\n[✓ 일치] 또는 [✏️ 다름] 중 하나를 눌러주세요.');
+    const idx = items.indexOf(pendingQty[0]);
+    items[idx]._collapsed = false; renderItems();
+    setTimeout(() => { const el = document.querySelector('[data-idx="' + idx + '"] .rq-panel'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+    return;
+  }
+  const noMemo = items.filter(it => !REAUDIT && !it.cbmOnly && (!it.memo || !it.memo.trim()));
   if (noMemo.length > 0) {
     alert('메모가 비어 있는 품목이 ' + noMemo.length + '개 있습니다.\n모든 품목에 메모를 입력해주세요.');
     const idx = items.indexOf(noMemo[0]);
@@ -1558,7 +1634,7 @@ safeClick('submitBtn', () => {
     setTimeout(() => { const el = document.querySelector('[data-idx="' + idx + '"] .memo-area'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus(); } }, 100);
     return;
   }
-  const noExpiry = items.filter(it => !it.cbmOnly && (!it.expiry || !it.expiry.trim()));
+  const noExpiry = items.filter(it => !REAUDIT && !it.cbmOnly && (!it.expiry || !it.expiry.trim()));
   if (noExpiry.length > 0) {
     alert('유통기한이 비어 있는 품목이 ' + noExpiry.length + '개 있습니다.\n유통기한을 입력하거나 "소비기한 없음"을 눌러주세요.');
     const idx = items.indexOf(noExpiry[0]);
@@ -1669,7 +1745,8 @@ async function doSubmit() {
     type: it.cbmOnly ? '박스실측' : it.type,
     sysQty: it.cbmOnly ? null : it.sysQty,
     actualQty: it.cbmOnly ? 0 : it.actualQty,
-    memo: it.memo, expiry: it.expiry,
+    memo: (it.memo && it.memo.trim()) ? it.memo : (REAUDIT && !it.cbmOnly ? (it.qtyState === 'ok' ? '재실사 일치 확인' : '재실사 수정 입력') : it.memo),
+    expiry: it.expiry,
     sysBarcode: it.sysBarcode || '', scanBarcode: it.scanBarcode || '', barcodeStatus: it.barcodeStatus || '',
     plt: it.cbmOnly ? '' : it.plt, storage: it.storage || '', photoData: it.photoData || '',
     boxW: it.boxW, boxD: it.boxD, boxH: it.boxH, boxPerPlt: it.boxPerPlt
@@ -1822,7 +1899,7 @@ function checkRestore() {
         sysBarcode: '', scanBarcode: '', barcodeStatus: '',
         plt: '', storage: '', photoData: '',
         boxW: '', boxD: '', boxH: '', boxPerPlt: '', cbmOnly: false,
-        known: null, infoState: 'none',
+        known: null, infoState: 'none', qtyState: '',
         ...it, _collapsed: i !== 0, _new: false
       }));
       // 복구된 품목의 전산 바코드/보관구분이 비어 있으면 현재 마스터에서 다시 채움
@@ -1869,6 +1946,21 @@ document.querySelectorAll('.dash-filter button').forEach(btn => {
     renderDashboard();
   };
 });
+
+(function initReauditToggle() {
+  const btn = $('reauditToggle');
+  function apply() {
+    if (!btn) return;
+    btn.classList.toggle('on', REAUDIT);
+    btn.textContent = REAUDIT ? '🔁 재실사 모드: ON — 이전 실사수량과 일치/다름만 확인' : '🔁 재실사 모드: OFF';
+  }
+  if (btn) btn.onclick = () => {
+    REAUDIT = !REAUDIT;
+    try { localStorage.setItem('audit_reaudit_mode', REAUDIT ? '1' : '0'); } catch (e) {}
+    apply(); renderItems();
+  };
+  apply();
+})();
 
 (function initBigMode() {
   const KEY = 'audit_big_mode';
