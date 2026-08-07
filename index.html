@@ -410,10 +410,12 @@ let lastSubmitSignature = '';
 let lastSubmitTime = 0;
 let lastQtyChange = null;
 let pendingSub = null; // 미확인 제출 { id, signature } — 재제출 시 같은 ID로 서버 중복 방지
+let LAST_SEARCH = []; // 검색 드롭다운 현재 결과 (Enter로 첫 항목 즉시 추가용)
 let REAUDIT = false; // 재실사 모드: 이전 실사수량(전산수량)과 일치/다름만 확인
 try { REAUDIT = localStorage.getItem('audit_reaudit_mode') === '1'; } catch (e) {}
 
 function $(id) { return document.getElementById(id); }
+function buzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms || 30); } catch (e) {} }
 function safeText(id, text) { const el = $(id); if (el) el.textContent = text; }
 function safeHTML(id, html) { const el = $(id); if (el) el.innerHTML = html; }
 function safeClick(id, handler) { const el = $(id); if (el) el.onclick = handler; }
@@ -644,7 +646,7 @@ const searchList = $('searchList');
 function renderSearch() {
   if (!searchInput || !searchList) return;
   const q = searchInput.value.trim().toLowerCase();
-  if (!q) { searchList.classList.remove('show'); searchList.innerHTML = ''; return; }
+  if (!q) { LAST_SEARCH = []; searchList.classList.remove('show'); searchList.innerHTML = ''; return; }
   const combined = [];
   SYS_PRODUCTS.forEach(p => {
     const key = p.name + '|' + p.spec;
@@ -668,6 +670,7 @@ function renderSearch() {
     return score(a) - score(b);
   });
   const shown = filtered.slice(0, 200);
+  LAST_SEARCH = shown;
   searchList.innerHTML = '';
   if (shown.length === 0) {
     searchList.innerHTML = '<div class="dropdown-item">검색 결과 없음</div>';
@@ -714,6 +717,19 @@ function renderSearch() {
 if (searchInput) {
   searchInput.addEventListener('input', renderSearch);
   searchInput.addEventListener('blur', () => setTimeout(() => { if (searchList) searchList.classList.remove('show'); }, 200));
+  // 스캐너 입력(Enter) 시 첫 검색 결과를 바로 추가 — 스캔만으로 품목이 열림
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    if (LAST_SEARCH.length > 0) {
+      buzz(30);
+      addItem(LAST_SEARCH[0]);
+      searchInput.value = '';
+      LAST_SEARCH = [];
+      if (searchList) searchList.classList.remove('show');
+      searchInput.blur();
+    }
+  });
 }
 
 function parseSpec(spec) {
@@ -917,10 +933,10 @@ function toggleCbmOnly(idx) {
 
 // ===== 기확보 정보 간편 확인 모드 =====
 function knownBarCovered(it) {
+  // 확인 패널에 기준 바코드가 표시되고 이를 보고 확인하는 것이므로, 기준 바코드가 있으면 커버됨
+  if (it.sysBarcode) return true;
   const kn = it.known;
-  if (!kn || !kn.bcs) return false;
-  if (kn.bcs === '바코드없음' && !it.sysBarcode) return true;
-  return !!it.sysBarcode;
+  return !!(kn && kn.bcs === '바코드없음');
 }
 function applyKnownInfo(idx) {
   const it = items[idx];
@@ -933,6 +949,7 @@ function applyKnownInfo(idx) {
   if (kn.w != null) { it.boxW = kn.w; it.boxD = kn.d; it.boxH = kn.h; it._dimsFromKnown = true; }
   if (kn.bpp != null && (it.boxPerPlt === '' || it.boxPerPlt == null)) it.boxPerPlt = kn.bpp;
   it.infoState = 'confirmed';
+  buzz(40);
   renderItems(); saveLocal(true);
 }
 function editKnownInfo(idx) {
@@ -951,6 +968,7 @@ function rqOk(idx) {
   rememberQty(idx);
   it.actualQty = Math.max(0, it.sysQty - getOtherSurveyed(it));
   it.qtyState = 'ok';
+  buzz(40);
   renderItems(); saveLocal(true);
 }
 function rqEdit(idx) {
@@ -1704,7 +1722,7 @@ function openConfirmModal() {
     if (it.cbmOnly) {
       detailLine = '박스 ' + it.boxW + '×' + it.boxD + '×' + it.boxH + 'cm / CBM ' + cbmV + (parseFloat(it.boxPerPlt) > 0 ? ' / ' + it.boxPerPlt + '박스·PLT' : '');
     } else {
-      detailLine = '이번 ' + it.actualQty + ' / 누적 ' + v.total + (it.sysQty === null ? '' : ' / 전산 ' + it.sysQty)
+      detailLine = (reauditApplies(it) ? (it.qtyState === 'ok' ? '재실사 일치 · ' : '재실사 수정 · ') : '') + '이번 ' + it.actualQty + ' / 누적 ' + v.total + (it.sysQty === null ? '' : ' / 전산 ' + it.sysQty)
         + (parseFloat(it.plt) > 0 ? ' / ' + it.plt + ' PLT' : '')
         + (cbmV !== null ? ' / CBM ' + cbmV : '')
         + ' / ' + barcodeStatusLabel(it);
@@ -1815,6 +1833,7 @@ async function doSubmit() {
       try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
       renderItems();
       updateSaveStatus('cleared');
+      buzz(80);
       showSuccess('✅ 제출 완료 (확인됨)', submittedCount + '개 품목이 저장·반영 확인되었습니다.' + (bigDiff.length > 0 ? '<br><br>⚠️ 누적 차이 10개 초과 ' + bigDiff.length + '개는 재실사 검토 권장' : '') + '<br><br>이어서 다른 구역을 조사하세요.');
       setTimeout(loadDashboard, 1200);
     } else {
