@@ -184,7 +184,9 @@
   .rq-title { font-size: 12px; font-weight: 700; color: #5a2ea6; margin-bottom: 4px; }
   .rq-qty { font-size: 22px; font-weight: 800; color: #5a2ea6; text-align: center; margin: 4px 0 8px; }
   .rq-qty small { font-size: 12px; font-weight: 400; color: #8a6cc9; }
-  .rq-btns { display: grid; grid-template-columns: 2fr 1fr; gap: 6px; }
+  .rq-btns { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 6px; }
+  .rq-calc-btn { padding: 13px 4px; background: #ffc107; color: #000; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; }
+  .rq-calc-btn:active { background: #e0a800; }
   .rq-ok-btn { padding: 13px; background: #28a745; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 800; }
   .rq-ok-btn:active { background: #1e7e34; }
   .rq-edit-btn { padding: 13px 6px; background: #fff; color: #fd7e14; border: 2px solid #fd7e14; border-radius: 8px; font-size: 13px; font-weight: 700; }
@@ -1341,7 +1343,9 @@ function renderItems() {
             '<div class="rq-btns">' +
               '<button class="rq-ok-btn" data-act="rq-ok">✓ 일치 (' + remainQty + ' 입력)</button>' +
               '<button class="rq-edit-btn" data-act="rq-edit">✏️ 다름</button>' +
+              '<button class="rq-calc-btn" data-act="rq-calc">🧮 계산기</button>' +
             '</div>' +
+            '<div style="font-size:10px; color:#8a6cc9; margin-top:5px;">🧮 계산기로 센 값이 잔여와 같으면 자동으로 일치 처리됩니다.</div>' +
           '</div>';
       }
     }
@@ -1493,6 +1497,7 @@ function renderItems() {
         else if (a === 'rq-ok') rqOk(idx);
         else if (a === 'rq-edit') rqEdit(idx);
         else if (a === 'rq-undo') rqUndo(idx);
+        else if (a === 'rq-calc') openCalc(idx);
         else if (a === 'expnone') { items[idx].expiry = '소비기한 없음'; renderItems(); saveLocal(); }
         else if (a === 'remove') { if (confirm('삭제하시겠습니까?')) removeItem(idx); }
       };
@@ -1621,7 +1626,26 @@ safeClick('calcApply', () => {
   updateCalcDisplay();
   const r = $('calcResult');
   const val = parseFloat((r && r.dataset.value) || '0');
-  if (calcTargetIdx >= 0) setQty(calcTargetIdx, val);
+  if (calcTargetIdx >= 0) {
+    const it = items[calcTargetIdx];
+    if (it && reauditApplies(it) && !it.qtyState) {
+      // 재실사 판단 단계: 계산 결과를 입력하고 잔여와 비교해 일치/다름 자동 결정
+      const remain = Math.max(0, it.sysQty - getOtherSurveyed(it));
+      rememberQty(calcTargetIdx);
+      it.actualQty = Math.max(0, Math.round(val * 100) / 100);
+      if (Math.abs(it.actualQty - remain) < 0.001) {
+        it.qtyState = 'ok';
+        buzz(40);
+        toast('✅ 계산 결과 ' + it.actualQty + ' — 잔여와 일치로 처리됨');
+      } else {
+        it.qtyState = 'edit';
+        toast('✏️ 계산 결과 ' + it.actualQty + ' 입력됨 (잔여 ' + remain + '와 다름)');
+      }
+      renderItems(); saveLocal(true);
+    } else {
+      setQty(calcTargetIdx, val);
+    }
+  }
   closeCalc();
 });
 safeClick('calcCloseBtn', closeCalc);
