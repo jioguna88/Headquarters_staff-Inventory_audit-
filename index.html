@@ -273,6 +273,81 @@
   body.big-mode button.primary { font-size: 20px; padding: 20px; }
   .big-toggle { position: fixed; bottom: 10px; left: 10px; z-index: 999; background: rgba(0,0,0,0.7); color: #fff; border: none; padding: 10px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; }
   .big-toggle.active { background: #007bff; }
+  /* ─── 냉동창고 개선: 장갑 터치 크기 · 카메라 스캔 · 완료→다음 ─── */
+  .settings-row { display: flex; gap: 6px; margin-bottom: 6px; }
+  .set-btn { flex: 1; min-height: 44px; padding: 6px 4px; font-size: 12px; font-weight: 700; border: 1px solid #adb5bd; background: #fff; color: #495057; border-radius: 8px; line-height: 1.25; }
+  .set-btn.on { background: #007bff; color: #fff; border-color: #007bff; }
+  .set-btn:disabled { opacity: 0.45; }
+  .search-row { display: flex; gap: 6px; align-items: stretch; }
+  .search-row .dropdown { flex: 1; min-width: 0; }
+  .search-row .dropdown input { min-height: 52px; }
+  .scan-btn { flex-shrink: 0; width: 72px; min-height: 52px; font-size: 26px; background: #212529; color: #fff; border: none; border-radius: 8px; }
+  .scan-btn:active { background: #000; }
+  .scan-notice { display: none; align-items: center; gap: 6px; margin-top: 6px; background: #fff3cd; border: 1px solid #ffc107; color: #856404; border-radius: 8px; padding: 6px 8px; font-size: 12px; font-weight: 700; }
+  .scan-notice.show { display: flex; }
+  .scan-notice span { flex: 1; word-break: break-all; }
+  .scan-notice button { flex-shrink: 0; min-height: 40px; min-width: 44px; background: #fff; border: 1px solid #856404; color: #856404; border-radius: 6px; font-weight: 700; }
+  .next-bar { display: none; align-items: stretch; gap: 6px; margin-top: 6px; }
+  .next-bar.show { display: flex; }
+  .next-open { flex: 1; min-width: 0; min-height: 46px; text-align: left; padding: 6px 10px; background: #fff; border: 2px solid #dc3545; color: #721c24; border-radius: 8px; font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .next-open small { color: #888; font-weight: 400; }
+  .next-skip { flex-shrink: 0; min-height: 46px; padding: 6px 10px; background: #fff; border: 1px solid #adb5bd; color: #495057; border-radius: 8px; font-size: 12px; font-weight: 700; }
+  .loc-tag { display: inline-block; background: #343a40; color: #fff; font-size: 11px; padding: 1px 6px; border-radius: 4px; margin-right: 4px; font-weight: 700; vertical-align: middle; }
+  .bc-hit { color: #28a745; font-weight: 800; }
+  /* 장갑 터치: 주요 버튼 최소 높이 48px */
+  .quick-btn, .bc-btn, .plt-btn, .stor-btn, .memo-preset-btn, .exp-none-btn, .photo-btn, .photo-del, .cbm-only-btn, .info-undo-btn, .rq-status button { min-height: 48px; }
+  .bc-btn { font-size: 14px; }
+  .memo-preset-btn { font-size: 13px; }
+  .row-actions button { min-height: 44px; }
+  .memo-area { min-height: 44px; }
+  .bc-compact { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: #155724; background: #d4edda; border-color: #a3d9b1; }
+  .bc-compact small { color: #3c763d; font-family: 'Courier New', monospace; }
+  .bc-compact button { flex-shrink: 0; min-height: 44px; padding: 6px 12px; background: #fff; border: 1px solid #28a745; color: #155724; border-radius: 6px; font-weight: 700; font-size: 12px; }
+  .bc-scan-row { display: flex; gap: 6px; }
+  .bc-scan-row input { flex: 1; min-width: 0; }
+  .bc-scan-btn { flex-shrink: 0; min-height: 48px; padding: 0 12px; background: #212529; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; }
+  .exp-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .exp-chips:empty { display: none; }
+  .exp-chip { min-height: 44px; padding: 6px 12px; font-size: 14px; font-weight: 700; background: #fff; border: 1px solid #6c757d; color: #343a40; border-radius: 8px; }
+  .exp-chip:active { background: #e9ecef; }
+  .exp-known { font-size: 11px; color: #0c5460; margin-top: 4px; font-weight: 700; }
+  .extra-info { margin-top: 8px; border: 1px solid #dee2e6; border-radius: 8px; background: #fafbfc; }
+  .extra-info > summary { list-style: none; min-height: 46px; padding: 13px 10px; font-size: 13px; font-weight: 700; color: #495057; cursor: pointer; }
+  .extra-info > summary::-webkit-details-marker { display: none; }
+  .extra-info > summary::before { content: '▸ '; }
+  .extra-info[open] > summary::before { content: '▾ '; }
+  .extra-info[open] > summary { border-bottom: 1px solid #dee2e6; }
+  .extra-body { padding: 8px; }
+  .extra-body .plt-row { margin-bottom: 0; }
+  .done-btn { width: 100%; min-height: 60px; margin-top: 10px; background: #28a745; color: #fff; border: none; border-radius: 10px; font-size: 18px; font-weight: 800; }
+  .done-btn:active { background: #1e7e34; }
+  .item-row.collapsed .done-btn, .item-row.collapsed .extra-info, .item-row.collapsed .rq-panel { display: none; }
+  .item-row.collapsed { cursor: pointer; }
+  .field-alert { outline: 3px solid #dc3545; outline-offset: 2px; border-radius: 8px; }
+  .missing-row { width: 100%; text-align: left; display: block; min-height: 52px; padding: 10px; margin-bottom: 6px; background: #fff5f5; border: 1px solid #f5c6cb; border-radius: 8px; font-size: 14px; color: #222; }
+  .missing-row b { display: block; margin-bottom: 2px; }
+  .missing-row span { color: #dc3545; font-size: 12px; font-weight: 700; }
+  .save-indicator { z-index: 1200; }
+  /* 카메라 스캔 화면 */
+  .scan-overlay { display: none; position: fixed; inset: 0; z-index: 1100; background: #000; flex-direction: column; }
+  .scan-overlay.show { display: flex; }
+  body.scan-open { overflow: hidden; }
+  .scan-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; color: #fff; font-weight: 800; font-size: 16px; gap: 8px; }
+  .scan-close { min-height: 48px; padding: 6px 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 800; }
+  .scan-video-wrap { position: relative; flex: 1; overflow: hidden; background: #111; }
+  .scan-video-wrap video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .scan-guide { position: absolute; left: 6%; right: 6%; top: 30%; height: 40%; border: 3px solid rgba(255,255,255,0.85); border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.35); pointer-events: none; }
+  .scan-line { position: absolute; left: 4%; right: 4%; top: 50%; height: 3px; background: #ff3b30; box-shadow: 0 0 8px #ff3b30; }
+  .scan-msg { position: absolute; left: 0; right: 0; bottom: 12px; text-align: center; color: #fff; font-size: 15px; font-weight: 700; text-shadow: 0 1px 3px #000; padding: 0 12px; }
+  .scan-actions { padding: 8px 10px 14px; display: flex; flex-direction: column; gap: 8px; background: #000; }
+  .scan-next { display: none; width: 100%; min-height: 52px; text-align: left; padding: 8px 12px; background: #fff; color: #721c24; border: 2px solid #dc3545; border-radius: 10px; font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .scan-next.show { display: block; }
+  .scan-row { display: flex; gap: 8px; }
+  .scan-row button { flex: 1; min-height: 56px; background: #343a40; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 800; }
+  .scan-row button.on { background: #ffc107; color: #000; }
+  body.big-mode .done-btn { font-size: 21px; min-height: 68px; }
+  body.big-mode .bc-btn, body.big-mode .memo-preset-btn, body.big-mode .exp-chip, body.big-mode .plt-btn, body.big-mode .stor-btn { font-size: 16px; min-height: 54px; }
+  body.big-mode .next-open { font-size: 15px; }
 </style>
 </head>
 <body>
@@ -290,6 +365,11 @@
     <input type="text" id="surveyor" placeholder="이름 입력">
   </div>
   <button class="reaudit-toggle" id="reauditToggle">🔁 재실사 모드: OFF</button>
+  <div class="settings-row">
+    <button class="set-btn" id="autoScanToggle">📷 완료 후 스캔</button>
+    <button class="set-btn" id="wakeToggle">🔆 화면 켜짐</button>
+    <button class="set-btn" id="bigToggle">🔍 큰 글씨</button>
+  </div>
 </div>
 
 <div class="sticky-top">
@@ -303,9 +383,17 @@
     <div class="sum-over">초과<b id="sumOver">0</b></div>
     <div class="sum-short">부족<b id="sumShort">0</b></div>
   </div>
-  <div class="dropdown">
-    <input type="text" id="search" placeholder="🔍 품목명/규격/바코드 입력하여 검색" autocomplete="off">
-    <div class="dropdown-list" id="searchList"></div>
+  <div class="search-row">
+    <div class="dropdown">
+      <input type="text" id="search" placeholder="🔍 품목명/규격/바코드 검색" autocomplete="off" enterkeyhint="search">
+      <div class="dropdown-list" id="searchList"></div>
+    </div>
+    <button class="scan-btn" id="scanBtn" aria-label="카메라로 바코드 스캔">📷</button>
+  </div>
+  <div class="scan-notice" id="scanNotice"><span id="scanNoticeText"></span><button id="scanNoticeClear" aria-label="취소">✕</button></div>
+  <div class="next-bar" id="nextBar">
+    <button class="next-open" id="nextOpen"></button>
+    <button class="next-skip" id="nextSkip">건너뛰기 ▸</button>
   </div>
 </div>
 
@@ -341,7 +429,7 @@
   <div id="itemsContainer"></div>
 
   <div class="submit-area">
-    <div class="submit-hint" id="submitHint">💡 <b>제출</b> 후 입력 품목은 자동으로 비워지고 누적 현황이 갱신됩니다. 메모·유통기한·바코드 확인은 필수입니다.</div>
+    <div class="submit-hint" id="submitHint">💡 품목마다 <b>[✓ 완료 → 다음]</b>으로 넘어가고, 다 모이면 <b>제출</b>하세요. 유통기한·바코드 확인은 필수, 메모는 '실사재고 입력'이 자동 기록됩니다.</div>
     <button class="primary" id="submitBtn" disabled>📤 제출 (<span id="btnCount">0</span>개)</button>
   </div>
 </div>
@@ -388,20 +476,54 @@
   </div>
 </div>
 
+<div class="modal-bg" id="missingModal">
+  <div class="modal">
+    <h2 style="color:#dc3545">⚠️ 입력이 덜 된 품목</h2>
+    <div style="font-size:13px; color:#555; text-align:center; margin-bottom:10px;">품목을 누르면 빠진 칸으로 바로 이동합니다.</div>
+    <div id="missingList" style="max-height:55vh; overflow-y:auto;"></div>
+    <button class="close-btn" id="missingCloseBtn">닫기</button>
+  </div>
+</div>
+
+<div class="scan-overlay" id="scanOverlay">
+  <div class="scan-head"><span id="scanTitle">📷 바코드 스캔</span><button class="scan-close" id="scanCloseBtn">✕ 닫기</button></div>
+  <div class="scan-video-wrap">
+    <video id="scanVideo" playsinline muted autoplay></video>
+    <div class="scan-guide"><div class="scan-line"></div></div>
+    <div class="scan-msg" id="scanMsg">카메라 준비 중...</div>
+  </div>
+  <div class="scan-actions">
+    <button class="scan-next" id="scanNext"></button>
+    <div class="scan-row">
+      <button id="scanTorchBtn" style="display:none">🔦 플래시</button>
+      <button id="scanPhotoBtn">📸 사진으로 인식</button>
+      <button id="scanTypeBtn">⌨️ 이름 검색</button>
+    </div>
+  </div>
+</div>
+
 <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none">
 <div class="save-indicator" id="saveIndicator">💾 저장됨</div>
 <button class="float-submit" id="floatSubmit">📤 제출 (0)</button>
-<button class="big-toggle" id="bigToggle">🔍 큰 글씨</button>
+<input type="file" id="scanPhotoInput" accept="image/*" capture="environment" style="display:none">
 
 <script>
 // ★★★ 이 한 줄만 본인 URL로 바꾸세요 ★★★
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyXhkpC3W7wnEicqCVeEDUKjO26buHxrHSnncZ-NtXk-J7wFErSl8XKDp8FqBFHHDya/exec';
 
 const DRAFT_KEY = 'audit_draft_v3';
-const MEMO_PRESETS = ['추가 재고 확인', '실사재고 입력'];
+const MEMO_DEFAULT = '실사재고 입력'; // 메모 기본값 — 품목을 열면 자동으로 들어감
+const MEMO_EXTRA = '추가 재고 확인';  // 필요할 때만 눌러서 바꿈
+const MEMO_PRESETS = [MEMO_DEFAULT, MEMO_EXTRA];
 const DUP_GUARD_MS = 10000;
+// 재실사 검토 기준: 차이가 BIG_DIFF_ABS개 초과이면서 전산 대비 BIG_DIFF_PCT% 이상 (대량 품목의 소량 차이는 제외)
+const BIG_DIFF_ABS = 10;
+const BIG_DIFF_PCT = 2;
+const RECENT_EXP_KEY = 'audit_recent_expiry';
+const EXTRA_OPEN_KEY = 'audit_extra_open';
 
 let SYS_PRODUCTS = [], EXTRA_PRODUCTS = [], DASHBOARD = {}, KNOWN = {};
+let SYS_KEYS = {}; // 전산품목 키 집합 (빠른 조회용)
 let items = [];
 let dashFilter = 'all';
 let calcTargetIdx = -1;
@@ -412,9 +534,32 @@ let lastSubmitSignature = '';
 let lastSubmitTime = 0;
 let lastQtyChange = null;
 let pendingSub = null; // 미확인 제출 { id, signature } — 재제출 시 같은 ID로 서버 중복 방지
-let LAST_SEARCH = []; // 검색 드롭다운 현재 결과 (Enter로 첫 항목 즉시 추가용)
+let LAST_SEARCH = []; // 검색 드롭다운 현재 결과
+let pendingScanCode = ''; // 바로 못 찾은 스캔 바코드 — 이름으로 품목을 고르면 그 품목의 실물 바코드로 기록
+let NEXT_SKIP = {}; // '다음 미조사'에서 건너뛴 품목
+let EXTRA_OPEN = false; // 'PLT · 박스규격' 펼침 상태 (기기별 기억)
+try { EXTRA_OPEN = localStorage.getItem(EXTRA_OPEN_KEY) === '1'; } catch (e) {}
+let AUTO_SCAN = true; // [완료 → 다음] 후 카메라 스캔 자동 열기
+try { AUTO_SCAN = localStorage.getItem('audit_auto_scan') !== '0'; } catch (e) {}
 let REAUDIT = false; // 재실사 모드: 이전 실사수량(전산수량)과 일치/다름만 확인
 try { REAUDIT = localStorage.getItem('audit_reaudit_mode') === '1'; } catch (e) {}
+
+function pkey(p) { return p.name + '|' + p.spec; }
+function r2(x) { return Math.round(x * 100) / 100; }
+// 조사 여부: 수량 기록이 한 번이라도 있으면 조사됨(0개 확인 포함) — 구버전 서버(cnt 없음)는 누적수량 > 0 으로 판단
+function isSurveyed(d) { return !!d && ((d.cnt != null) ? d.cnt > 0 : d.totalQty > 0); }
+function isBigDiff(diff, sysQty) {
+  if (diff == null || isNaN(diff) || Math.abs(diff) <= BIG_DIFF_ABS) return false;
+  if (!(sysQty > 0)) return true;
+  return Math.abs(diff) / sysQty * 100 >= BIG_DIFF_PCT;
+}
+// 바코드 비교: 대소문자·앞자리 0 차이(UPC-A 12자리 ↔ EAN-13 '0'+12자리)는 같은 바코드로 봄
+function bcEq(a, b) {
+  a = String(a || '').trim().toUpperCase(); b = String(b || '').trim().toUpperCase();
+  if (!a || !b) return false;
+  if (a === b) return true;
+  return /^\d+$/.test(a) && /^\d+$/.test(b) && a.replace(/^0+/, '') === b.replace(/^0+/, '');
+}
 
 function $(id) { return document.getElementById(id); }
 function buzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms || 30); } catch (e) {} }
@@ -502,6 +647,8 @@ async function loadProducts() {
     SYS_PRODUCTS = res.products || [];
     EXTRA_PRODUCTS = res.extraProducts || [];
     KNOWN = res.known || {};
+    SYS_KEYS = {};
+    SYS_PRODUCTS.forEach((p, i) => { SYS_KEYS[pkey(p)] = true; if (p.order == null) p.order = i; });
     const b = $('banner');
     if (b) { b.className = 'banner ok'; b.textContent = '✅ 전산 ' + SYS_PRODUCTS.length + ' / 추가 ' + EXTRA_PRODUCTS.length + '개 로드'; }
     const sb = $('submitBtn'); if (sb) sb.disabled = false;
@@ -521,8 +668,13 @@ async function loadDashboard() {
     DASHBOARD = {};
     (res.dashboard || []).forEach(d => { DASHBOARD[d.name + '|' + d.spec] = d; });
     renderDashboard();
-    renderItems();
+    // 입력 중(키보드 열림)이면 카드를 다시 그리지 않음 — 입력이 끊기지 않게, 다음 갱신 때 반영
+    if (!isTypingInItems()) renderItems();
   } catch (e) { console.warn('대시보드 로드 실패', e); }
+}
+function isTypingInItems() {
+  const a = document.activeElement, c = $('itemsContainer');
+  return !!(a && c && c.contains(a) && /^(INPUT|TEXTAREA)$/.test(a.tagName));
 }
 
 function renderDashboard() {
@@ -533,23 +685,21 @@ function renderDashboard() {
   let total = 0, done = 0, todo = 0, bigDiffCount = 0;
   const rows = [];
   SYS_PRODUCTS.forEach(p => {
-    const key = p.name + '|' + p.spec;
-    const d = DASHBOARD[key];
+    const d = DASHBOARD[pkey(p)];
     const totalQty = d ? d.totalQty : 0;
-    const diff = totalQty - p.sysQty;
-    const isBigDiff = totalQty > 0 && Math.abs(diff) > 10;
-    const isDone = totalQty > 0;
+    const diff = r2(totalQty - p.sysQty);
+    const isDone = isSurveyed(d);
+    const big = isDone && isBigDiff(diff, p.sysQty);
     total++;
     if (isDone) done++; else todo++;
-    if (isBigDiff) bigDiffCount++;
-    rows.push({ status: isBigDiff ? 'bigdiff' : (isDone ? 'done' : 'todo'), isExtra: false, name: p.name, spec: p.spec, sysQty: p.sysQty, totalQty, diff, isBigDiff });
+    if (big) bigDiffCount++;
+    rows.push({ status: big ? 'bigdiff' : (isDone ? 'done' : 'todo'), isExtra: false, name: p.name, spec: p.spec, loc: p.loc || '', order: p.order, sysQty: p.sysQty, totalQty, diff, isBigDiff: big });
   });
+  // 전산에 없는데 실사로 기록된 품목
   Object.keys(DASHBOARD).forEach(key => {
+    if (SYS_KEYS[key]) return;
     const d = DASHBOARD[key];
-    if (d.type === '[전산재고 불확인]') {
-      const inSys = SYS_PRODUCTS.some(p => (p.name + '|' + p.spec) === key);
-      if (!inSys) rows.push({ status: 'done', isExtra: true, name: d.name, spec: d.spec, sysQty: null, totalQty: d.totalQty });
-    }
+    rows.push({ status: 'done', isExtra: true, name: d.name, spec: d.spec, loc: '', sysQty: null, totalQty: d.totalQty });
   });
   safeText('dashTotal', total);
   safeText('dashDone', done);
@@ -560,10 +710,11 @@ function renderDashboard() {
     if (dashFilter === 'todo' && r.status !== 'todo') return false;
     if (dashFilter === 'done' && r.status !== 'done') return false;
     if (dashFilter === 'bigdiff' && !r.isBigDiff) return false;
-    if (search && !(r.name + r.spec).toLowerCase().includes(search)) return false;
+    if (search && !(r.name + r.spec + r.loc).toLowerCase().includes(search)) return false;
     return true;
   });
   if (dashFilter === 'bigdiff') filtered.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+  else if (dashFilter === 'todo') filtered.sort(locCompare);
   filtered.forEach(r => {
     const tr = document.createElement('tr');
     if (r.isBigDiff) tr.className = r.diff > 0 ? 'dash-row-over' : 'dash-row-short';
@@ -574,7 +725,8 @@ function renderDashboard() {
       if (r.diff > 0) { icon = '📈'; diffText = '<br><small style="color:#fd7e14;font-weight:700;">초과 +' + r.diff + '</small>'; }
       else { icon = '📉'; diffText = '<br><small style="color:#dc3545;font-weight:700;">부족 ' + r.diff + '</small>'; }
     } else { icon = r.status === 'done' ? '✅' : '🔴'; }
-    tr.innerHTML = '<td>' + icon + '</td><td>' + escapeHtml(r.name) + '<br><small>' + escapeHtml(r.spec) + '</small></td><td>' + (r.sysQty === null ? '-' : r.sysQty) + '</td><td><b>' + r.totalQty + '</b>' + diffText + '</td>';
+    const locTag = r.loc ? '<span class="loc-tag">' + escapeHtml(r.loc) + '</span>' : '';
+    tr.innerHTML = '<td>' + icon + '</td><td>' + locTag + escapeHtml(r.name) + '<br><small>' + escapeHtml(r.spec) + '</small></td><td>' + (r.sysQty === null ? '-' : r.sysQty) + '</td><td><b>' + r.totalQty + '</b>' + diffText + '</td>';
     tr.style.cursor = 'pointer';
     tr.onclick = () => {
       let product;
@@ -589,7 +741,6 @@ function renderDashboard() {
       addItem(product);
       const panel = $('dashPanel');
       if (panel) { panel.classList.remove('show'); safeText('dashToggle', '📊 전체 재고조사 현황 보기'); }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     };
     tbody.appendChild(tr);
   });
@@ -632,46 +783,54 @@ function renderPltStats() {
 
 function updateProgress() {
   let total = SYS_PRODUCTS.length, done = 0;
-  SYS_PRODUCTS.forEach(p => {
-    const d = DASHBOARD[p.name + '|' + p.spec];
-    if (d && d.totalQty > 0) done++;
-  });
+  SYS_PRODUCTS.forEach(p => { if (isSurveyed(DASHBOARD[pkey(p)])) done++; });
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
   const fill = $('progressFill');
   if (fill) fill.style.width = pct + '%';
   safeText('progressText', done + ' / ' + total + ' (' + pct + '%)');
+  renderNextBar();
 }
 
 const searchInput = $('search');
 const searchList = $('searchList');
 
-function renderSearch() {
-  if (!searchInput || !searchList) return;
-  const q = searchInput.value.trim().toLowerCase();
-  if (!q) { LAST_SEARCH = []; searchList.classList.remove('show'); searchList.innerHTML = ''; return; }
-  const combined = [];
-  SYS_PRODUCTS.forEach(p => {
-    const key = p.name + '|' + p.spec;
+// 검색 후보: 바코드 정확 일치 → 미조사 → 일부 → 완료 → 전산외 순
+// (이름/규격/바코드/위치 모두 검색 — 지난 실사에서 확보한 바코드도 포함)
+function findMatches(qRaw) {
+  const raw = String(qRaw || '').trim();
+  const q = raw.toLowerCase();
+  if (!q) return [];
+  const out = [];
+  const consider = (p, extra) => {
+    const key = pkey(p);
+    const kn = KNOWN[key];
+    const bc = String(p.barcode || '');
+    const kbc = (kn && kn.bcv) ? String(kn.bcv) : '';
+    const exactBc = bcEq(bc, raw) || bcEq(kbc, raw);
+    const hay = (p.name + ' ' + p.spec + ' ' + bc + ' ' + kbc + ' ' + (p.loc || '')).toLowerCase();
+    if (!exactBc && hay.indexOf(q) < 0) return;
     const d = DASHBOARD[key];
     const surveyedQty = d ? d.totalQty : 0;
-    const remain = Math.max(0, (p.sysQty || 0) - surveyedQty);
-    let status = 'unsurveyed';
-    if (surveyedQty >= p.sysQty && p.sysQty > 0) status = 'fully-surveyed';
-    else if (surveyedQty > 0) status = 'partial';
-    combined.push({ ...p, isExtra: false, surveyedQty, remain, status });
-  });
-  EXTRA_PRODUCTS.forEach(p => {
-    const key = p.name + '|' + p.spec;
-    const d = DASHBOARD[key];
-    combined.push({ ...p, isExtra: true, surveyedQty: d ? d.totalQty : 0, remain: null, status: 'extra' });
-  });
-  // 이름/규격/바코드 모두 검색 대상 — 검색창에 바코드를 스캔해도 품목이 나옵니다
-  const filtered = combined.filter(p => !q || (p.name + ' ' + p.spec + ' ' + (p.barcode || '')).toLowerCase().includes(q));
-  filtered.sort((a, b) => {
-    const score = x => x.isExtra ? 3 : (x.status === 'fully-surveyed' ? 2 : (x.status === 'partial' ? 1 : 0));
-    return score(a) - score(b);
-  });
-  const shown = filtered.slice(0, 200);
+    let status = 'extra', remain = null;
+    if (!extra) {
+      remain = Math.max(0, r2((p.sysQty || 0) - surveyedQty));
+      status = isSurveyed(d) ? (surveyedQty >= (p.sysQty || 0) ? 'fully-surveyed' : 'partial') : 'unsurveyed';
+    }
+    out.push({ ...p, isExtra: extra, surveyedQty, remain, status, exactBc });
+  };
+  SYS_PRODUCTS.forEach(p => consider(p, false));
+  EXTRA_PRODUCTS.forEach(p => consider(p, true));
+  const score = x => (x.exactBc ? -10 : 0) + (x.isExtra ? 3 : (x.status === 'fully-surveyed' ? 2 : (x.status === 'partial' ? 1 : 0)));
+  out.sort((a, b) => score(a) - score(b));
+  return out;
+}
+
+let searchTimer = null;
+function renderSearch() {
+  if (!searchInput || !searchList) return;
+  const q = searchInput.value.trim();
+  if (!q) { LAST_SEARCH = []; searchList.classList.remove('show'); searchList.innerHTML = ''; return; }
+  const shown = findMatches(q).slice(0, 200);
   LAST_SEARCH = shown;
   searchList.innerHTML = '';
   if (shown.length === 0) {
@@ -690,49 +849,107 @@ function renderSearch() {
       if (p.isExtra) qtyInfo = '입력: <b>' + p.surveyedQty + '</b>';
       else {
         qtyInfo = '전산: <b>' + p.sysQty + '</b> / 누적: <b>' + p.surveyedQty + '</b> / 잔여: ';
-        if (p.remain === 0) qtyInfo += '<span class="item-done">완료</span>';
+        if (p.status === 'fully-surveyed') qtyInfo += '<span class="item-done">완료</span>';
         else qtyInfo += '<span class="item-remain">' + p.remain + '</span>';
-        const d = DASHBOARD[p.name + '|' + p.spec];
+        const d = DASHBOARD[pkey(p)];
         if (d && d.surveyors && d.surveyors.length > 0) {
           qtyInfo += '<br><span style="color:#17a2b8;">👤 ' + d.surveyors.map(escapeHtml).join(', ') + '</span>';
         }
       }
-      const bcInfo = p.barcode ? '<br>🏷️ ' + escapeHtml(p.barcode) : '';
-      const dCbm = DASHBOARD[p.name + '|' + p.spec];
-      const knS = KNOWN[p.name + '|' + p.spec];
+      const bcInfo = p.barcode ? '<br>🏷️ ' + escapeHtml(p.barcode) + (p.exactBc ? ' <span class="bc-hit">← 바코드 일치</span>' : '') : '';
+      const dCbm = DASHBOARD[pkey(p)];
+      const knS = KNOWN[pkey(p)];
       const fullInfo = !!(knS && knS.bcs && knS.w != null);
       const cbmBadge = fullInfo ? ' <span class="item-cbm-badge">[정보✓]</span>'
         : ((dCbm && dCbm.hasCbm) ? ' <span class="item-cbm-badge">[CBM✓]</span>' : '');
-      div.innerHTML = '<div class="item-name">' + extraLabel + escapeHtml(p.name) + cbmBadge + '</div><div class="item-meta">' + escapeHtml(p.spec) + ' / ' + escapeHtml(p.unit) + bcInfo + '<br>' + qtyInfo + '</div>';
-      div.addEventListener('mousedown', e => {
-        e.preventDefault();
-        addItem(p);
-        searchInput.value = '';
-        searchList.classList.remove('show');
-        searchInput.blur();
-      });
+      const locTag = p.loc ? '<span class="loc-tag">' + escapeHtml(p.loc) + '</span>' : '';
+      div.innerHTML = '<div class="item-name">' + extraLabel + locTag + escapeHtml(p.name) + cbmBadge + '</div><div class="item-meta">' + escapeHtml(p.spec) + ' / ' + escapeHtml(p.unit) + bcInfo + '<br>' + qtyInfo + '</div>';
+      div.addEventListener('mousedown', e => { e.preventDefault(); pickSearchResult(p); });
       searchList.appendChild(div);
     });
   }
   searchList.classList.add('show');
 }
+function pickSearchResult(p) {
+  const code = pendingScanCode;
+  clearPendingScan();
+  addItem(p, code ? { scannedCode: code } : null);
+  if (searchInput) { searchInput.value = ''; searchInput.blur(); }
+  LAST_SEARCH = [];
+  if (searchList) searchList.classList.remove('show');
+}
+function setPendingScan(code, text) {
+  pendingScanCode = code;
+  safeText('scanNoticeText', text);
+  const n = $('scanNotice'); if (n) n.classList.add('show');
+}
+function clearPendingScan() {
+  pendingScanCode = '';
+  const n = $('scanNotice'); if (n) n.classList.remove('show');
+}
+function showSearchFor(q) {
+  if (!searchInput) return;
+  searchInput.value = q;
+  renderSearch();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// 스캔·엔터 공통 처리
+//  - 바코드가 정확히 일치하는 품목 1개 → 바로 열고 바코드 '일치' 자동 처리
+//  - 같은 바코드 품목 여러 개 → 목록에서 고르기
+//  - 일치 없음 → 품목명으로 검색해 고르면 이 바코드를 그 품목의 실물 바코드(다름/신규)로 기록
+function handleScannedCode(raw, fromScan) {
+  const q = String(raw || '').trim();
+  if (!q) return;
+  if (!SYS_PRODUCTS.length && !EXTRA_PRODUCTS.length) { beep('err'); toast('⏳ 품목 목록을 아직 불러오지 못했습니다', 2500); return; }
+  const matches = findMatches(q);
+  const exact = matches.filter(p => p.exactBc);
+  if (exact.length === 1) {
+    beep('ok');
+    clearPendingScan();
+    addItem(exact[0], { scannedCode: q });
+    if (searchInput) { searchInput.value = ''; searchInput.blur(); }
+    if (searchList) searchList.classList.remove('show');
+    return;
+  }
+  if (exact.length > 1) {
+    beep('warn');
+    setPendingScan(q, '🏷️ 바코드 ' + q + ' — 같은 바코드 품목 ' + exact.length + '개, 목록에서 고르세요');
+    showSearchFor(q);
+    return;
+  }
+  if (!fromScan && matches.length === 1) { beep('ok'); pickSearchResult(matches[0]); return; }
+  if (!fromScan && matches.length > 1) {
+    beep('warn');
+    toast('검색 결과 ' + matches.length + '개 — 목록에서 고르세요', 2000);
+    showSearchFor(q);
+    return;
+  }
+  beep('err');
+  if (fromScan || /\d{6,}/.test(q)) {
+    setPendingScan(q, '🏷️ 등록되지 않은 바코드 ' + q + ' — 품목명을 검색해 고르면 이 바코드로 기록됩니다');
+    if (searchInput) searchInput.value = '';
+    renderSearch();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    toast('❓ 등록되지 않은 바코드 — 품목명으로 검색하세요', 3000);
+  } else {
+    toast('검색 결과 없음', 1500);
+  }
+}
+
 if (searchInput) {
-  searchInput.addEventListener('input', renderSearch);
+  searchInput.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(renderSearch, 120); });
+  searchInput.addEventListener('focus', () => { if (searchInput.value.trim()) renderSearch(); });
   searchInput.addEventListener('blur', () => setTimeout(() => { if (searchList) searchList.classList.remove('show'); }, 200));
-  // 스캐너 입력(Enter) 시 첫 검색 결과를 바로 추가 — 스캔만으로 품목이 열림
+  // 엔터(외장 스캐너 포함): 바코드 일치 1건·검색 결과 1건이면 바로 열고, 여러 건이면 목록에서 고르기
   searchInput.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
     e.preventDefault();
-    if (LAST_SEARCH.length > 0) {
-      buzz(30);
-      addItem(LAST_SEARCH[0]);
-      searchInput.value = '';
-      LAST_SEARCH = [];
-      if (searchList) searchList.classList.remove('show');
-      searchInput.blur();
-    }
+    clearTimeout(searchTimer);
+    handleScannedCode(searchInput.value, false);
   });
 }
+safeClick('scanNoticeClear', clearPendingScan);
 
 function parseSpec(spec) {
   if (!spec) return [];
@@ -751,84 +968,134 @@ function getOtherSurveyed(it) {
   return d ? (d.totalQty || 0) : 0;
 }
 
-function addItem(p) {
+function addItem(p, opts) {
+  const code = String((opts && opts.scannedCode) || '').trim();
   const existsIdx = items.findIndex(it => it.name === p.name && it.spec === p.spec);
   if (existsIdx >= 0) {
-    items[existsIdx]._collapsed = false;
-    renderItems();
-    setTimeout(() => focusQtyInput(existsIdx), 80);
+    // 이미 목록에 있으면 맨 위로 올려 펼침
+    const ex = items.splice(existsIdx, 1)[0];
+    items.unshift(ex);
+    items.forEach((x, i) => { x._collapsed = i !== 0; });
+    if (code) applyScannedCode(ex, code);
+    renderItems(); saveLocal(true);
+    setTimeout(() => focusItem(0), 60);
     return;
   }
   items.forEach(it => it._collapsed = true);
-  const kn = KNOWN[p.name + '|' + p.spec] || null;
+  const kn = KNOWN[pkey(p)] || null;
   const refBar = (p.barcode || '') || (kn && kn.bcv) || '';
   const hasKnown = !!(kn && (kn.bcs || kn.w != null || kn.bpp != null));
-  items.unshift({
-    name: p.name, spec: p.spec, unit: p.unit,
+  const it = {
+    name: p.name, spec: p.spec, unit: p.unit, loc: p.loc || '',
     sysQty: p.isExtra ? null : p.sysQty,
     type: p.isExtra ? '[전산재고 불확인]' : '전산재고',
-    actualQty: 0, memo: '', expiry: '',
-    sysBarcode: refBar, scanBarcode: '', barcodeStatus: '',
-    plt: '', storage: p.storage || (kn && kn.stor) || '', photoData: '',
+    actualQty: 0, memo: REAUDIT ? '' : MEMO_DEFAULT, expiry: '',
+    sysBarcode: String(refBar), scanBarcode: '', barcodeStatus: '',
+    plt: '', storage: p.storage || (kn && kn.stor) || '', photoData: '', photoId: '',
     boxW: '', boxD: '', boxH: '', boxPerPlt: '', cbmOnly: false,
     known: kn, infoState: hasKnown ? 'pending' : 'none',
-    qtyState: '',
+    qtyState: '', _qtyTouched: false,
     _collapsed: false, _new: true
-  });
+  };
+  if (code) applyScannedCode(it, code);
+  items.unshift(it);
   renderItems();
-  setTimeout(() => focusQtyInput(0), 80);
+  setTimeout(() => focusItem(0), 60);
   saveLocal(true);
 }
 
-function focusQtyInput(idx) {
-  const row = document.querySelector('[data-idx="' + idx + '"]');
+// 스캔한 바코드를 품목에 반영: 기준 바코드와 같으면 '일치' 자동, 다르면 '다름', 기준이 없으면 '신규'
+function applyScannedCode(it, code) {
+  const ref = String(it.sysBarcode || '').trim();
+  if (ref && bcEq(ref, code)) {
+    it.barcodeStatus = 'match'; it.scanBarcode = ''; it._scanMatched = true;
+    // 확인할 기존 정보가 바코드뿐이었다면 확인 패널 생략
+    if (it.infoState === 'pending' && !(it.known && (it.known.w != null || it.known.bpp != null))) it.infoState = 'none';
+  } else {
+    it.barcodeStatus = ref ? 'diff' : 'new'; it.scanBarcode = code; it._scanMatched = false;
+    toast(ref ? '⚠️ 기준 바코드와 다릅니다 — 실물 바코드로 기록됩니다' : '🆕 전산 미등록 — 신규 바코드로 기록됩니다', 3000);
+  }
+}
+
+function cardEl(idx) { return document.querySelector('#itemsContainer [data-idx="' + idx + '"]'); }
+// 카드가 상단 고정 영역에 가리지 않게 스크롤 (키보드는 띄우지 않음 — 숫자칸은 직접 눌렀을 때만)
+function focusItem(idx) {
+  const row = cardEl(idx);
   if (!row) return;
-  row.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const st = document.querySelector('.sticky-top');
+  const y = row.getBoundingClientRect().top + window.pageYOffset - ((st ? st.offsetHeight : 0) + 8);
+  window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+}
+function focusQtyInput(idx) {
+  const row = cardEl(idx);
+  if (!row) return;
+  focusItem(idx);
   const it = items[idx];
   const qty = row.querySelector(it && it.cbmOnly ? '.cbm-w' : '.qty-input-big');
   if (qty) { qty.focus(); try { qty.select(); } catch(e) {} }
 }
 
-function removeItem(idx) { items.splice(idx, 1); renderItems(); saveLocal(true); }
-function rememberQty(idx) { lastQtyChange = { idx, prev: items[idx].actualQty }; }
+function removeItem(idx) { dropPhoto(items[idx]); items.splice(idx, 1); renderItems(); saveLocal(true); }
+function rememberQty(idx) { lastQtyChange = { item: items[idx], prev: items[idx].actualQty, prevTouched: items[idx]._qtyTouched }; }
 function changeQty(idx, delta) {
   rememberQty(idx);
-  items[idx].actualQty = Math.max(0, Math.round(((items[idx].actualQty || 0) + delta) * 100) / 100);
-  renderItems(); saveLocal();
+  items[idx].actualQty = Math.max(0, r2((items[idx].actualQty || 0) + delta));
+  items[idx]._qtyTouched = true;
+  updateQtyLive(idx); saveLocal();
 }
 function setQty(idx, val) {
   rememberQty(idx);
   items[idx].actualQty = Math.max(0, parseFloat(val) || 0);
-  renderItems(); saveLocal();
+  items[idx]._qtyTouched = true;
+  updateQtyLive(idx); saveLocal();
 }
 function setMatch(idx) {
   if (items[idx].sysQty !== null) {
     rememberQty(idx);
-    const remain = Math.max(0, items[idx].sysQty - getOtherSurveyed(items[idx]));
-    items[idx].actualQty = remain;
-    renderItems(); saveLocal(true);
+    items[idx].actualQty = Math.max(0, r2(items[idx].sysQty - getOtherSurveyed(items[idx])));
+    items[idx]._qtyTouched = true;
+    buzz(30);
+    updateQtyLive(idx); saveLocal(true);
   }
 }
 function undoQty(idx) {
-  if (lastQtyChange && lastQtyChange.idx === idx) {
+  if (lastQtyChange && lastQtyChange.item === items[idx]) {
     items[idx].actualQty = lastQtyChange.prev;
+    items[idx]._qtyTouched = !!lastQtyChange.prevTouched;
     lastQtyChange = null;
-    renderItems(); saveLocal();
+    updateQtyLive(idx); saveLocal();
   }
 }
-function setMemo(idx, val) {
-  items[idx].memo = val;
-  const row = document.querySelector('[data-idx="' + idx + '"]');
-  if (row) {
-    const memoArea = row.querySelector('.memo-area');
-    if (memoArea) {
-      const empty = !val || !val.trim();
-      if (needsMemo(items[idx]) && empty) memoArea.classList.add('required-empty');
-      else memoArea.classList.remove('required-empty');
-    }
-  }
-  saveLocal();
+// 수량만 바뀐 경우 카드 전체를 다시 그리지 않고 필요한 부분만 갱신
+// (전체를 다시 그리면 숫자 입력 직후 누른 버튼이 사라져 첫 탭이 무시되던 문제 방지)
+function updateQtyLive(idx) {
+  const it = items[idx], row = cardEl(idx);
+  if (!it || !row) { renderItems(); return; }
+  const inp = row.querySelector('.qty-input-big');
+  if (inp && String(inp.value) !== String(it.actualQty)) inp.value = it.actualQty;
+  const slot = row.querySelector('.diff-slot');
+  if (slot) slot.innerHTML = diffInfo(it).html;
+  updateTotals();
 }
+
+function setMemo(idx, val) { items[idx].memo = val; syncMemoPresets(idx); saveLocal(); }
+function syncMemoPresets(idx) {
+  const row = cardEl(idx);
+  if (!row) return;
+  const memo = items[idx].memo || '';
+  row.querySelectorAll('.memo-preset-btn').forEach(b => b.classList.toggle('active', memo.indexOf(b.dataset.preset) >= 0));
+}
+// 메모 프리셋: '실사재고 입력' / '추가 재고 확인' 중 하나만 선택 (직접 쓴 내용은 유지)
+//   선택된 '추가 재고 확인'을 다시 누르면 기본값으로 돌아감
+function applyMemoPreset(current, preset) {
+  let rest = String(current || '');
+  MEMO_PRESETS.forEach(p => { rest = rest.split(p).join(''); });
+  rest = rest.replace(/,\s*,/g, ',').replace(/^[\s,]+|[\s,]+$/g, '');
+  const wasActive = String(current || '').indexOf(preset) >= 0;
+  const head = !wasActive ? preset : (REAUDIT ? '' : MEMO_DEFAULT);
+  return [head, rest].filter(Boolean).join(', ');
+}
+
 function setExpiry(idx, val) { items[idx].expiry = val; saveLocal(); }
 // 숫자 6자리(YYMMDD)/8자리(YYYYMMDD) → YYYY-MM-DD 자동 변환
 function formatExpiry(v) {
@@ -838,8 +1105,95 @@ function formatExpiry(v) {
   if (/^\d{8}$/.test(d)) return d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6, 8);
   return raw;
 }
+// YYYY-MM-DD 형식인데 날짜가 성립하지 않으면 false (그 외 문구는 그대로 허용)
+function expiryValid(v) {
+  const m = String(v || '').trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return true;
+  const y = +m[1], mo = +m[2], d = +m[3];
+  if (mo < 1 || mo > 12 || d < 1) return false;
+  return d <= new Date(y, mo, 0).getDate();
+}
+function expiryMissing(it) { return !REAUDIT && (!it.expiry || !String(it.expiry).trim() || !expiryValid(it.expiry)); }
+function commitExpiry(idx, val) {
+  const f = formatExpiry(val);
+  items[idx].expiry = f;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(f) && expiryValid(f)) rememberExpiry(f);
+  saveLocal();
+  return f;
+}
+// 최근 입력한 유통기한 3개를 기기에 기억 → 같은 날짜는 버튼 한 번으로
+function rememberExpiry(v) {
+  try {
+    const list = recentExpiries().filter(x => x !== v);
+    list.unshift(v);
+    localStorage.setItem(RECENT_EXP_KEY, JSON.stringify(list.slice(0, 3)));
+  } catch (e) {}
+}
+function recentExpiries() {
+  try { const a = JSON.parse(localStorage.getItem(RECENT_EXP_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+}
+function setExpiryLive(idx, v) {
+  commitExpiry(idx, v);
+  const row = cardEl(idx);
+  const inp = row && row.querySelector('.expiry-row input');
+  if (inp) { inp.value = items[idx].expiry; inp.classList.toggle('exp-empty', expiryMissing(items[idx])); }
+  buzz(30);
+}
+
 function toggleCollapse(idx) { items[idx]._collapsed = !items[idx]._collapsed; renderItems(); }
-function needsMemo(it) { return !REAUDIT; }
+
+// 품목별 빠진 필수 항목 — [완료 → 다음]과 제출 전 확인에 공통 사용
+function missingFields(it) {
+  const m = [];
+  if (it.cbmOnly) {
+    if (!dimsComplete(it)) m.push({ label: '박스 치수', sel: '.cbm-section' });
+    return m;
+  }
+  if (it.infoState === 'pending') m.push({ label: '기존정보 확인', sel: '.info-panel' });
+  if (reauditApplies(it)) { if (!it.qtyState) m.push({ label: '수량 확인', sel: '.rq-panel' }); }
+  else if (!it._qtyTouched && !(it.actualQty > 0)) m.push({ label: '수량', sel: '.qty-big-row' });
+  if (expiryMissing(it)) m.push({ label: (it.expiry && !expiryValid(it.expiry)) ? '유통기한(날짜 오류)' : '유통기한', sel: '.expiry-section' });
+  if (it.infoState !== 'pending' && isBarcodeIncomplete(it)) m.push({ label: '바코드', sel: '.barcode-section' });
+  if (dimsPartial(it)) m.push({ label: '박스 치수(일부만)', sel: '.cbm-section' });
+  return m;
+}
+// 해당 품목을 펼치고 빠진 칸으로 이동해 빨간 테두리로 표시
+function goToField(idx, sel) {
+  const it = items[idx];
+  if (!it) return;
+  it._collapsed = false;
+  if (sel === '.cbm-section') it._extraOpen = true;
+  renderItems();
+  setTimeout(() => {
+    const row = cardEl(idx);
+    if (!row) return;
+    const el = row.querySelector(sel) || row;
+    const det = el.closest ? el.closest('details') : null;
+    if (det) det.open = true;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('field-alert');
+    setTimeout(() => el.classList.remove('field-alert'), 1800);
+    if (sel === '.expiry-section') { const inp = el.querySelector('input'); if (inp) inp.focus(); }
+  }, 80);
+}
+// [✓ 완료 → 다음]: 빠진 항목이 있으면 그 칸으로 안내, 없으면 접고 다음 품목으로 (자동 스캔 ON이면 카메라 열기)
+function completeItem(idx) {
+  const it = items[idx];
+  if (!it) return;
+  const miss = missingFields(it);
+  if (miss.length > 0) {
+    beep('err');
+    toast('⚠️ ' + miss.map(m => m.label).join(', ') + ' — 입력이 필요합니다', 2500);
+    goToField(idx, miss[0].sel);
+    return;
+  }
+  it._collapsed = true;
+  beep('ok');
+  renderItems(); saveLocal(true);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (AUTO_SCAN) openScanner('search');
+  else toast('✓ 완료 — 다음 품목을 검색하거나 📷 스캔하세요', 2000);
+}
 
 // ===== 바코드 상태 =====
 // barcodeStatus: 'match'(일치) / 'diff'(다름-수정) / 'none'(바코드 없음) / 'new'(전산 미등록 → 신규 입력) / ''(미확인)
@@ -903,12 +1257,12 @@ function setBoxDim(idx, field, val) {
   const v = String(val).trim();
   items[idx][field] = v === '' ? '' : Math.max(0, parseFloat(v) || 0);
   normalizeDims(items[idx]);
-  renderItems(); saveLocal();
+  updateCbmLive(idx); saveLocal();
 }
 function setBoxPerPlt(idx, val) {
   const v = String(val).trim();
   items[idx].boxPerPlt = v === '' ? '' : Math.max(0, parseFloat(v) || 0);
-  renderItems(); saveLocal();
+  updateCbmLive(idx); saveLocal();
 }
 // 가로/세로가 모두 있으면 긴 쪽이 가로가 되도록 자동 정렬
 function normalizeDims(it) {
@@ -940,11 +1294,13 @@ function knownBarCovered(it) {
   const kn = it.known;
   return !!(kn && kn.bcs === '바코드없음');
 }
+// 스캔으로 이미 다른 바코드가 확인된 경우 — 기존 정보 확인으로 덮어쓰지 않음
+function scanFoundDiff(it) { return !!it.scanBarcode && (it.barcodeStatus === 'diff' || it.barcodeStatus === 'new'); }
 function applyKnownInfo(idx) {
   const it = items[idx];
   const kn = it.known;
   if (!kn) return;
-  if (knownBarCovered(it)) {
+  if (knownBarCovered(it) && !scanFoundDiff(it)) {
     it.barcodeStatus = (kn.bcs === '바코드없음' && !it.sysBarcode) ? 'none' : 'match';
     it.scanBarcode = '';
   }
@@ -961,6 +1317,7 @@ function editKnownInfo(idx) {
   if (kn && kn.w != null && (it.boxW === '' || it.boxW == null)) { it.boxW = kn.w; it.boxD = kn.d; it.boxH = kn.h; }
   if (kn && kn.bpp != null && (it.boxPerPlt === '' || it.boxPerPlt == null)) it.boxPerPlt = kn.bpp;
   it.infoState = 'editing';
+  it._extraOpen = true;
   renderItems(); saveLocal(true);
 }
 // ===== 재실사 수량 확인 =====
@@ -968,8 +1325,9 @@ function reauditApplies(it) { return REAUDIT && !it.cbmOnly && it.sysQty !== nul
 function rqOk(idx) {
   const it = items[idx];
   rememberQty(idx);
-  it.actualQty = Math.max(0, it.sysQty - getOtherSurveyed(it));
+  it.actualQty = Math.max(0, r2(it.sysQty - getOtherSurveyed(it)));
   it.qtyState = 'ok';
+  it._qtyTouched = true;
   buzz(40);
   renderItems(); saveLocal(true);
 }
@@ -982,6 +1340,7 @@ function rqUndo(idx) {
   const it = items[idx];
   it.qtyState = '';
   it.actualQty = 0;
+  it._qtyTouched = false;
   renderItems(); saveLocal(true);
 }
 
@@ -992,7 +1351,8 @@ function undoKnownInfo(idx) {
     if (it.known && it.boxPerPlt === it.known.bpp) it.boxPerPlt = '';
     it._dimsFromKnown = false;
   }
-  it.barcodeStatus = ''; it.scanBarcode = '';
+  if (it._scanMatched) { it.barcodeStatus = 'match'; it.scanBarcode = ''; }
+  else if (!scanFoundDiff(it)) { it.barcodeStatus = ''; it.scanBarcode = ''; }
   it.infoState = 'pending';
   renderItems(); saveLocal(true);
 }
@@ -1001,12 +1361,19 @@ function undoKnownInfo(idx) {
 function setPlt(idx, val) {
   const v = String(val).trim();
   items[idx].plt = v === '' ? '' : Math.max(0, parseFloat(v) || 0);
-  renderItems(); saveLocal();
+  updatePltLive(idx); saveLocal();
 }
 function addPlt(idx, delta) {
   const cur = parseFloat(items[idx].plt) || 0;
-  items[idx].plt = Math.round((cur + delta) * 100) / 100;
-  renderItems(); saveLocal();
+  items[idx].plt = r2(cur + delta);
+  updatePltLive(idx); saveLocal();
+}
+function updatePltLive(idx) {
+  const it = items[idx], row = cardEl(idx);
+  const inp = row && row.querySelector('.plt-input');
+  if (inp) inp.value = (it.plt === '' || it.plt == null) ? '' : it.plt;
+  updateExtraSummary(idx);
+  renderPltStats();
 }
 function setStorage(idx, s) { items[idx].storage = s; renderItems(); saveLocal(true); }
 function storageCls(s) { return s === '냉동' ? 'stor-frozen' : (s === '냉장' ? 'stor-chilled' : 'stor-ambient'); }
@@ -1044,6 +1411,7 @@ if (photoInputEl) {
     try {
       const dataUrl = await compressImage(file, 1024, 0.6);
       target.photoData = dataUrl;
+      await storePhoto(target);
       renderItems(); saveLocal(true);
       // 자동 인식은 저장용보다 큰 해상도로 시도 (성공률 향상)
       compressImage(file, 1600, 0.85).then(detectUrl => tryDetectBarcode(detectUrl)).then(code => {
@@ -1062,7 +1430,7 @@ if (photoInputEl) {
   };
 }
 function takePhoto(idx) { photoTargetIdx = idx; if (photoInputEl) photoInputEl.click(); }
-function removePhoto(idx) { items[idx].photoData = ''; renderItems(); saveLocal(true); }
+function removePhoto(idx) { dropPhoto(items[idx]); items[idx].photoData = ''; renderItems(); saveLocal(true); }
 function compressImage(file, maxDim, quality) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -1185,81 +1553,150 @@ function barcodeStatusLabel(it) {
   return '<span style="color:#dc3545;">바코드 미확인</span>';
 }
 
+// 수량 차이 표시 — state: match/over/short(집계 대상), none(입력 전), na(전산 미등록), box(박스실측)
+function diffInfo(it) {
+  if (it.cbmOnly) return { state: 'box', html: '' };
+  if (it.sysQty === null) return { state: 'na', html: '<div class="diff-box diff-na">📌 전산재고 미등록 (차이 산정 불가)</div>' };
+  const other = getOtherSurveyed(it);
+  const totalCounted = r2(other + (it.actualQty || 0));
+  const diff = r2(totalCounted - it.sysQty);
+  if (!it._qtyTouched && !(it.actualQty > 0) && other === 0) {
+    return { state: 'none', html: '<div class="diff-box diff-na">실사수량 입력 필요 (전산 ' + it.sysQty + ') — 실물이 없으면 [0으로]</div>' };
+  }
+  const bigWarn = isBigDiff(diff, it.sysQty) ? ' <span style="color:#dc3545;font-weight:700;">[재실사 검토]</span>' : '';
+  const calcDetail = '<div class="calc-detail">기제출 ' + other + ' + 이번 입력 ' + (it.actualQty || 0) + ' = 누적 ' + totalCounted + ' / 전산 ' + it.sysQty + '</div>';
+  if (diff === 0) return { state: 'match', html: '<div class="diff-box diff-match">✅ 일치 (누적 ' + totalCounted + ' / 전산 ' + it.sysQty + ')' + calcDetail + '</div>' };
+  if (diff > 0) return { state: 'over', html: '<div class="diff-box diff-over">📈 초과 +' + diff + bigWarn + calcDetail + '</div>' };
+  return { state: 'short', html: '<div class="diff-box diff-short">📉 부족 ' + diff + '<br><small>👉 추가로 찾아야 할 수량: <b>' + Math.abs(diff) + '개</b></small>' + bigWarn + calcDetail + '</div>' };
+}
+
+function updateTotals() {
+  let match = 0, over = 0, short = 0;
+  items.forEach(it => {
+    const s = diffInfo(it).state;
+    if (s === 'match') match++; else if (s === 'over') over++; else if (s === 'short') short++;
+  });
+  safeText('sumTotal', items.length);
+  safeText('sumMatch', match);
+  safeText('sumOver', over);
+  safeText('sumShort', short);
+  safeText('btnCount', items.length);
+  const fs = $('floatSubmit');
+  if (fs) {
+    if (items.length > 0) { fs.style.display = 'block'; fs.textContent = '📤 제출 (' + items.length + ')'; }
+    else fs.style.display = 'none';
+  }
+}
+
+function cbmCalcHtml(it) {
+  const cbm = cbmOf(it), bpp = parseFloat(it.boxPerPlt);
+  let h = '';
+  if (cbm !== null) {
+    h = 'CBM: <b>' + cbm + ' ㎥</b> (' + it.boxW + ' × ' + it.boxD + ' × ' + it.boxH + 'cm)';
+    if (!isNaN(bpp) && bpp > 0) h += ' · 1PLT(' + bpp + '박스) ≈ <b>' + (Math.round(cbm * bpp * 10000) / 10000) + ' ㎥</b>';
+  } else if (dimsPartial(it)) {
+    h = '<span style="color:#dc3545;">가로·세로·높이 3개를 모두 입력해야 저장됩니다.</span>';
+  }
+  return h ? '<div class="cbm-calc">' + h + '</div>' : '';
+}
+function extraSummaryHtml(it) {
+  if (it.cbmOnly) return '📦 박스 실측 입력';
+  const parts = [];
+  if (parseFloat(it.plt) > 0) parts.push(it.plt + ' PLT');
+  if (it.storage) parts.push(escapeHtml(it.storage));
+  if (cbmOf(it) !== null) parts.push(it.boxW + '×' + it.boxD + '×' + it.boxH + 'cm');
+  return '🚛 PLT · 보관 · 박스규격 <span style="font-weight:400;color:#888;">(선택' + (parts.length ? ' — ' + parts.join(' · ') : '') + ')</span>';
+}
+function updateExtraSummary(idx) {
+  const row = cardEl(idx);
+  const s = row && row.querySelector('.extra-info > summary');
+  if (s) s.innerHTML = extraSummaryHtml(items[idx]);
+}
+// 치수만 바뀐 경우 부분 갱신 (긴 쪽이 가로로 자동 정렬된 값도 즉시 표시)
+function updateCbmLive(idx) {
+  const it = items[idx], row = cardEl(idx);
+  const sec = row && row.querySelector('.cbm-section');
+  if (!sec) return;
+  const bad = dimsPartial(it) || (it.cbmOnly && cbmOf(it) === null);
+  [['.cbm-w', 'boxW'], ['.cbm-d', 'boxD'], ['.cbm-h', 'boxH']].forEach(([sel, f]) => {
+    const el = sec.querySelector(sel);
+    if (!el) return;
+    el.value = (it[f] === '' || it[f] == null) ? '' : it[f];
+    el.classList.toggle('dim-incomplete', bad);
+  });
+  const slot = sec.querySelector('.cbm-calc-slot');
+  if (slot) slot.innerHTML = cbmCalcHtml(it);
+  updateExtraSummary(idx);
+}
+
 function renderItems() {
   const c = $('itemsContainer');
   if (!c) return;
   c.innerHTML = '';
-  let match = 0, over = 0, short = 0;
-  items.forEach((it, idx) => {
-    const div = document.createElement('div');
-    let rowCls = 'item-row';
-    if (it.type === '[전산재고 불확인]') rowCls += ' extra';
-    if (it.cbmOnly) rowCls += ' cbm-only';
-    if (reauditApplies(it) && it.qtyState !== 'edit') rowCls += ' rq-hide-qty';
-    if (it._collapsed) rowCls += ' collapsed';
-    if (it._new) rowCls += ' new';
-    div.className = rowCls;
-    div.setAttribute('data-idx', idx);
-    if (it._new) setTimeout(() => { it._new = false; }, 1500);
-    const otherSurveyed = it.sysQty === null ? 0 : getOtherSurveyed(it);
-    let diffHtml = '';
-    if (it.cbmOnly) {
-      diffHtml = '';
-    } else if (it.sysQty === null) {
-      diffHtml = '<div class="diff-box diff-na">📌 전산재고 미등록 (차이 산정 불가)</div>';
-    } else {
-      const totalCounted = otherSurveyed + it.actualQty;
-      const diff = totalCounted - it.sysQty;
-      const bigDiffWarn = Math.abs(diff) > 10 ? ' <span style="color:#dc3545;font-weight:700;">[재실사 검토]</span>' : '';
-      const calcDetail = '<div class="calc-detail">기제출 ' + otherSurveyed + ' + 이번 입력 ' + it.actualQty + ' = 누적 ' + totalCounted + ' / 전산 ' + it.sysQty + '</div>';
-      if (it.actualQty === 0 && otherSurveyed === 0) {
-        diffHtml = '<div class="diff-box diff-na">실사수량 입력 필요 (전산 ' + it.sysQty + ')</div>';
-      } else if (diff === 0) {
-        diffHtml = '<div class="diff-box diff-match">✅ 일치 (누적 ' + totalCounted + ' / 전산 ' + it.sysQty + ')' + calcDetail + '</div>'; match++;
-      } else if (diff > 0) {
-        diffHtml = '<div class="diff-box diff-over">📈 초과 +' + diff + bigDiffWarn + calcDetail + '</div>'; over++;
-      } else {
-        diffHtml = '<div class="diff-box diff-short">📉 부족 ' + diff + '<br><small>👉 추가로 찾아야 할 수량: <b>' + Math.abs(diff) + '개</b></small>' + bigDiffWarn + calcDetail + '</div>'; short++;
-      }
-    }
-    let typeTag = it.type === '[전산재고 불확인]' ? '<span class="type-tag">불확인</span>' : '';
-    if (it.cbmOnly) typeTag += '<span class="type-tag box">박스실측</span>';
-    const sysQtyText = it.sysQty === null ? '미등록' : it.sysQty;
-    let matchBtn;
-    if (it.sysQty !== null) {
-      const remain = Math.max(0, it.sysQty - otherSurveyed);
-      matchBtn = '<button class="quick-btn match" data-act="match">✓ 잔여 (' + remain + ')</button>';
-    } else {
-      matchBtn = '<button class="quick-btn match" disabled style="opacity:0.5">일치(불가)</button>';
-    }
-    let otherInfo = '';
-    if (otherSurveyed > 0) {
-      otherInfo = ' / 기제출누적: <span class="other-qty">' + otherSurveyed + '</span>';
-      const dInfo = DASHBOARD[it.name + '|' + it.spec];
-      if (dInfo && dInfo.surveyors && dInfo.surveyors.length > 0) {
-        otherInfo += ' <span style="color:#17a2b8;font-size:11px;">(👤 ' + dInfo.surveyors.map(escapeHtml).join(', ') + ')</span>';
-      }
-    }
-    const hint = it.sysQty === null ? '' : '<div class="input-hint">💡 <b>이번에 발견한 수량만</b> 입력하세요. 기제출 누적(' + otherSurveyed + ')에 자동 합산됩니다.</div>';
+  items.forEach((it, idx) => { c.appendChild(buildCard(it, idx)); });
+  updateTotals();
+  renderNextBar();
+}
 
-    // ----- PLT / 보관구분 -----
-    const stor = it.storage || '';
-    let storHtml;
-    if (stor) storHtml = '<span class="storage-tag ' + storageCls(stor) + '">' + escapeHtml(stor) + '</span>';
-    else storHtml = ['냉동','냉장','상온'].map(s => '<button class="stor-btn" data-stor="' + s + '">' + s + '</button>').join('');
-    const pltVal = (it.plt === '' || it.plt == null) ? '' : it.plt;
-    const pltHtml =
-      '<div class="plt-row">' +
-        '<label>🚛 PLT</label>' +
-        '<input type="number" inputmode="decimal" class="plt-input" step="0.5" min="0" placeholder="0" value="' + pltVal + '">' +
-        '<button class="plt-btn" data-act="plt-half">+0.5</button>' +
-        '<button class="plt-btn" data-act="plt-one">+1</button>' +
-        '<span class="stor-wrap">' + storHtml + '</span>' +
-      '</div>';
+// 카드 순서: 수량 → 차이 → 바코드 → 유통기한 → 메모 → (접힘) PLT·박스규격 → [✓ 완료 → 다음]
+function buildCard(it, idx) {
+  const div = document.createElement('div');
+  let rowCls = 'item-row';
+  if (it.type === '[전산재고 불확인]') rowCls += ' extra';
+  if (it.cbmOnly) rowCls += ' cbm-only';
+  if (reauditApplies(it) && it.qtyState !== 'edit') rowCls += ' rq-hide-qty';
+  if (it._collapsed) rowCls += ' collapsed';
+  if (it._new) rowCls += ' new';
+  div.className = rowCls;
+  div.setAttribute('data-idx', idx);
+  if (it._new) setTimeout(() => { it._new = false; }, 1500);
+  const otherSurveyed = it.sysQty === null ? 0 : getOtherSurveyed(it);
+  const diffHtml = diffInfo(it).html;
+  let typeTag = it.type === '[전산재고 불확인]' ? '<span class="type-tag">불확인</span>' : '';
+  if (it.cbmOnly) typeTag += '<span class="type-tag box">박스실측</span>';
+  const locTag = it.loc ? '<span class="loc-tag">' + escapeHtml(it.loc) + '</span>' : '';
+  const sysQtyText = it.sysQty === null ? '미등록' : it.sysQty;
+  let matchBtn;
+  if (it.sysQty !== null) {
+    const remain = Math.max(0, r2(it.sysQty - otherSurveyed));
+    matchBtn = '<button class="quick-btn match" data-act="match">✓ 잔여 (' + remain + ')</button>';
+  } else {
+    matchBtn = '<button class="quick-btn match" disabled style="opacity:0.5">일치(불가)</button>';
+  }
+  let otherInfo = '';
+  if (otherSurveyed > 0) {
+    otherInfo = ' / 기제출누적: <span class="other-qty">' + otherSurveyed + '</span>';
+    const dInfo = DASHBOARD[pkey(it)];
+    if (dInfo && dInfo.surveyors && dInfo.surveyors.length > 0) {
+      otherInfo += ' <span style="color:#17a2b8;font-size:11px;">(👤 ' + dInfo.surveyors.map(escapeHtml).join(', ') + ')</span>';
+    }
+  }
+  // 이미 다른 조사자가 일부 제출한 품목일 때만 안내 (화면 공간 절약)
+  const hint = (it.sysQty !== null && otherSurveyed > 0) ? '<div class="input-hint">💡 <b>이번에 발견한 수량만</b> 입력하세요. 기제출 누적(' + otherSurveyed + ')에 자동 합산됩니다.</div>' : '';
 
-    // ----- 바코드 확인 섹션 -----
-    const sysBc = it.sysBarcode || '';
-    const st = it.barcodeStatus || '';
+  // ----- PLT / 보관구분 -----
+  const stor = it.storage || '';
+  let storHtml;
+  if (stor) storHtml = '<span class="storage-tag ' + storageCls(stor) + '">' + escapeHtml(stor) + '</span>';
+  else storHtml = ['냉동','냉장','상온'].map(s => '<button class="stor-btn" data-stor="' + s + '">' + s + '</button>').join('');
+  const pltVal = (it.plt === '' || it.plt == null) ? '' : it.plt;
+  const pltHtml =
+    '<div class="plt-row">' +
+      '<label>🚛 PLT</label>' +
+      '<input type="number" inputmode="decimal" enterkeyhint="done" class="plt-input" step="0.5" min="0" placeholder="0" value="' + pltVal + '">' +
+      '<button class="plt-btn" data-act="plt-half">+0.5</button>' +
+      '<button class="plt-btn" data-act="plt-one">+1</button>' +
+      '<span class="stor-wrap">' + storHtml + '</span>' +
+    '</div>';
+
+  // ----- 바코드 확인 섹션 -----
+  const sysBc = it.sysBarcode || '';
+  const st = it.barcodeStatus || '';
+  let barcodeHtml;
+  if (st === 'match' && it._scanMatched) {
+    // 스캔으로 이미 일치가 확인됨 → 한 줄로 축약
+    barcodeHtml = '<div class="barcode-section bc-compact"><span>🏷️ 바코드 <b>스캔 일치 ✓</b><br><small>' + escapeHtml(sysBc) + '</small></span><button data-act="bc-unlock">변경</button></div>';
+  } else {
     let bcButtons;
     if (sysBc) {
       bcButtons = '<div class="barcode-btns">' +
@@ -1281,298 +1718,297 @@ function renderItems() {
       const bcEmpty = (!it.scanBarcode || !it.scanBarcode.trim()) && !it.photoData;
       const fmt = barcodeFormatInfo(it.scanBarcode);
       bcInputHtml =
-        '<div class="barcode-input-row"><input type="text" inputmode="numeric" class="bc-input' + (bcEmpty ? ' bc-empty' : '') + '" placeholder="실물 바코드 번호 입력/스캔" value="' + escapeHtml(it.scanBarcode || '') + '"></div>' +
+        '<div class="barcode-input-row bc-scan-row"><input type="text" inputmode="numeric" enterkeyhint="done" class="bc-input' + (bcEmpty ? ' bc-empty' : '') + '" placeholder="실물 바코드 번호" value="' + escapeHtml(it.scanBarcode || '') + '"><button class="bc-scan-btn" data-act="bc-scan">📷 스캔</button></div>' +
         '<div class="bc-format ' + fmt.cls + '">' + fmt.html + '</div>' +
         '<div class="photo-row">' +
           '<button class="photo-btn" data-act="bc-photo">📷 바코드 사진 ' + (it.photoData ? '다시 촬영' : '촬영') + '</button>' +
-          (it.photoData ? '<img class="photo-thumb" src="' + it.photoData + '" data-act="bc-photo"><button class="photo-del" data-act="bc-photo-del">🗑</button>' : '') +
+          ((it.photoData && !it._collapsed) ? '<img class="photo-thumb" src="' + it.photoData + '" data-act="bc-photo"><button class="photo-del" data-act="bc-photo-del">🗑</button>' : '') +
         '</div>';
     }
     const bcRes = barcodeResultInfo(it);
-    let barcodeHtml =
+    barcodeHtml =
       '<div class="barcode-section">' +
         '<div class="barcode-label bc-required">🏷️ 바코드 확인</div>' +
         bcValueHtml + bcButtons + bcInputHtml +
         '<div class="barcode-result ' + bcRes.cls + '">' + bcRes.html + '</div>' +
       '</div>';
-
-    // ----- 박스 규격(CBM) -----
-    const partial = dimsPartial(it);
-    const cbm = cbmOf(it);
-    const bpp = parseFloat(it.boxPerPlt);
-    let cbmCalcHtml = '';
-    if (cbm !== null) {
-      cbmCalcHtml = 'CBM: <b>' + cbm + ' ㎥</b> (' + it.boxW + ' × ' + it.boxD + ' × ' + it.boxH + 'cm)';
-      if (!isNaN(bpp) && bpp > 0) cbmCalcHtml += ' · 1PLT(' + bpp + '박스) ≈ <b>' + (Math.round(cbm * bpp * 10000) / 10000) + ' ㎥</b>';
-    } else if (partial) {
-      cbmCalcHtml = '<span style="color:#dc3545;">가로·세로·높이 3개를 모두 입력해야 저장됩니다.</span>';
-    }
-    const dimCls = partial ? ' dim-incomplete' : '';
-    const cbmRequired = it.cbmOnly && cbm === null;
-    let cbmHtml =
-      '<div class="cbm-section">' +
-        '<div class="cbm-label">박스 규격 · CBM' + (it.cbmOnly ? ' <span style="color:#dc3545;">*치수 필수</span>' : ' (선택 입력)') + '</div>' +
-        '<div class="cbm-dims">' +
-          '<input type="number" inputmode="decimal" class="cbm-w' + (cbmRequired ? ' dim-incomplete' : dimCls) + '" min="0" placeholder="가로 cm" value="' + (it.boxW === '' ? '' : it.boxW) + '">' +
-          '<span class="dim-x">×</span>' +
-          '<input type="number" inputmode="decimal" class="cbm-d' + (cbmRequired ? ' dim-incomplete' : dimCls) + '" min="0" placeholder="세로 cm" value="' + (it.boxD === '' ? '' : it.boxD) + '">' +
-          '<span class="dim-x">×</span>' +
-          '<input type="number" inputmode="decimal" class="cbm-h' + (cbmRequired ? ' dim-incomplete' : dimCls) + '" min="0" placeholder="높이 cm" value="' + (it.boxH === '' ? '' : it.boxH) + '">' +
-        '</div>' +
-        '<div class="cbm-sub">1PLT당 박스 수: <input type="number" inputmode="decimal" class="cbm-bpp" min="0" placeholder="예: 30" value="' + (it.boxPerPlt === '' ? '' : it.boxPerPlt) + '"> 박스</div>' +
-        (cbmCalcHtml ? '<div class="cbm-calc">' + cbmCalcHtml + '</div>' : '') +
-        '<div class="cbm-hint">긴 값을 어느 칸에 넣어도 긴 쪽이 가로가 되도록 자동 정렬됩니다.</div>' +
-        '<button class="cbm-only-btn' + (it.cbmOnly ? ' on' : '') + '" data-act="cbm-only">' +
-          (it.cbmOnly ? '박스 실측만 제출 중 — 일반 실사 입력으로 전환' : '수량 없이 박스 실측만 제출로 전환') +
-        '</button>' +
-      '</div>';
-
-    // ----- 재실사 수량 확인 패널 -----
-    let rqHtml = '';
-    if (reauditApplies(it)) {
-      const remainQty = Math.max(0, it.sysQty - otherSurveyed);
-      if (it.qtyState === 'ok') {
-        rqHtml = '<div class="rq-status ok"><span>✓ 이전 실사수량과 일치 (' + it.actualQty + ' 입력됨)</span><button data-act="rq-undo">변경</button></div>';
-      } else if (it.qtyState === 'edit') {
-        rqHtml = '<div class="rq-status edit"><span>✏️ 수량 다름 — 아래에 실제 수량을 입력하세요 (이전: ' + it.sysQty + ')</span><button data-act="rq-undo">취소</button></div>';
-      } else {
-        rqHtml =
-          '<div class="rq-panel">' +
-            '<div class="rq-title">🔁 재실사 — 이전 실사수량과 비교</div>' +
-            '<div class="rq-qty">' + it.sysQty + (otherSurveyed > 0 ? ' <small>(이번 재실사 기제출 ' + otherSurveyed + ' → 잔여 ' + remainQty + ')</small>' : '') + '</div>' +
-            '<div class="rq-btns">' +
-              '<button class="rq-ok-btn" data-act="rq-ok">✓ 일치 (' + remainQty + ' 입력)</button>' +
-              '<button class="rq-edit-btn" data-act="rq-edit">✏️ 다름</button>' +
-              '<button class="rq-calc-btn" data-act="rq-calc">🧮 계산기</button>' +
-            '</div>' +
-            '<div style="font-size:10px; color:#8a6cc9; margin-top:5px;">🧮 계산기로 센 값이 잔여와 같으면 자동으로 일치 처리됩니다.</div>' +
-          '</div>';
-      }
-    }
-
-    // ----- 기확보 정보 확인 패널 -----
-    let infoPanelHtml = '';
-    if (it.infoState === 'pending') {
-      const kn = it.known || {};
-      const barLine = it.sysBarcode
-        ? escapeHtml(it.sysBarcode) + (kn.bcs ? ' <small style="color:#5b7bd0;">(' + escapeHtml(kn.bcs) + ' 이력)</small>' : '')
-        : (kn.bcs === '바코드없음' ? '없음 (이전 실사 확인)' : '<span style="color:#999;">미확보</span>');
-      const dimLine = kn.w != null
-        ? kn.w + ' × ' + kn.d + ' × ' + kn.h + ' cm (CBM ' + (Math.round(kn.w * kn.d * kn.h / 1000000 * 10000) / 10000) + '㎥)'
-        : '<span style="color:#999;">미확보</span>';
-      const bppLine = kn.bpp != null ? kn.bpp + '박스/PLT' : '-';
-      infoPanelHtml =
-        '<div class="info-panel">' +
-          '<div class="info-title">📋 기확보 정보 확인 <span>실물과 비교해 주세요</span></div>' +
-          '<div class="info-row"><span>바코드</span><b>' + barLine + '</b></div>' +
-          '<div class="info-row"><span>박스규격</span><b>' + dimLine + '</b></div>' +
-          '<div class="info-row"><span>PLT당 박스</span><b>' + bppLine + '</b></div>' +
-          '<div class="info-btns">' +
-            '<button class="info-ok-btn" data-act="info-ok">✓ 모두 일치</button>' +
-            '<button class="info-edit-btn" data-act="info-edit">✏️ 다름 · 수정</button>' +
-          '</div>' +
-        '</div>';
-    } else if (it.infoState === 'confirmed') {
-      infoPanelHtml = '<div class="info-confirmed"><span>✓ 기존 정보 일치 확인됨</span><button class="info-undo-btn" data-act="info-undo">변경</button></div>';
-    }
-    // 확인 전에는 상세 입력 숨김, 확인 후에는 이미 확인된 항목만 숨김
-    if (it.infoState === 'pending') { cbmHtml = ''; barcodeHtml = ''; }
-    else if (it.infoState === 'confirmed') {
-      if (knownBarCovered(it)) barcodeHtml = '';
-      if (it.known && it.known.w != null) cbmHtml = '';
-    }
-
-    const memoEmpty = !it.memo || !it.memo.trim();
-    const fieldsRequired = !REAUDIT; // 재실사 모드에서는 메모·유통기한 선택 입력
-    const memoAreaCls = (fieldsRequired && memoEmpty) ? 'memo-area required-empty' : 'memo-area';
-    const memoLabelHtml = fieldsRequired
-      ? '<div class="memo-label required">📝 메모</div>'
-      : '<div class="memo-label">📝 메모 <span class="opt-hint">재실사 모드 — 선택 입력, 비우면 \'재실사 확인\'으로 자동 기록</span></div>';
-    const expLabelHtml = fieldsRequired
-      ? '<div class="memo-label required">📅 유통기한</div>'
-      : '<div class="memo-label">📅 유통기한 <span class="opt-hint">재실사 모드 — 선택 입력</span></div>';
-    let presetBtns = '';
-    MEMO_PRESETS.forEach(preset => {
-      const active = (it.memo || '').indexOf(preset) >= 0 ? ' active' : '';
-      presetBtns += '<button class="memo-preset-btn' + active + '" data-preset="' + escapeHtml(preset) + '">' + escapeHtml(preset) + '</button>';
-    });
-    const expEmpty = !it.expiry || !it.expiry.trim();
-    let collapsedSummary = '';
-    if (it._collapsed) {
-      const miss = [];
-      if (it.cbmOnly) {
-        if (!dimsComplete(it)) miss.push('치수');
-      } else {
-        if (it.infoState === 'pending') miss.push('기존정보 확인');
-        if (reauditApplies(it) && !it.qtyState) miss.push('수량확인');
-        if (!REAUDIT && (!it.memo || !it.memo.trim())) miss.push('메모');
-        if (!REAUDIT && (!it.expiry || !it.expiry.trim())) miss.push('유통기한');
-        if (isBarcodeIncomplete(it)) miss.push('바코드');
-        if (dimsPartial(it)) miss.push('치수(일부만)');
-      }
-      collapsedSummary = '<div class="collapsed-summary">'
-        + (it.cbmOnly ? '박스실측 ' + (dimsComplete(it) ? it.boxW + '×' + it.boxD + '×' + it.boxH + 'cm' : '') : '이번 입력 ' + it.actualQty)
-        + (parseFloat(it.plt) > 0 ? ' · ' + it.plt + 'PLT' : '')
-        + (miss.length > 0
-            ? ' · <span style="color:#dc3545;font-weight:700;">누락: ' + miss.join(', ') + '</span>'
-            : ' · <span style="color:#28a745;font-weight:700;">입력 완료</span>')
-        + '</div>';
-    }
-    div.innerHTML =
-      '<div class="row-title">' + typeTag + escapeHtml(it.name) + '</div>' +
-      collapsedSummary +
-      '<div class="row-meta">' + escapeHtml(it.spec) + ' · ' + escapeHtml(it.unit) + ' · 전산: <span class="sys-qty">' + sysQtyText + '</span>' + otherInfo + '</div>' +
-      hint +
-      infoPanelHtml +
-      rqHtml +
-      '<div class="qty-big-row">' +
-        '<button class="qty-btn-big" data-act="minus">−</button>' +
-        '<input type="number" inputmode="decimal" class="qty-input-big" value="' + it.actualQty + '" min="0">' +
-        '<button class="qty-btn-big" data-act="plus">+</button>' +
-      '</div>' +
-      '<div class="quick-btns" style="grid-template-columns:repeat(4,1fr);">' +
-        matchBtn +
-        '<button class="quick-btn calc" data-act="calc">🧮 계산기</button>' +
-        '<button class="quick-btn" data-act="undo">↩ 되돌리기</button>' +
-        '<button class="quick-btn zero" data-act="zero">0으로</button>' +
-      '</div>' +
-      '<div class="quick-btns" style="grid-template-columns:repeat(4,1fr);">' +
-        '<button class="quick-btn" data-act="p1">+1</button>' +
-        '<button class="quick-btn" data-act="p5">+5</button>' +
-        '<button class="quick-btn" data-act="p10">+10</button>' +
-        '<button class="quick-btn" data-act="p100">+100</button>' +
-      '</div>' +
-      pltHtml +
-      cbmHtml +
-      diffHtml +
-      barcodeHtml +
-      '<div class="memo-section">' +
-        memoLabelHtml +
-        '<div class="memo-presets">' + presetBtns + '</div>' +
-        '<textarea class="' + memoAreaCls + '" placeholder="' + (fieldsRequired ? '메모 (필수)' : '메모 (선택)') + '">' + escapeHtml(it.memo) + '</textarea>' +
-      '</div>' +
-      '<div class="expiry-section">' +
-        expLabelHtml +
-        '<div class="expiry-row">' +
-          '<input type="text" inputmode="numeric" class="' + ((fieldsRequired && expEmpty) ? 'exp-empty' : '') + '" placeholder="숫자만 입력 (예: 261231)" value="' + escapeHtml(it.expiry) + '">' +
-          '<button class="exp-none-btn" data-act="expnone">소비기한 없음</button>' +
-        '</div>' +
-        '<div class="exp-hint">숫자 6자리(261231) 또는 8자리(20261231)를 입력하면 날짜로 자동 변환됩니다.</div>' +
-      '</div>' +
-      '<div class="row-actions">' +
-        '<button class="row-collapse" data-act="collapse">' + (it._collapsed ? '🔽 펼치기' : '🔼 접기') + '</button>' +
-        '<button class="row-remove" data-act="remove">🗑️ 삭제</button>' +
-      '</div>';
-    if (it._collapsed) {
-      const t = div.querySelector('.row-title');
-      if (t) { t.style.cursor = 'pointer'; t.onclick = () => toggleCollapse(idx); }
-    }
-    div.querySelectorAll('[data-act]').forEach(btn => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        const a = btn.dataset.act;
-        if (a === 'minus') changeQty(idx, -1);
-        else if (a === 'plus') changeQty(idx, +1);
-        else if (a === 'p1') changeQty(idx, +1);
-        else if (a === 'p5') changeQty(idx, +5);
-        else if (a === 'p10') changeQty(idx, +10);
-        else if (a === 'p100') changeQty(idx, +100);
-        else if (a === 'zero') setQty(idx, 0);
-        else if (a === 'undo') undoQty(idx);
-        else if (a === 'match') setMatch(idx);
-        else if (a === 'calc') openCalc(idx);
-        else if (a === 'collapse') toggleCollapse(idx);
-        else if (a === 'bc-match') setBarcodeStatus(idx, 'match');
-        else if (a === 'bc-diff') setBarcodeStatus(idx, 'diff');
-        else if (a === 'bc-none') setBarcodeStatus(idx, 'none');
-        else if (a === 'bc-new') setBarcodeStatus(idx, 'new');
-        else if (a === 'plt-half') addPlt(idx, 0.5);
-        else if (a === 'plt-one') addPlt(idx, 1);
-        else if (a === 'bc-photo') takePhoto(idx);
-        else if (a === 'bc-photo-del') { if (confirm('사진을 삭제할까요?')) removePhoto(idx); }
-        else if (a === 'cbm-only') toggleCbmOnly(idx);
-        else if (a === 'info-ok') applyKnownInfo(idx);
-        else if (a === 'info-edit') editKnownInfo(idx);
-        else if (a === 'info-undo') undoKnownInfo(idx);
-        else if (a === 'rq-ok') rqOk(idx);
-        else if (a === 'rq-edit') rqEdit(idx);
-        else if (a === 'rq-undo') rqUndo(idx);
-        else if (a === 'rq-calc') openCalc(idx);
-        else if (a === 'expnone') { items[idx].expiry = '소비기한 없음'; renderItems(); saveLocal(); }
-        else if (a === 'remove') { if (confirm('삭제하시겠습니까?')) removeItem(idx); }
-      };
-    });
-    div.querySelectorAll('.memo-preset-btn').forEach(btn => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        const preset = btn.dataset.preset;
-        const current = items[idx].memo || '';
-        let newMemo;
-        if (current.indexOf(preset) >= 0) newMemo = current.replace(preset, '').replace(/,\s*,/g, ',').replace(/^,\s*|\s*,$/g, '').trim();
-        else newMemo = current ? current + ', ' + preset : preset;
-        items[idx].memo = newMemo;
-        const memoArea = div.querySelector('.memo-area');
-        if (memoArea) memoArea.value = newMemo;
-        div.querySelectorAll('.memo-preset-btn').forEach(b => {
-          if (newMemo.indexOf(b.dataset.preset) >= 0) b.classList.add('active'); else b.classList.remove('active');
-        });
-        if (memoArea) {
-          if (!newMemo || !newMemo.trim()) memoArea.classList.add('required-empty');
-          else memoArea.classList.remove('required-empty');
-        }
-        saveLocal();
-      };
-    });
-    const qtyInput = div.querySelector('.qty-input-big');
-    if (qtyInput) {
-      qtyInput.onchange = (e) => setQty(idx, e.target.value);
-      qtyInput.onfocus = (e) => { try { e.target.select(); } catch(err) {} };
-    }
-    const bcInput = div.querySelector('.bc-input');
-    if (bcInput) {
-      bcInput.oninput = (e) => setScanBarcode(idx, e.target.value);
-      // 스캐너는 보통 입력 후 Enter를 보냄 — Enter 시 포커스 해제로 실수 방지
-      bcInput.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); bcInput.blur(); } };
-    }
-    const pltInput = div.querySelector('.plt-input');
-    if (pltInput) {
-      pltInput.onchange = (e) => setPlt(idx, e.target.value);
-      pltInput.onfocus = (e) => { try { e.target.select(); } catch(err) {} };
-    }
-    div.querySelectorAll('.stor-btn').forEach(sb => {
-      sb.onclick = (e) => { e.stopPropagation(); setStorage(idx, sb.dataset.stor); };
-    });
-    const dimW = div.querySelector('.cbm-w'), dimD = div.querySelector('.cbm-d'), dimH = div.querySelector('.cbm-h'), bppEl = div.querySelector('.cbm-bpp');
-    if (dimW) { dimW.onchange = (e) => setBoxDim(idx, 'boxW', e.target.value); dimW.onfocus = (e) => { try { e.target.select(); } catch(err) {} }; }
-    if (dimD) { dimD.onchange = (e) => setBoxDim(idx, 'boxD', e.target.value); dimD.onfocus = (e) => { try { e.target.select(); } catch(err) {} }; }
-    if (dimH) { dimH.onchange = (e) => setBoxDim(idx, 'boxH', e.target.value); dimH.onfocus = (e) => { try { e.target.select(); } catch(err) {} }; }
-    if (bppEl) { bppEl.onchange = (e) => setBoxPerPlt(idx, e.target.value); bppEl.onfocus = (e) => { try { e.target.select(); } catch(err) {} }; }
-    const memoEl = div.querySelector('.memo-area');
-    if (memoEl) memoEl.oninput = (e) => setMemo(idx, e.target.value);
-    const expEl = div.querySelector('.expiry-row input');
-    if (expEl) {
-      expEl.oninput = (e) => setExpiry(idx, e.target.value);
-      expEl.onchange = (e) => {
-        const f = formatExpiry(e.target.value);
-        items[idx].expiry = f;
-        e.target.value = f;
-        if ((!f || !f.trim()) && !REAUDIT) e.target.classList.add('exp-empty');
-        else e.target.classList.remove('exp-empty');
-        saveLocal();
-      };
-    }
-    c.appendChild(div);
-  });
-  safeText('sumTotal', items.length);
-  safeText('sumMatch', match);
-  safeText('sumOver', over);
-  safeText('sumShort', short);
-  safeText('btnCount', items.length);
-  const fs = $('floatSubmit');
-  if (fs) {
-    if (items.length > 0) { fs.style.display = 'block'; fs.textContent = '📤 제출 (' + items.length + ')'; }
-    else fs.style.display = 'none';
   }
+
+  // ----- 박스 규격(CBM) -----
+  const dimCls = (dimsPartial(it) || (it.cbmOnly && cbmOf(it) === null)) ? ' dim-incomplete' : '';
+  let cbmHtml =
+    '<div class="cbm-section">' +
+      '<div class="cbm-label">박스 규격 · CBM' + (it.cbmOnly ? ' <span style="color:#dc3545;">*치수 필수</span>' : ' (선택 입력)') + '</div>' +
+      '<div class="cbm-dims">' +
+        '<input type="number" inputmode="decimal" enterkeyhint="next" class="cbm-w' + dimCls + '" min="0" placeholder="가로 cm" value="' + (it.boxW === '' ? '' : it.boxW) + '">' +
+        '<span class="dim-x">×</span>' +
+        '<input type="number" inputmode="decimal" enterkeyhint="next" class="cbm-d' + dimCls + '" min="0" placeholder="세로 cm" value="' + (it.boxD === '' ? '' : it.boxD) + '">' +
+        '<span class="dim-x">×</span>' +
+        '<input type="number" inputmode="decimal" enterkeyhint="done" class="cbm-h' + dimCls + '" min="0" placeholder="높이 cm" value="' + (it.boxH === '' ? '' : it.boxH) + '">' +
+      '</div>' +
+      '<div class="cbm-sub">1PLT당 박스 수: <input type="number" inputmode="decimal" enterkeyhint="done" class="cbm-bpp" min="0" placeholder="예: 30" value="' + (it.boxPerPlt === '' ? '' : it.boxPerPlt) + '"> 박스</div>' +
+      '<div class="cbm-calc-slot">' + cbmCalcHtml(it) + '</div>' +
+      '<div class="cbm-hint">긴 값을 어느 칸에 넣어도 긴 쪽이 가로가 되도록 자동 정렬됩니다.</div>' +
+      '<button class="cbm-only-btn' + (it.cbmOnly ? ' on' : '') + '" data-act="cbm-only">' +
+        (it.cbmOnly ? '박스 실측만 제출 중 — 일반 실사 입력으로 전환' : '수량 없이 박스 실측만 제출로 전환') +
+      '</button>' +
+    '</div>';
+
+  // ----- 재실사 수량 확인 패널 -----
+  let rqHtml = '';
+  if (reauditApplies(it)) {
+    const remainQty = Math.max(0, r2(it.sysQty - otherSurveyed));
+    if (it.qtyState === 'ok') {
+      rqHtml = '<div class="rq-status ok"><span>✓ 이전 실사수량과 일치 (' + it.actualQty + ' 입력됨)</span><button data-act="rq-undo">변경</button></div>';
+    } else if (it.qtyState === 'edit') {
+      rqHtml = '<div class="rq-status edit"><span>✏️ 수량 다름 — 아래에 실제 수량을 입력하세요 (이전: ' + it.sysQty + ')</span><button data-act="rq-undo">취소</button></div>';
+    } else {
+      rqHtml =
+        '<div class="rq-panel">' +
+          '<div class="rq-title">🔁 재실사 — 이전 실사수량과 비교</div>' +
+          '<div class="rq-qty">' + it.sysQty + (otherSurveyed > 0 ? ' <small>(이번 재실사 기제출 ' + otherSurveyed + ' → 잔여 ' + remainQty + ')</small>' : '') + '</div>' +
+          '<div class="rq-btns">' +
+            '<button class="rq-ok-btn" data-act="rq-ok">✓ 일치 (' + remainQty + ' 입력)</button>' +
+            '<button class="rq-edit-btn" data-act="rq-edit">✏️ 다름</button>' +
+            '<button class="rq-calc-btn" data-act="rq-calc">🧮 계산기</button>' +
+          '</div>' +
+          '<div style="font-size:10px; color:#8a6cc9; margin-top:5px;">🧮 계산기로 센 값이 잔여와 같으면 자동으로 일치 처리됩니다.</div>' +
+        '</div>';
+    }
+  }
+
+  // ----- 기확보 정보 확인 패널 -----
+  let infoPanelHtml = '';
+  if (it.infoState === 'pending') {
+    const kn = it.known || {};
+    let barLine;
+    if (it._scanMatched) barLine = '<span style="color:#28a745;">✓ 스캔으로 일치 확인</span> ' + escapeHtml(it.sysBarcode);
+    else if (scanFoundDiff(it)) barLine = '<span style="color:#fd7e14;">⚠️ 스캔 ' + escapeHtml(it.scanBarcode) + ' — 기준과 다름</span>';
+    else barLine = it.sysBarcode
+      ? escapeHtml(it.sysBarcode) + (kn.bcs ? ' <small style="color:#5b7bd0;">(' + escapeHtml(kn.bcs) + ' 이력)</small>' : '')
+      : (kn.bcs === '바코드없음' ? '없음 (이전 실사 확인)' : '<span style="color:#999;">미확보</span>');
+    const dimLine = kn.w != null
+      ? kn.w + ' × ' + kn.d + ' × ' + kn.h + ' cm (CBM ' + (Math.round(kn.w * kn.d * kn.h / 1000000 * 10000) / 10000) + '㎥)'
+      : '<span style="color:#999;">미확보</span>';
+    const bppLine = kn.bpp != null ? kn.bpp + '박스/PLT' : '-';
+    infoPanelHtml =
+      '<div class="info-panel">' +
+        '<div class="info-title">📋 기확보 정보 확인 <span>실물과 비교해 주세요</span></div>' +
+        '<div class="info-row"><span>바코드</span><b>' + barLine + '</b></div>' +
+        '<div class="info-row"><span>박스규격</span><b>' + dimLine + '</b></div>' +
+        '<div class="info-row"><span>PLT당 박스</span><b>' + bppLine + '</b></div>' +
+        '<div class="info-btns">' +
+          '<button class="info-ok-btn" data-act="info-ok">✓ 모두 일치</button>' +
+          '<button class="info-edit-btn" data-act="info-edit">✏️ 다름 · 수정</button>' +
+        '</div>' +
+      '</div>';
+  } else if (it.infoState === 'confirmed') {
+    infoPanelHtml = '<div class="info-confirmed"><span>✓ 기존 정보 일치 확인됨</span><button class="info-undo-btn" data-act="info-undo">변경</button></div>';
+  }
+  // 확인 전에는 상세 입력 숨김, 확인 후에는 이미 확인된 항목만 숨김 (스캔 결과는 항상 보이게)
+  if (it.infoState === 'pending') {
+    cbmHtml = '';
+    if (!scanFoundDiff(it) && !it._scanMatched) barcodeHtml = '';
+  } else if (it.infoState === 'confirmed') {
+    if (knownBarCovered(it) && !scanFoundDiff(it) && !it._scanMatched) barcodeHtml = '';
+    if (it.known && it.known.w != null) cbmHtml = '';
+  }
+
+  // ----- 유통기한 (필수) -----
+  const fieldsRequired = !REAUDIT;
+  const expLabelHtml = fieldsRequired
+    ? '<div class="memo-label required">📅 유통기한</div>'
+    : '<div class="memo-label">📅 유통기한 <span class="opt-hint">재실사 모드 — 선택 입력</span></div>';
+  const expChips = recentExpiries().filter(v => v !== it.expiry)
+    .map(v => '<button class="exp-chip" data-exp="' + escapeHtml(v) + '">' + escapeHtml(v) + '</button>').join('');
+  const expKnown = (it.known && it.known.noexp) ? '<div class="exp-known">ℹ️ 지난 실사 기록: 소비기한 없음</div>' : '';
+  const expiryHtml =
+    '<div class="expiry-section">' +
+      expLabelHtml +
+      '<div class="expiry-row">' +
+        '<input type="text" inputmode="numeric" enterkeyhint="done" class="' + (expiryMissing(it) ? 'exp-empty' : '') + '" placeholder="숫자만 입력 (예: 261231)" value="' + escapeHtml(it.expiry) + '">' +
+        '<button class="exp-none-btn" data-act="expnone">소비기한 없음</button>' +
+      '</div>' +
+      '<div class="exp-chips">' + expChips + '</div>' +
+      expKnown +
+      '<div class="exp-hint">숫자 6자리(261231) 또는 8자리(20261231) → 날짜로 자동 변환 · 위 날짜 버튼은 최근 입력값</div>' +
+    '</div>';
+
+  // ----- 메모 (기본 '실사재고 입력' 자동) -----
+  const memoLabelHtml = REAUDIT
+    ? '<div class="memo-label">📝 메모 <span class="opt-hint">재실사 모드 — 비우면 \'재실사 확인\'으로 자동 기록</span></div>'
+    : '<div class="memo-label">📝 메모 <span class="opt-hint" style="color:#888;">\'실사재고 입력\' 자동 — 추가로 찾은 재고면 [추가 재고 확인]</span></div>';
+  let presetBtns = '';
+  MEMO_PRESETS.forEach(preset => {
+    const active = (it.memo || '').indexOf(preset) >= 0 ? ' active' : '';
+    presetBtns += '<button class="memo-preset-btn' + active + '" data-preset="' + escapeHtml(preset) + '">' + escapeHtml(preset) + '</button>';
+  });
+  const memoHtml =
+    '<div class="memo-section">' +
+      memoLabelHtml +
+      '<div class="memo-presets">' + presetBtns + '</div>' +
+      '<textarea class="memo-area" rows="1" placeholder="추가 메모 (선택)">' + escapeHtml(it.memo) + '</textarea>' +
+    '</div>';
+
+  // ----- PLT · 박스규격 (선택, 접어 둠 — 펼침 상태는 기기별로 기억) -----
+  const extraOpen = it.cbmOnly || EXTRA_OPEN || !!it._extraOpen || dimsPartial(it);
+  const extraHtml =
+    '<details class="extra-info"' + (extraOpen ? ' open' : '') + '>' +
+      '<summary>' + extraSummaryHtml(it) + '</summary>' +
+      '<div class="extra-body">' + pltHtml + cbmHtml + '</div>' +
+    '</details>';
+
+  let collapsedSummary = '';
+  if (it._collapsed) {
+    const miss = missingFields(it).map(m => m.label);
+    collapsedSummary = '<div class="collapsed-summary">'
+      + (it.cbmOnly ? '박스실측 ' + (dimsComplete(it) ? it.boxW + '×' + it.boxD + '×' + it.boxH + 'cm' : '') : '이번 입력 ' + it.actualQty)
+      + (parseFloat(it.plt) > 0 ? ' · ' + it.plt + 'PLT' : '')
+      + (it.expiry ? ' · ' + escapeHtml(it.expiry) : '')
+      + (miss.length > 0
+          ? ' · <span style="color:#dc3545;font-weight:700;">누락: ' + miss.join(', ') + '</span>'
+          : ' · <span style="color:#28a745;font-weight:700;">입력 완료</span>')
+      + '</div>';
+  }
+  div.innerHTML =
+    '<div class="row-title">' + typeTag + locTag + escapeHtml(it.name) + '</div>' +
+    collapsedSummary +
+    '<div class="row-meta">' + escapeHtml(it.spec) + ' · ' + escapeHtml(it.unit) + ' · 전산: <span class="sys-qty">' + sysQtyText + '</span>' + otherInfo + '</div>' +
+    hint +
+    infoPanelHtml +
+    rqHtml +
+    '<div class="qty-big-row">' +
+      '<button class="qty-btn-big" data-act="minus">−</button>' +
+      '<input type="number" inputmode="decimal" enterkeyhint="done" class="qty-input-big" value="' + it.actualQty + '" min="0">' +
+      '<button class="qty-btn-big" data-act="plus">+</button>' +
+    '</div>' +
+    '<div class="quick-btns" style="grid-template-columns:repeat(4,1fr);">' +
+      matchBtn +
+      '<button class="quick-btn calc" data-act="calc">🧮 계산기</button>' +
+      '<button class="quick-btn" data-act="undo">↩ 되돌리기</button>' +
+      '<button class="quick-btn zero" data-act="zero">0으로</button>' +
+    '</div>' +
+    '<div class="quick-btns" style="grid-template-columns:repeat(4,1fr);">' +
+      '<button class="quick-btn" data-act="p1">+1</button>' +
+      '<button class="quick-btn" data-act="p5">+5</button>' +
+      '<button class="quick-btn" data-act="p10">+10</button>' +
+      '<button class="quick-btn" data-act="p100">+100</button>' +
+    '</div>' +
+    '<div class="diff-slot">' + diffHtml + '</div>' +
+    barcodeHtml +
+    expiryHtml +
+    memoHtml +
+    extraHtml +
+    '<button class="done-btn" data-act="done">' + (AUTO_SCAN ? '✓ 완료 → 다음 (📷 스캔)' : '✓ 완료 → 다음 품목') + '</button>' +
+    '<div class="row-actions">' +
+      '<button class="row-collapse" data-act="collapse">' + (it._collapsed ? '🔽 펼치기' : '🔼 접기') + '</button>' +
+      '<button class="row-remove" data-act="remove">🗑️ 삭제</button>' +
+    '</div>';
+  // 접힌 카드는 아무 곳이나 눌러도 펼침 (장갑 낀 손 고려)
+  if (it._collapsed) div.onclick = () => toggleCollapse(idx);
+  div.querySelectorAll('[data-act]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const a = btn.dataset.act;
+      if (a === 'minus') changeQty(idx, -1);
+      else if (a === 'plus') changeQty(idx, +1);
+      else if (a === 'p1') changeQty(idx, +1);
+      else if (a === 'p5') changeQty(idx, +5);
+      else if (a === 'p10') changeQty(idx, +10);
+      else if (a === 'p100') changeQty(idx, +100);
+      else if (a === 'zero') setQty(idx, 0);
+      else if (a === 'undo') undoQty(idx);
+      else if (a === 'match') setMatch(idx);
+      else if (a === 'calc') openCalc(idx);
+      else if (a === 'collapse') toggleCollapse(idx);
+      else if (a === 'done') completeItem(idx);
+      else if (a === 'bc-match') setBarcodeStatus(idx, 'match');
+      else if (a === 'bc-diff') setBarcodeStatus(idx, 'diff');
+      else if (a === 'bc-none') setBarcodeStatus(idx, 'none');
+      else if (a === 'bc-new') setBarcodeStatus(idx, 'new');
+      else if (a === 'bc-unlock') { items[idx]._scanMatched = false; renderItems(); saveLocal(true); }
+      else if (a === 'bc-scan') openScanner('card', items[idx]);
+      else if (a === 'plt-half') addPlt(idx, 0.5);
+      else if (a === 'plt-one') addPlt(idx, 1);
+      else if (a === 'bc-photo') takePhoto(idx);
+      else if (a === 'bc-photo-del') { if (confirm('사진을 삭제할까요?')) removePhoto(idx); }
+      else if (a === 'cbm-only') toggleCbmOnly(idx);
+      else if (a === 'info-ok') applyKnownInfo(idx);
+      else if (a === 'info-edit') editKnownInfo(idx);
+      else if (a === 'info-undo') undoKnownInfo(idx);
+      else if (a === 'rq-ok') rqOk(idx);
+      else if (a === 'rq-edit') rqEdit(idx);
+      else if (a === 'rq-undo') rqUndo(idx);
+      else if (a === 'rq-calc') openCalc(idx);
+      else if (a === 'expnone') setExpiryLive(idx, '소비기한 없음');
+      else if (a === 'remove') { if (confirm('삭제하시겠습니까?')) removeItem(idx); }
+    };
+  });
+  div.querySelectorAll('.memo-preset-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const newMemo = applyMemoPreset(items[idx].memo, btn.dataset.preset);
+      items[idx].memo = newMemo;
+      const memoArea = div.querySelector('.memo-area');
+      if (memoArea) memoArea.value = newMemo;
+      syncMemoPresets(idx);
+      buzz(20);
+      saveLocal();
+    };
+  });
+  div.querySelectorAll('.exp-chip').forEach(b => {
+    b.onclick = (e) => { e.stopPropagation(); setExpiryLive(idx, b.dataset.exp); };
+  });
+  const blurOnEnter = (el) => { el.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } }; };
+  const selectOnFocus = (el) => { el.onfocus = (e) => { try { e.target.select(); } catch(err) {} }; };
+  const qtyInput = div.querySelector('.qty-input-big');
+  if (qtyInput) { qtyInput.onchange = (e) => setQty(idx, e.target.value); selectOnFocus(qtyInput); blurOnEnter(qtyInput); }
+  const bcInput = div.querySelector('.bc-input');
+  if (bcInput) {
+    bcInput.oninput = (e) => setScanBarcode(idx, e.target.value);
+    // 스캐너는 보통 입력 후 Enter를 보냄 — Enter 시 포커스 해제로 실수 방지
+    blurOnEnter(bcInput);
+  }
+  const pltInput = div.querySelector('.plt-input');
+  if (pltInput) { pltInput.onchange = (e) => setPlt(idx, e.target.value); selectOnFocus(pltInput); blurOnEnter(pltInput); }
+  div.querySelectorAll('.stor-btn').forEach(sb => {
+    sb.onclick = (e) => { e.stopPropagation(); setStorage(idx, sb.dataset.stor); };
+  });
+  [['.cbm-w', 'boxW'], ['.cbm-d', 'boxD'], ['.cbm-h', 'boxH']].forEach(([sel, f]) => {
+    const el = div.querySelector(sel);
+    if (el) { el.onchange = (e) => setBoxDim(idx, f, e.target.value); selectOnFocus(el); blurOnEnter(el); }
+  });
+  const bppEl = div.querySelector('.cbm-bpp');
+  if (bppEl) { bppEl.onchange = (e) => setBoxPerPlt(idx, e.target.value); selectOnFocus(bppEl); blurOnEnter(bppEl); }
+  const memoEl = div.querySelector('.memo-area');
+  if (memoEl) memoEl.oninput = (e) => setMemo(idx, e.target.value);
+  const expEl = div.querySelector('.expiry-row input');
+  if (expEl) {
+    expEl.oninput = (e) => setExpiry(idx, e.target.value);
+    expEl.onchange = (e) => {
+      const f = commitExpiry(idx, e.target.value);
+      e.target.value = f;
+      e.target.classList.toggle('exp-empty', expiryMissing(items[idx]));
+      if (f && !expiryValid(f)) { beep('err'); toast('⚠️ 날짜가 올바르지 않습니다: ' + f, 2500); }
+    };
+    blurOnEnter(expEl);
+  }
+  const sum = div.querySelector('.extra-info > summary');
+  if (sum) {
+    sum.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const det = sum.parentNode;
+      setTimeout(() => {
+        if (!items[idx]) return;
+        items[idx]._extraOpen = det.open;
+        if (!items[idx].cbmOnly) {
+          EXTRA_OPEN = det.open;
+          try { localStorage.setItem(EXTRA_OPEN_KEY, det.open ? '1' : '0'); } catch (err) {}
+        }
+      }, 0);
+    });
+  }
+  return div;
 }
 
 function openCalc(idx) {
@@ -1658,83 +2094,57 @@ function buildSubmitSignature(surveyor, list) {
 safeClick('submitBtn', () => {
   const sv = $('surveyor');
   const surveyor = sv ? sv.value.trim() : '';
-  if (!surveyor) { alert('조사자 이름을 입력하세요.'); return; }
+  if (!surveyor) {
+    beep('err');
+    alert('조사자 이름을 입력하세요.');
+    if (sv) { sv.scrollIntoView({ behavior: 'smooth', block: 'center' }); sv.focus(); }
+    return;
+  }
   if (items.length === 0) { alert('품목을 1개 이상 추가하세요.'); return; }
-  const pendingInfo = items.filter(it => it.infoState === 'pending');
-  if (pendingInfo.length > 0) {
-    alert('기확보 정보 확인이 필요한 품목이 ' + pendingInfo.length + '개 있습니다.\n[✓ 모두 일치] 또는 [✏️ 다름 · 수정] 중 하나를 눌러주세요.');
-    const idx = items.indexOf(pendingInfo[0]);
-    items[idx]._collapsed = false; renderItems();
-    setTimeout(() => { const el = document.querySelector('[data-idx="' + idx + '"] .info-panel'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
-    return;
-  }
-  const pendingQty = items.filter(it => reauditApplies(it) && !it.qtyState);
-  if (pendingQty.length > 0) {
-    alert('재실사 수량 확인이 안 된 품목이 ' + pendingQty.length + '개 있습니다.\n[✓ 일치] 또는 [✏️ 다름] 중 하나를 눌러주세요.');
-    const idx = items.indexOf(pendingQty[0]);
-    items[idx]._collapsed = false; renderItems();
-    setTimeout(() => { const el = document.querySelector('[data-idx="' + idx + '"] .rq-panel'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
-    return;
-  }
-  const noMemo = items.filter(it => !REAUDIT && !it.cbmOnly && (!it.memo || !it.memo.trim()));
-  if (noMemo.length > 0) {
-    alert('메모가 비어 있는 품목이 ' + noMemo.length + '개 있습니다.\n모든 품목에 메모를 입력해주세요.');
-    const idx = items.indexOf(noMemo[0]);
-    items[idx]._collapsed = false; renderItems();
-    setTimeout(() => { const el = document.querySelector('[data-idx="' + idx + '"] .memo-area'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus(); } }, 100);
-    return;
-  }
-  const noExpiry = items.filter(it => !REAUDIT && !it.cbmOnly && (!it.expiry || !it.expiry.trim()));
-  if (noExpiry.length > 0) {
-    alert('유통기한이 비어 있는 품목이 ' + noExpiry.length + '개 있습니다.\n유통기한을 입력하거나 "소비기한 없음"을 눌러주세요.');
-    const idx = items.indexOf(noExpiry[0]);
-    items[idx]._collapsed = false; renderItems();
-    setTimeout(() => { const el = document.querySelector('[data-idx="' + idx + '"] .expiry-row input'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus(); } }, 100);
-    return;
-  }
-  const badDims = items.filter(it => dimsPartial(it) || (it.cbmOnly && !dimsComplete(it)));
-  if (badDims.length > 0) {
-    const it0 = badDims[0];
-    if (it0.cbmOnly && !dimsComplete(it0)) alert('「박스실측」 품목은 가로·세로·높이 3개를 모두 입력해야 합니다. (' + badDims.length + '개 미완성)');
-    else alert('박스 규격이 일부만 입력된 품목이 ' + badDims.length + '개 있습니다.\n가로·세로·높이 3개를 모두 입력하거나 모두 비워주세요.');
-    const idx = items.indexOf(it0);
-    items[idx]._collapsed = false; renderItems();
-    setTimeout(() => { const el = document.querySelector('[data-idx="' + idx + '"] .cbm-section'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
-    return;
-  }
-  const noBc = items.filter(isBarcodeIncomplete);
-  if (noBc.length > 0) {
-    alert('바코드 확인이 안 된 품목이 ' + noBc.length + '개 있습니다.\n[일치 / 다름 / 없음] 중 선택하고, "다름·신규"는 번호 입력 또는 📷 사진 촬영을 해주세요.');
-    const idx = items.indexOf(noBc[0]);
-    items[idx]._collapsed = false; renderItems();
-    setTimeout(() => { const el = document.querySelector('[data-idx="' + idx + '"] .barcode-section'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
-    return;
-  }
+  const missing = [];
+  items.forEach((it, idx) => { const m = missingFields(it); if (m.length > 0) missing.push({ idx, it, m }); });
+  if (missing.length > 0) { beep('err'); openMissingModal(missing); return; }
   openConfirmModal();
 });
+
+// 빠진 항목을 한 화면에 모아 보여주고, 누르면 해당 칸으로 이동 (알림창을 여러 번 누를 필요 없음)
+function openMissingModal(missing) {
+  const list = $('missingList');
+  if (!list) { goToField(missing[0].idx, missing[0].m[0].sel); return; }
+  list.innerHTML = '';
+  missing.forEach(x => {
+    const b = document.createElement('button');
+    b.className = 'missing-row';
+    b.innerHTML = '<b>' + escapeHtml(x.it.name) + '</b><span>누락: ' + x.m.map(m => escapeHtml(m.label)).join(', ') + '</span>';
+    b.onclick = () => { safeHide('missingModal'); goToField(x.idx, x.m[0].sel); };
+    list.appendChild(b);
+  });
+  safeShow('missingModal');
+}
+safeClick('missingCloseBtn', () => safeHide('missingModal'));
 
 function openConfirmModal() {
   const listEl = $('confirmList'), sumEl = $('confirmSummary');
   if (!listEl || !sumEl) { doSubmit(); return; }
   const view = items.map(it => {
     const other = (it.cbmOnly || it.sysQty === null) ? 0 : getOtherSurveyed(it);
-    const total = other + (it.cbmOnly ? 0 : (it.actualQty || 0));
-    const diff = (it.cbmOnly || it.sysQty === null) ? null : (total - it.sysQty);
+    const total = r2(other + (it.cbmOnly ? 0 : (it.actualQty || 0)));
+    const diff = (it.cbmOnly || it.sysQty === null) ? null : r2(total - it.sysQty);
     return { it, total, diff };
   }).sort((a, b) => {
     if (a.diff === null) return 1;
     if (b.diff === null) return -1;
     return Math.abs(b.diff) - Math.abs(a.diff);
   });
-  const bigCount = view.filter(v => v.diff !== null && Math.abs(v.diff) > 10).length;
+  const bigCount = view.filter(v => v.diff !== null && isBigDiff(v.diff, v.it.sysQty)).length;
   const bcIssueCount = items.filter(it => it.barcodeStatus === 'diff' || it.barcodeStatus === 'new').length;
   sumEl.innerHTML = '총 <b>' + items.length + '개</b> 제출'
-    + (bigCount > 0 ? ' / <span style="color:#dc3545;font-weight:700;">차이 10개 초과: ' + bigCount + '개</span>' : '')
+    + (bigCount > 0 ? ' / <span style="color:#dc3545;font-weight:700;">재실사 검토 대상: ' + bigCount + '개</span>' : '')
     + (bcIssueCount > 0 ? ' / <span style="color:#fd7e14;font-weight:700;">바코드 수정대상: ' + bcIssueCount + '개</span>' : '');
   listEl.innerHTML = '';
   view.forEach(v => {
     const it = v.it;
-    const isBig = v.diff !== null && Math.abs(v.diff) > 10;
+    const isBig = v.diff !== null && isBigDiff(v.diff, it.sysQty);
     let diffHtml;
     if (it.cbmOnly) diffHtml = '<span class="cf-diff" style="color:#0ca678;">박스실측</span>';
     else if (v.diff === null) diffHtml = '<span class="cf-diff">미등록</span>';
@@ -1749,7 +2159,8 @@ function openConfirmModal() {
       detailLine = (reauditApplies(it) ? (it.qtyState === 'ok' ? '재실사 일치 · ' : '재실사 수정 · ') : '') + '이번 ' + it.actualQty + ' / 누적 ' + v.total + (it.sysQty === null ? '' : ' / 전산 ' + it.sysQty)
         + (parseFloat(it.plt) > 0 ? ' / ' + it.plt + ' PLT' : '')
         + (cbmV !== null ? ' / CBM ' + cbmV : '')
-        + ' / ' + barcodeStatusLabel(it);
+        + ' / ' + barcodeStatusLabel(it)
+        + (it.expiry ? ' / 기한 ' + escapeHtml(it.expiry) : '');
     }
     const row = document.createElement('div');
     row.className = 'cf-row' + (isBig ? ' big' : '');
@@ -1764,6 +2175,14 @@ safeClick('confirmSubmitBtn', () => { safeHide('confirmModal'); doSubmit(); });
 function genSubmissionId(surveyor) {
   return surveyor + '_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
 }
+// 제출 메모: 비어 있으면 기본값으로 자동 기록
+function memoForSubmit(it) {
+  if (it.memo && it.memo.trim()) return it.memo;
+  if (it.cbmOnly) return it.memo || '';
+  if (REAUDIT) return it.qtyState === 'ok' ? '재실사 일치 확인' : '재실사 수정 입력';
+  return MEMO_DEFAULT;
+}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 async function doSubmit() {
   if (isSubmitting) return;
@@ -1779,23 +2198,22 @@ async function doSubmit() {
   if (signature === lastSubmitSignature && (Date.now() - lastSubmitTime) < DUP_GUARD_MS) {
     if (!confirm('⚠️ 방금 같은 내용을 제출했습니다.\n실수가 아니라 정말 추가로 제출하시겠습니까?')) return;
   }
-  const bigDiff = items.filter(it => {
-    if (it.sysQty === null) return false;
-    return Math.abs(getOtherSurveyed(it) + (it.actualQty || 0) - it.sysQty) > 10;
-  });
+  const bigDiff = items.filter(it => !it.cbmOnly && it.sysQty !== null
+    && isBigDiff(r2(getOtherSurveyed(it) + (it.actualQty || 0) - it.sysQty), it.sysQty));
 
   const btn = $('submitBtn');
   isSubmitting = true;
   if (btn) { btn.disabled = true; btn.textContent = '제출 중...'; }
 
-  const submittedCount = items.length;
-  items.forEach(it => normalizeDims(it));
-  const submittedItems = items.map(it => ({
+  const submittedRefs = items.slice(); // 확인 대기 중에 새로 추가한 품목은 지우지 않도록 제출분만 기억
+  const submittedCount = submittedRefs.length;
+  submittedRefs.forEach(it => normalizeDims(it));
+  const submittedItems = submittedRefs.map(it => ({
     name: it.name, spec: it.spec, unit: it.unit,
     type: it.cbmOnly ? '박스실측' : it.type,
     sysQty: it.cbmOnly ? null : it.sysQty,
     actualQty: it.cbmOnly ? 0 : it.actualQty,
-    memo: (it.memo && it.memo.trim()) ? it.memo : (REAUDIT && !it.cbmOnly ? (it.qtyState === 'ok' ? '재실사 일치 확인' : '재실사 수정 입력') : it.memo),
+    memo: memoForSubmit(it),
     expiry: it.expiry,
     sysBarcode: it.sysBarcode || '', scanBarcode: it.scanBarcode || '', barcodeStatus: it.barcodeStatus || '',
     plt: it.cbmOnly ? '' : it.plt, storage: it.storage || '', photoData: it.photoData || '',
@@ -1804,44 +2222,42 @@ async function doSubmit() {
   // 재제출 시 같은 제출ID 재사용 → 서버가 중복을 자동으로 걸러 이중 반영이 없음
   const isRetry = !!(pendingSub && pendingSub.signature === signature);
   const submissionId = isRetry ? pendingSub.id : genSubmissionId(surveyor);
-  // 검증 기준(제출 전 누적값)은 첫 시도 시점 값을 보존해 재제출 시 재사용
-  // (첫 전송이 이미 서버에 반영된 뒤 재제출해도 검증이 올바르게 통과되도록)
+  // 구버전 서버용 검증 기준(제출 전 누적값)은 첫 시도 시점 값을 보존해 재제출 시 재사용
   let beforeQty;
   if (isRetry && pendingSub.before) {
     beforeQty = pendingSub.before;
   } else {
     beforeQty = {};
-    items.forEach(it => { beforeQty[it.name + '|' + it.spec] = getOtherSurveyed(it); });
+    submittedRefs.forEach(it => { beforeQty[pkey(it)] = getOtherSurveyed(it); });
   }
   pendingSub = { id: submissionId, signature: signature, before: beforeQty };
   saveLocal(true); // 전송 전 제출ID·기준값까지 기기에 저장 (앱이 꺼져도 재제출 안전)
   const expectedAdd = {};
-  items.forEach(it => {
-    const k = it.name + '|' + it.spec;
+  submittedRefs.forEach(it => {
+    const k = pkey(it);
     expectedAdd[k] = (expectedAdd[k] || 0) + (it.cbmOnly ? 0 : (it.actualQty || 0));
   });
 
   let verified = false;
   try {
     await postData({ mode: 'final', surveyor, items: submittedItems, submissionId });
-
-    // 제출 검증: 대시보드를 최대 3회(2초/4초/6초 간격) 재조회하며 누적 반영 확인
     if (btn) btn.textContent = '제출 확인 중...';
-    const delays = [2000, 4000, 6000];
+    // 제출ID로 서버 반영을 직접 확인 — 구버전 서버(check 미지원)면 누적수량 비교 방식으로 대체
+    let byId = true;
+    const delays = [800, 1500, 2500, 3500, 5000];
     for (let vi = 0; vi < delays.length && !verified; vi++) {
-      await new Promise(r => setTimeout(r, delays[vi]));
+      await sleep(delays[vi]);
       try {
+        if (byId) {
+          const r = await jsonpRequest(WEB_APP_URL + '?action=check&id=' + encodeURIComponent(submissionId), 15000);
+          if (r && r.result === 'success' && typeof r.found === 'boolean') { verified = r.found; continue; }
+          byId = false;
+        }
         const res = await jsonpRequest(WEB_APP_URL + '?action=dashboard', 20000);
         if (res && res.result === 'success') {
           const dash = {};
           (res.dashboard || []).forEach(d => { dash[d.name + '|' + d.spec] = d.totalQty || 0; });
-          verified = Object.keys(expectedAdd).every(k => {
-            const now = dash[k] || 0;
-            return now >= (beforeQty[k] || 0) + expectedAdd[k] - 0.001;
-          });
-          DASHBOARD = {};
-          (res.dashboard || []).forEach(d => { DASHBOARD[d.name + '|' + d.spec] = d; });
-          renderDashboard();
+          verified = Object.keys(expectedAdd).every(k => (dash[k] || 0) >= (beforeQty[k] || 0) + expectedAdd[k] - 0.001);
         }
       } catch (e) {}
     }
@@ -1849,21 +2265,23 @@ async function doSubmit() {
 
   try {
     if (verified) {
-      // ★ 반영이 확인된 경우에만 입력을 비움
-      items = [];
+      // ★ 반영이 확인된 경우에만 제출분을 비움
+      items = items.filter(it => submittedRefs.indexOf(it) < 0);
+      submittedRefs.forEach(it => { if (it.photoId) idbDel(it.photoId).catch(() => {}); });
       pendingSub = null;
       lastSubmitSignature = signature;
       lastSubmitTime = Date.now();
-      try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
+      if (items.length === 0) { try { localStorage.removeItem(DRAFT_KEY); } catch(e) {} updateSaveStatus('cleared'); }
+      else saveLocal(true);
       renderItems();
-      updateSaveStatus('cleared');
-      buzz(80);
-      showSuccess('✅ 제출 완료 (확인됨)', submittedCount + '개 품목이 저장·반영 확인되었습니다.' + (bigDiff.length > 0 ? '<br><br>⚠️ 누적 차이 10개 초과 ' + bigDiff.length + '개는 재실사 검토 권장' : '') + '<br><br>이어서 다른 구역을 조사하세요.');
-      setTimeout(loadDashboard, 1200);
+      beep('ok'); buzz(80);
+      showSuccess('✅ 제출 완료 (확인됨)', submittedCount + '개 품목이 저장·반영 확인되었습니다.' + (bigDiff.length > 0 ? '<br><br>⚠️ 재실사 검토 대상 ' + bigDiff.length + '개' : '') + '<br><br>이어서 다른 구역을 조사하세요.');
+      loadDashboard();
     } else {
       // ★ 확인 실패 시 입력·임시저장·제출ID를 모두 보존 → 그대로 다시 제출하면 됨
       saveLocal(true);
       renderItems();
+      beep('err');
       showSuccess('📶 전송 확인 실패 — 입력 보존됨',
         submittedCount + '개 품목의 서버 반영을 확인하지 못했습니다. (신호 약함/오프라인 가능)<br><br>' +
         '<b>입력 내용은 지워지지 않고 그대로 남아 있습니다.</b><br>' +
@@ -1872,28 +2290,36 @@ async function doSubmit() {
     }
   } finally {
     isSubmitting = false;
-    // (버그 수정) textContent로 덮으면 btnCount span이 사라져 이후 개수 갱신이 안 되던 문제 → innerHTML로 span 복원
     if (btn) { btn.disabled = false; btn.innerHTML = '📤 제출 (<span id="btnCount">' + items.length + '</span>개)'; }
   }
 }
 
 let saveDebounce;
-function saveLocal(immediate) {
+let saveWarned = false;
+// 임시저장 내용 — 사진은 IndexedDB에 따로 보관하므로(용량 제한 회피) 보관된 사진은 빼고 저장
+function draftJson() {
+  const sv = $('surveyor');
+  const list = items.map(it => (it.photoData && it._photoStored) ? { ...it, photoData: '' } : it);
+  return JSON.stringify({ surveyor: sv ? sv.value : '', items: list, ts: Date.now(), pendingSub: pendingSub });
+}
+function saveLocal(immediate, silent) {
   clearTimeout(saveDebounce);
   const doSave = () => {
     try {
-      const sv = $('surveyor');
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor: sv ? sv.value : '', items, ts: Date.now(), pendingSub: pendingSub }));
+      localStorage.setItem(DRAFT_KEY, draftJson());
       lastSavedAt = new Date();
       updateSaveStatus('saved');
       const ind = $('saveIndicator');
-      if (ind && (!ind._hold || Date.now() >= ind._hold)) {
+      if (!silent && ind && (!ind._hold || Date.now() >= ind._hold)) {
         ind.textContent = '💾 저장됨';
         ind.classList.add('show');
         clearTimeout(ind._t);
         ind._t = setTimeout(() => ind.classList.remove('show'), 1200);
       }
-    } catch (e) { updateSaveStatus('error'); }
+    } catch (e) {
+      updateSaveStatus('error');
+      if (!saveWarned) { saveWarned = true; beep('err'); toast('⚠️ 기기 저장 공간 부족 — 입력이 지워질 수 있으니 지금 제출해 주세요', 6000); }
+    }
   };
   if (immediate) doSave();
   else { updateSaveStatus('saving'); saveDebounce = setTimeout(doSave, 400); }
@@ -1914,21 +2340,27 @@ function updateSaveStatus(state) {
 const surveyorEl = $('surveyor');
 if (surveyorEl) surveyorEl.addEventListener('input', () => saveLocal());
 
-window.addEventListener('beforeunload', () => {
-  try { const sv = $('surveyor'); const s = sv ? sv.value : ''; if (items.length > 0 || s) localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor: s, items, ts: Date.now(), pendingSub: pendingSub })); } catch (e) {}
-});
+function saveOnLeave() {
+  try { const sv = $('surveyor'); const s = sv ? sv.value : ''; if (items.length > 0 || s) localStorage.setItem(DRAFT_KEY, draftJson()); } catch (e) {}
+}
+window.addEventListener('beforeunload', saveOnLeave);
+window.addEventListener('pagehide', saveOnLeave);
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') {
-    try { const sv = $('surveyor'); const s = sv ? sv.value : ''; if (items.length > 0 || s) localStorage.setItem(DRAFT_KEY, JSON.stringify({ surveyor: s, items, ts: Date.now(), pendingSub: pendingSub })); } catch (e) {}
-  }
+  if (document.visibilityState === 'hidden') { saveOnLeave(); stopCamera(); }
 });
-setInterval(() => { if (items.length > 0) saveLocal(true); }, 5000);
-setInterval(() => { const p = $('dashPanel'); if (p && p.classList.contains('show')) loadDashboard(); }, 15000);
+setInterval(() => { if (items.length > 0) saveLocal(true, true); }, 5000);
+// 현황판이 열려 있으면 15초, 닫혀 있어도 60초마다 누적 현황 갱신 (다른 조사자 진행분·다음 미조사 반영)
+let lastDashAt = Date.now();
+setInterval(() => {
+  if (document.visibilityState !== 'visible' || isSubmitting || !SYS_PRODUCTS.length) return;
+  const p = $('dashPanel');
+  if ((p && p.classList.contains('show')) || Date.now() - lastDashAt > 60000) { lastDashAt = Date.now(); loadDashboard(); }
+}, 15000);
 
 function checkRestore() {
   let raw;
   try { raw = localStorage.getItem(DRAFT_KEY); } catch(e) { return; }
-  if (!raw) return;
+  if (!raw) { if (!items.length) idbClear().catch(() => {}); return; } // 남아 있는 임시 사진 정리
   try {
     const d = JSON.parse(raw);
     if ((!d.items || d.items.length === 0) && !d.surveyor) { try { localStorage.removeItem(DRAFT_KEY); } catch(e) {} return; }
@@ -1942,35 +2374,51 @@ function checkRestore() {
     const area = $('restoreArea');
     if (!area) return;
     area.innerHTML = '<div class="restore-banner"><h3>💾 이전 입력 데이터가 있습니다</h3><div class="info">저장 시각: ' + savedDate.toLocaleString('ko-KR') + ' (' + timeStr + ')<br>조사자: <b>' + escapeHtml(d.surveyor || '미입력') + '</b><br>품목 수: <b>' + (d.items ? d.items.length : 0) + '개</b></div><div class="btn-row"><button class="btn-restore" id="btnRestore">📂 이어서 작업</button><button class="btn-discard" id="btnDiscard">🗑️ 새로 시작</button></div></div>';
-    safeClick('btnRestore', () => {
+    safeClick('btnRestore', async () => {
       const sv = $('surveyor');
       if (sv) sv.value = d.surveyor || '';
       // 구버전 임시저장(바코드 필드 없음)도 안전하게 복구
-      items = (d.items || []).map((it, i) => ({
+      const restored = (d.items || []).map((it, i) => ({
         sysBarcode: '', scanBarcode: '', barcodeStatus: '',
-        plt: '', storage: '', photoData: '',
+        plt: '', storage: '', photoData: '', photoId: '',
         boxW: '', boxD: '', boxH: '', boxPerPlt: '', cbmOnly: false,
         known: null, infoState: 'none', qtyState: '',
-        ...it, _collapsed: i !== 0, _new: false
+        ...it,
+        _qtyTouched: !!(it._qtyTouched || it.actualQty > 0 || it.qtyState),
+        _collapsed: i !== 0, _new: false
       }));
-      // 복구된 품목의 전산 바코드/보관구분이 비어 있으면 현재 마스터에서 다시 채움
-      items.forEach(it => {
+      // 복구된 품목의 전산 바코드/보관구분/위치가 비어 있으면 현재 마스터에서 다시 채움
+      restored.forEach(it => {
         const p = SYS_PRODUCTS.find(x => x.name === it.name && x.spec === it.spec)
           || EXTRA_PRODUCTS.find(x => x.name === it.name && x.spec === it.spec);
         if (p) {
           if (!it.sysBarcode && p.barcode) it.sysBarcode = p.barcode;
           if (!it.storage && p.storage) it.storage = p.storage;
+          if (!it.loc && p.loc) it.loc = p.loc;
         }
       });
+      // IndexedDB에 따로 보관한 사진 다시 불러오기 (구버전 임시저장의 사진은 IndexedDB로 옮김)
+      await Promise.all(restored.map(it => {
+        if (it.photoData) return it._photoStored ? null : storePhoto(it);
+        if (!it.photoId || !it._photoStored) return null;
+        return withTimeout(idbGet(it.photoId), 3000)
+          .then(v => { if (v) it.photoData = v; else it._photoStored = false; })
+          .catch(() => { it._photoStored = false; });
+      }));
+      // 복구 전에 이미 추가한 품목이 있으면 함께 유지
+      const keys = {};
+      restored.forEach(it => { keys[pkey(it)] = true; });
+      items = items.filter(it => !keys[pkey(it)]).concat(restored);
       pendingSub = d.pendingSub || null;
       renderItems();
       lastSavedAt = savedDate;
-      updateSaveStatus('saved');
+      saveLocal(true, true);
       area.innerHTML = '';
     });
     safeClick('btnDiscard', () => {
       if (confirm('이전 입력을 삭제할까요? 복구 불가합니다.')) {
         try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
+        if (!items.length) idbClear().catch(() => {});
         pendingSub = null;
         area.innerHTML = '';
         updateSaveStatus('cleared');
@@ -2006,7 +2454,7 @@ document.querySelectorAll('.dash-filter button').forEach(btn => {
     btn.textContent = REAUDIT ? '🔁 재실사 모드: ON — 이전 실사수량과 일치/다름만 확인' : '🔁 재실사 모드: OFF';
     safeHTML('submitHint', REAUDIT
       ? '🔁 <b>재실사 모드</b> — 품목마다 [일치/다름] 수량 확인만 필수이며, 메모·유통기한은 선택입니다. 빈 메모는 \'재실사 확인\'으로 자동 기록됩니다.'
-      : '💡 <b>제출</b> 후 입력 품목은 자동으로 비워지고 누적 현황이 갱신됩니다. 메모·유통기한·바코드 확인은 필수입니다.');
+      : '💡 품목마다 <b>[✓ 완료 → 다음]</b>으로 넘어가고, 다 모이면 <b>제출</b>하세요. 유통기한·바코드 확인은 필수, 메모는 \'실사재고 입력\'이 자동 기록됩니다.');
   }
   if (btn) btn.onclick = () => {
     REAUDIT = !REAUDIT;
@@ -2016,13 +2464,397 @@ document.querySelectorAll('.dash-filter button').forEach(btn => {
   apply();
 })();
 
-(function initBigMode() {
-  const KEY = 'audit_big_mode';
-  let on = false;
-  try { on = localStorage.getItem(KEY) === '1'; } catch(e) {}
-  const btn = $('bigToggle');
-  function apply() { document.body.classList.toggle('big-mode', on); if (btn) btn.classList.toggle('active', on); }
-  if (btn) btn.onclick = () => { on = !on; try { localStorage.setItem(KEY, on ? '1' : '0'); } catch(e) {} apply(); };
+// ===== 소리·진동 피드백 (장갑 끼고 화면을 안 봐도 결과를 알 수 있게) =====
+// 아이폰은 진동 미지원 — 소리로 구분 (무음 스위치가 켜져 있으면 소리도 안 남)
+let audioCtx = null;
+function unlockAudio() {
+  try {
+    if (!audioCtx) { const AC = window.AudioContext || window.webkitAudioContext; if (AC) audioCtx = new AC(); }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  } catch (e) {}
+}
+function tone(freq, dur, at) {
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = 'square'; o.frequency.value = freq;
+  g.gain.setValueAtTime(0.12, at);
+  g.gain.exponentialRampToValueAtTime(0.001, at + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(at); o.stop(at + dur + 0.02);
+}
+// ok: 삑(높은음 1번) / warn: 삐빅(올라가는 2음) / err: 뚜-뚜(낮은음 2번)
+function beep(kind) {
+  try {
+    if (kind === 'ok') buzz(60); else if (kind === 'err') buzz([90, 60, 90]); else buzz(40);
+    if (!audioCtx || audioCtx.state !== 'running') return;
+    const t = audioCtx.currentTime;
+    if (kind === 'ok') tone(1800, 0.1, t);
+    else if (kind === 'err') { tone(320, 0.16, t); tone(320, 0.16, t + 0.24); }
+    else { tone(900, 0.08, t); tone(1300, 0.08, t + 0.12); }
+  } catch (e) {}
+}
+
+// ===== 화면 켜짐 유지 (Wake Lock) — 장갑 낀 채 잠금 해제하는 번거로움 방지 =====
+let WAKE_ON = true;
+try { WAKE_ON = localStorage.getItem('audit_wake') !== '0'; } catch (e) {}
+let wakeLock = null;
+async function requestWake() {
+  if (!WAKE_ON || wakeLock || !('wakeLock' in navigator) || document.visibilityState !== 'visible') return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => { wakeLock = null; });
+  } catch (e) { wakeLock = null; }
+}
+function releaseWake() { try { if (wakeLock) wakeLock.release(); } catch (e) {} wakeLock = null; }
+// 아이폰은 사용자 터치가 있어야 소리·화면유지가 켜짐 → 첫 터치 때 활성화
+document.addEventListener('pointerdown', () => { unlockAudio(); requestWake(); }, true);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') requestWake(); });
+
+// ===== 바코드 사진 임시 보관 (IndexedDB) — 기기 임시저장 용량(약 5MB) 초과로 입력이 날아가는 것 방지 =====
+const PHOTO_DB = 'audit_photos_v1';
+let photoDbPromise = null;
+function photoDb() {
+  if (photoDbPromise) return photoDbPromise;
+  photoDbPromise = new Promise((resolve, reject) => {
+    try {
+      if (!window.indexedDB) { reject(new Error('IndexedDB 미지원')); return; }
+      const req = indexedDB.open(PHOTO_DB, 1);
+      req.onupgradeneeded = () => { req.result.createObjectStore('p'); };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    } catch (e) { reject(e); }
+  });
+  photoDbPromise.catch(() => { photoDbPromise = null; });
+  return photoDbPromise;
+}
+function idbReq(mode, fn) {
+  return photoDb().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction('p', mode);
+    const r = fn(tx.objectStore('p'));
+    tx.oncomplete = () => resolve(r ? r.result : undefined);
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  }));
+}
+function idbPut(k, v) { return idbReq('readwrite', s => s.put(v, k)); }
+function idbGet(k) { return idbReq('readonly', s => s.get(k)); }
+function idbDel(k) { return idbReq('readwrite', s => s.delete(k)); }
+function idbClear() { return idbReq('readwrite', s => s.clear()); }
+function withTimeout(p, ms) { return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]); }
+async function storePhoto(it) {
+  if (!it || !it.photoData) return;
+  try {
+    if (!it.photoId) it.photoId = 'ph_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+    await withTimeout(idbPut(it.photoId, it.photoData), 3000);
+    it._photoStored = true;
+  } catch (e) { it._photoStored = false; } // 실패하면 기존처럼 임시저장에 함께 보관
+}
+function dropPhoto(it) {
+  if (!it || !it.photoId) return;
+  const id = it.photoId;
+  it.photoId = ''; it._photoStored = false;
+  idbDel(id).catch(() => {});
+}
+
+// ===== 실시간 카메라 바코드 스캔 (안드로이드: 내장 BarcodeDetector / 아이폰: ZXing) =====
+const SCAN = { stream: null, track: null, running: false, mode: 'search', target: null, timer: null, idleTimer: null,
+  detector: null, zxReader: null, canvas: null, last: '', lastCount: 0, torch: false, photoMode: 'search', photoTarget: null };
+
+async function openScanner(mode, target) {
+  SCAN.mode = mode || 'search';
+  SCAN.target = target || null;
+  SCAN.last = ''; SCAN.lastCount = 0;
+  clearTimeout(SCAN.idleTimer);
+  const ov = $('scanOverlay');
+  if (!ov) return;
+  ov.classList.add('show');
+  document.body.classList.add('scan-open');
+  safeText('scanTitle', SCAN.mode === 'card' ? '📷 실물 바코드 스캔' : '📷 바코드 스캔');
+  safeText('scanMsg', '카메라 준비 중...');
+  renderScanNext();
+  try {
+    await ensureCamera();
+    await prepareDecoder();
+    if (!ov.classList.contains('show')) return;
+    safeText('scanMsg', '바코드를 빨간 선에 맞춰 주세요');
+    SCAN.running = true;
+    scanLoop();
+  } catch (e) {
+    beep('err');
+    safeText('scanMsg', '카메라를 쓸 수 없습니다 — 아래 [📸 사진으로 인식]을 눌러 주세요' + (e && e.message ? ' (' + e.message + ')' : ''));
+  }
+}
+function closeScanner() {
+  SCAN.running = false;
+  clearTimeout(SCAN.timer);
+  const ov = $('scanOverlay');
+  if (ov) ov.classList.remove('show');
+  document.body.classList.remove('scan-open');
+  if (SCAN.torch) setTorch(false);
+  // 카메라는 잠시 켜 둠(다음 스캔 즉시 시작) → 40초간 안 쓰면 자동 종료(배터리 절약)
+  clearTimeout(SCAN.idleTimer);
+  SCAN.idleTimer = setTimeout(stopCamera, 40000);
+}
+function stopCamera() {
+  SCAN.running = false;
+  clearTimeout(SCAN.timer);
+  try { if (SCAN.stream) SCAN.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+  SCAN.stream = null; SCAN.track = null; SCAN.torch = false;
+  const v = $('scanVideo'); if (v) v.srcObject = null;
+  const ov = $('scanOverlay');
+  if (ov && ov.classList.contains('show')) { ov.classList.remove('show'); document.body.classList.remove('scan-open'); }
+}
+async function ensureCamera() {
+  const v = $('scanVideo');
+  if (SCAN.stream && SCAN.track && SCAN.track.readyState === 'live') {
+    if (v.srcObject !== SCAN.stream) v.srcObject = SCAN.stream;
+    await v.play().catch(() => {});
+    return;
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('이 브라우저는 카메라 미지원');
+  const stream = await navigator.mediaDevices.getUserMedia({
+    audio: false,
+    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+  });
+  SCAN.stream = stream;
+  SCAN.track = stream.getVideoTracks()[0];
+  v.setAttribute('playsinline', ''); v.muted = true;
+  v.srcObject = stream;
+  await v.play().catch(() => {});
+  try {
+    const caps = (SCAN.track && SCAN.track.getCapabilities) ? SCAN.track.getCapabilities() : {};
+    if (caps.focusMode && caps.focusMode.indexOf('continuous') >= 0) await SCAN.track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
+    const tb = $('scanTorchBtn'); if (tb) tb.style.display = caps.torch ? '' : 'none';
+  } catch (e) {}
+}
+async function prepareDecoder() {
+  if (SCAN.detector || SCAN.zxReader) return;
+  if ('BarcodeDetector' in window) {
+    try {
+      const want = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf'];
+      let fmts = want;
+      if (BarcodeDetector.getSupportedFormats) {
+        const sup = await BarcodeDetector.getSupportedFormats();
+        fmts = want.filter(f => sup.indexOf(f) >= 0);
+      }
+      if (fmts.length > 0) { SCAN.detector = new BarcodeDetector({ formats: fmts }); return; }
+    } catch (e) {}
+  }
+  const ok = await loadZXing();
+  if (!ok || !window.ZXing) throw new Error('인식 라이브러리 로드 실패 — 신호 있는 곳에서 새로고침');
+  const F = ZXing.BarcodeFormat, hints = new Map();
+  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.CODE_128, F.CODE_39, F.ITF]);
+  hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+  const r = new ZXing.MultiFormatReader();
+  r.setHints(hints);
+  SCAN.zxReader = r;
+}
+function scanLoop() {
+  clearTimeout(SCAN.timer);
+  if (!SCAN.running) return;
+  SCAN.timer = setTimeout(async () => {
+    if (!SCAN.running) return;
+    let code = '';
+    try { code = await detectFrame(); } catch (e) {}
+    if (code && SCAN.running && acceptCode(code)) { onScanned(code); return; }
+    scanLoop();
+  }, SCAN.detector ? 120 : 180);
+}
+async function detectFrame() {
+  const v = $('scanVideo');
+  if (!v || v.readyState < 2 || !v.videoWidth) return '';
+  if (SCAN.detector) {
+    const codes = await SCAN.detector.detect(v);
+    return (codes && codes.length) ? String(codes[0].rawValue || '') : '';
+  }
+  // ZXing: 화면 가운데 가로 띠만 잘라 판독(속도↑) — 세로로 놓인 바코드는 TRY_HARDER가 회전해서 재시도
+  const vw = v.videoWidth, vh = v.videoHeight;
+  const sw = vw * 0.9, sh = vh * 0.45, sx = (vw - sw) / 2, sy = (vh - sh) / 2;
+  const scale = Math.min(1, 900 / sw);
+  const c = SCAN.canvas || (SCAN.canvas = document.createElement('canvas'));
+  c.width = Math.round(sw * scale); c.height = Math.round(sh * scale);
+  c.getContext('2d', { willReadFrequently: true }).drawImage(v, sx, sy, sw, sh, 0, 0, c.width, c.height);
+  return zxDecodeCanvas(c);
+}
+function zxDecodeCanvas(c) {
+  try {
+    const lum = new ZXing.HTMLCanvasElementLuminanceSource(c);
+    const bmp = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(lum));
+    const res = SCAN.zxReader.decodeWithState(bmp);
+    return res ? String(res.getText()) : '';
+  } catch (e) { return ''; }
+}
+// EAN/UPC 체크섬이 맞으면 1회로 확정, 그 외 형식은 같은 값이 2번 연속 읽혀야 확정 (오인식 방지)
+function acceptCode(code) {
+  code = String(code || '').trim();
+  if (!code) return false;
+  if (eanCheckDigitOk(code) === true) return true;
+  if (code === SCAN.last) SCAN.lastCount++; else { SCAN.last = code; SCAN.lastCount = 1; }
+  return SCAN.lastCount >= 2;
+}
+function onScanned(code) {
+  const mode = SCAN.mode, target = SCAN.target;
+  closeScanner();
+  deliverScan(String(code).trim(), mode, target);
+}
+function deliverScan(code, mode, target) {
+  if (mode === 'card') {
+    const ci = items.indexOf(target);
+    if (ci < 0) return;
+    beep('ok');
+    const it = items[ci];
+    if (it.sysBarcode && bcEq(it.sysBarcode, code)) {
+      it.barcodeStatus = 'match'; it.scanBarcode = ''; it._scanMatched = true;
+      toast('✅ 전산 바코드와 같습니다 — 일치로 처리', 2500);
+    } else {
+      it.scanBarcode = code;
+      if (it.barcodeStatus !== 'diff' && it.barcodeStatus !== 'new') it.barcodeStatus = it.sysBarcode ? 'diff' : 'new';
+      toast('🏷️ 실물 바코드 입력: ' + code, 2000);
+    }
+    renderItems(); saveLocal(true);
+    setTimeout(() => focusItem(items.indexOf(it)), 60);
+    return;
+  }
+  handleScannedCode(code, true);
+}
+async function setTorch(on) {
+  try {
+    if (!SCAN.track) return;
+    await SCAN.track.applyConstraints({ advanced: [{ torch: !!on }] });
+    SCAN.torch = !!on;
+  } catch (e) { SCAN.torch = false; }
+  const tb = $('scanTorchBtn'); if (tb) tb.classList.toggle('on', SCAN.torch);
+}
+safeClick('scanBtn', () => openScanner('search'));
+safeClick('scanCloseBtn', () => closeScanner());
+safeClick('scanTorchBtn', () => setTorch(!SCAN.torch));
+safeClick('scanTypeBtn', () => {
+  closeScanner();
+  window.scrollTo({ top: 0 });
+  if (searchInput) searchInput.focus();
+});
+// 카메라를 못 쓰는 기기(일부 앱 내 브라우저 등) — 사진을 찍어서 인식
+safeClick('scanPhotoBtn', () => {
+  SCAN.photoMode = SCAN.mode; SCAN.photoTarget = SCAN.target;
+  closeScanner();
+  const inp = $('scanPhotoInput'); if (inp) inp.click();
+});
+const scanPhotoEl = $('scanPhotoInput');
+if (scanPhotoEl) {
+  scanPhotoEl.onchange = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    scanPhotoEl.value = '';
+    if (!file) return;
+    toast('🔎 바코드 인식 중...', 8000);
+    try {
+      const url = await compressImage(file, 1600, 0.85);
+      const code = await tryDetectBarcode(url);
+      if (!code) { beep('err'); toast('📷 바코드를 인식하지 못했습니다 — 더 가까이, 밝게 다시 찍어 주세요', 3500); return; }
+      toast('✅ 인식: ' + code, 1500);
+      deliverScan(String(code).trim(), SCAN.photoMode, SCAN.photoTarget);
+    } catch (err) { beep('err'); toast('사진 처리 실패', 2500); }
+  };
+}
+
+// ===== 다음 미조사 품목 안내 — [입력] 전체상품 J열 '위치'가 있으면 위치 순, 없으면 전산재고 순 =====
+function locCompare(a, b) {
+  const la = a.loc || '', lb = b.loc || '';
+  if (la && !lb) return -1;
+  if (!la && lb) return 1;
+  if (la !== lb) return la.localeCompare(lb, 'ko', { numeric: true });
+  return (a.order || 0) - (b.order || 0);
+}
+function nextUnsurveyed() {
+  const inItems = {};
+  items.forEach(it => { inItems[pkey(it)] = true; });
+  const list = SYS_PRODUCTS.filter(p => !isSurveyed(DASHBOARD[pkey(p)]) && !inItems[pkey(p)]).sort(locCompare);
+  if (!list.length) return null;
+  const p = list.find(x => !NEXT_SKIP[pkey(x)]);
+  if (p) return p;
+  NEXT_SKIP = {}; // 한 바퀴 다 건너뛰었으면 처음부터 다시
+  return list[0];
+}
+function nextLabelHtml(p) {
+  return '▶ 다음 미조사 ' + (p.loc ? '<span class="loc-tag">' + escapeHtml(p.loc) + '</span>' : '') + escapeHtml(p.name) + ' <small>' + escapeHtml(p.spec) + '</small>';
+}
+function renderNextBar() {
+  const bar = $('nextBar'), btn = $('nextOpen');
+  if (!bar || !btn) return;
+  const p = SYS_PRODUCTS.length ? nextUnsurveyed() : null;
+  if (!p) { bar.classList.remove('show'); bar.dataset.key = ''; return; }
+  btn.innerHTML = nextLabelHtml(p);
+  bar.dataset.key = pkey(p);
+  bar.classList.add('show');
+}
+function renderScanNext() {
+  const b = $('scanNext');
+  if (!b) return;
+  const p = (SCAN.mode === 'search' && SYS_PRODUCTS.length) ? nextUnsurveyed() : null;
+  if (!p) { b.classList.remove('show'); b.dataset.key = ''; return; }
+  b.innerHTML = nextLabelHtml(p);
+  b.dataset.key = pkey(p);
+  b.classList.add('show');
+}
+function openProductByKey(key) {
+  const p = SYS_PRODUCTS.find(x => pkey(x) === key);
+  if (p) addItem({ ...p, isExtra: false });
+}
+safeClick('nextOpen', () => { const k = $('nextBar').dataset.key; if (k) openProductByKey(k); });
+safeClick('nextSkip', () => { const k = $('nextBar').dataset.key; if (k) { NEXT_SKIP[k] = true; renderNextBar(); } });
+safeClick('scanNext', () => { const k = $('scanNext').dataset.key; closeScanner(); if (k) openProductByKey(k); });
+
+// ===== 외장 스캐너(키보드 방식) 대응 =====
+// 사람이 칠 수 없는 속도(글자 간 35ms 미만)로 6자 이상 + Enter가 들어오면 바코드 스캔으로 판단 →
+// 수량칸 등 엉뚱한 칸에 포커스가 있어도 그 칸 값은 되돌리고 품목 스캔으로 처리
+const KB = { buf: '', t0: 0, last: 0, target: null, before: '' };
+document.addEventListener('keydown', (e) => {
+  const t = document.activeElement;
+  const now = Date.now();
+  if (e.key === 'Enter') {
+    const n = KB.buf.length;
+    const fast = n >= 6 && (now - KB.last) < 100 && (KB.last - KB.t0) / Math.max(1, n - 1) < 35;
+    const code = KB.buf;
+    KB.buf = '';
+    if (!fast || t === searchInput || (t && t.classList && t.classList.contains('bc-input'))) return;
+    e.preventDefault(); e.stopPropagation();
+    if (KB.target && KB.target === t && 'value' in t) {
+      t.value = KB.before;
+      try { t.dispatchEvent(new Event('input', { bubbles: true })); } catch (err) {}
+    }
+    if (t && t.blur) t.blur();
+    handleScannedCode(code, true);
+    return;
+  }
+  if (e.key && e.key.length === 1) {
+    if (now - KB.last > 100) { KB.buf = ''; KB.t0 = now; KB.target = t; KB.before = (t && 'value' in t) ? t.value : ''; }
+    KB.buf += e.key;
+    KB.last = now;
+  }
+}, true);
+
+// ===== 설정: 완료 후 자동 스캔 / 화면 켜짐 유지 / 큰 글씨 =====
+(function initSettings() {
+  let big = false;
+  try { big = localStorage.getItem('audit_big_mode') === '1'; } catch (e) {}
+  const bigBtn = $('bigToggle'), scanBtn = $('autoScanToggle'), wakeBtn = $('wakeToggle');
+  function apply() {
+    document.body.classList.toggle('big-mode', big);
+    if (bigBtn) { bigBtn.classList.toggle('on', big); bigBtn.innerHTML = '🔍 큰 글씨<br>' + (big ? 'ON' : 'OFF'); }
+    if (scanBtn) { scanBtn.classList.toggle('on', AUTO_SCAN); scanBtn.innerHTML = '📷 완료 후 스캔<br>' + (AUTO_SCAN ? 'ON' : 'OFF'); }
+    if (wakeBtn) {
+      const sup = 'wakeLock' in navigator;
+      wakeBtn.disabled = !sup;
+      wakeBtn.classList.toggle('on', sup && WAKE_ON);
+      wakeBtn.innerHTML = '🔆 화면 켜짐<br>' + (!sup ? '미지원 기기' : (WAKE_ON ? 'ON' : 'OFF'));
+    }
+  }
+  if (bigBtn) bigBtn.onclick = () => { big = !big; try { localStorage.setItem('audit_big_mode', big ? '1' : '0'); } catch (e) {} apply(); };
+  if (scanBtn) scanBtn.onclick = () => { AUTO_SCAN = !AUTO_SCAN; try { localStorage.setItem('audit_auto_scan', AUTO_SCAN ? '1' : '0'); } catch (e) {} apply(); renderItems(); };
+  if (wakeBtn) wakeBtn.onclick = () => {
+    WAKE_ON = !WAKE_ON;
+    try { localStorage.setItem('audit_wake', WAKE_ON ? '1' : '0'); } catch (e) {}
+    if (WAKE_ON) requestWake(); else releaseWake();
+    apply();
+  };
   apply();
 })();
 
@@ -2035,8 +2867,9 @@ safeClick('floatSubmit', () => {
   if (sb && !sb.disabled) sb.click();
 });
 
-// BarcodeDetector 미지원 기기(아이폰 등)는 인식 라이브러리를 미리 백그라운드 로드
-if (!('BarcodeDetector' in window)) setTimeout(() => { loadZXing(); }, 3000);
+// 바코드 인식 라이브러리 미리 로드 — 냉동창고 안은 신호가 약하므로 입구에서 받아 둠
+// (BarcodeDetector 미지원 기기(아이폰 등)는 3초 후, 지원 기기도 예비용으로 8초 후)
+setTimeout(() => { loadZXing(); }, ('BarcodeDetector' in window) ? 8000 : 3000);
 
 loadProducts();
 updateSaveStatus('idle');
