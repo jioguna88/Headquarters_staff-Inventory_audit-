@@ -20,6 +20,12 @@
   .save-status { display: flex; justify-content: space-between; align-items: center; background: #e7f3ff; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-bottom: 4px; color: #004085; }
   .save-status.saving { background: #fff3cd; color: #856404; }
   .save-status.saved { background: #d4edda; color: #155724; }
+  /* 신호 없이 열기 — 준비 상태 줄 (sw.js 를 쓸 때만 보임) */
+  .shell-line { display: none; margin-bottom: 4px; padding: 4px 8px; border-radius: 4px; background: #eceff3; color: #495057; font-size: 12px; }
+  .shell-line.show { display: block; }
+  .shell-line.ok { background: #d4edda; color: #155724; }
+  .shell-line.warn { padding: 0; background: none; }
+  .shell-line button { display: block; width: 100%; min-height: 44px; padding: 6px 8px; border: 1px solid #d9a400; border-radius: 6px; background: #fff3cd; color: #7a4b00; font-size: 13px; font-weight: 700; line-height: 1.4; text-align: left; }
   .progress-wrap { margin-bottom: 6px; }
   .progress-label { font-size: 12px; color: #555; margin-bottom: 3px; display: flex; justify-content: space-between; }
   .progress-bar { height: 14px; background: #e0e0e0; border-radius: 7px; overflow: hidden; }
@@ -551,6 +557,8 @@
   /* [큰 글씨]로 볼 때는 작은 글자를 14px 이상으로 — 위쪽 영역 · 전송 대기 */
   body.big-mode .save-status, body.big-mode .set-btn, body.big-mode .progress-label, body.big-mode .summary-bar div, body.big-mode .scan-notice, body.big-mode .loc-tag,
   body.big-mode .next-open small, body.big-mode .next-skip, body.big-mode .submit-hint, body.big-mode .net-line, body.big-mode .outbox .ob-note, body.big-mode .outbox .ob-items { font-size: 14px; }
+  body.big-mode .shell-line { font-size: 14px; }
+  body.big-mode .shell-line button { font-size: 15px; }
   /* 카드 */
   body.big-mode .who, body.big-mode .input-hint, body.big-mode .diff-box small, body.big-mode .diff-box .calc-detail, body.big-mode .barcode-label, body.big-mode .opt-note,
   body.big-mode .bc-format, body.big-mode .barcode-result, body.big-mode .memo-label, body.big-mode .memo-label.required::after, body.big-mode .exp-none-btn, body.big-mode .exp-hint,
@@ -581,6 +589,7 @@
     <span id="saveStatusText">💾 자동 저장: 대기 중</span>
     <span id="saveStatusTime"></span>
   </div>
+  <div class="shell-line" id="shellLine"></div>
   <div class="surveyor-row">
     <label>조사자</label>
     <input type="text" id="surveyor" placeholder="이름 입력">
@@ -1040,7 +1049,7 @@ function closeSuccess() { PENDING_NOTE = false; safeHide('successModal'); }
 
 // ── 묻는 창 · 알리는 창 (기기 기본 알림창 confirm·alert 대신) ──
 // 장갑 낀 손으로도 누를 수 있는 큰 버튼. 기기 기본 창과 달리 화면이 멈추지 않으므로, 답을 받은 뒤에는 그 사이 사정이 바뀌지 않았는지 다시 확인하고 처리할 것
-//  ask(글, { yes: 확인 버튼 글, no: 취소 버튼 글, danger: 지우는 일처럼 조심할 확인(빨간 버튼), tell: 알리기만 함(버튼 하나) }) → Promise<boolean>
+//  ask(글, { yes: 확인 버튼 글, no: 취소 버튼 글, danger: 지우는 일처럼 조심할 확인(빨간 버튼), tell: 알리기만 함(버튼 하나), onYes: [확인]을 누른 그 자리에서 할 일 }) → Promise<boolean>
 //  · 여러 개가 겹치면 차례로 하나씩 보여 줌
 //  · 창이 뜨자마자(NET.askGuard) 눌린 것은 무시 — 다른 것을 누르려던 손가락이 답이 되지 않게
 //  · 바깥을 눌러서는 닫히지 않고, 버튼에 커서를 두지 않음 (블루투스 스캐너의 Enter가 답이 되지 않게) · 기기의 뒤로 가기는 [취소]
@@ -1068,6 +1077,7 @@ function askNext() {
 function askDone(v) {
   const q = ASK.cur;
   if (!q) return;
+  if (v && q.opt.onYes) { try { q.opt.onYes(); } catch (e) {} } // 누른 그 자리에서 해야 하는 일 (복사처럼, 브라우저가 손가락으로 누른 때에만 허락하는 것) — 창을 거두기 전에 해서, 그 안에서 ask() 를 불러도 차례를 기다리게 함
   ASK.cur = null;
   safeHide('askModal');
   q.resolve(!!v);
@@ -3201,7 +3211,7 @@ function getWasmDetector() {
   })();
   wasmDetectorPromise = p;
   p.then(d => { if (!d && wasmDetectorPromise === p) wasmDetectorPromise = null; }); // 실패하면 다음에 다시 시도
-  p.then(keepShell); // 받은 엔진 파일을 기기에 넣어 둠 (신호가 없어도 스캔되게)
+  p.then(d => { SHELL_WASM_FAIL = !d; keepShell(); }); // 받은 엔진 파일을 기기에 넣어 둠 (신호가 없어도 스캔되게) · 고급 엔진을 받지 못했는지 적어 둠 (준비 상태 줄)
   return p;
 }
 // 화면을 연 직후(신호 있을 때) 내장 인식기가 없는 기기는 고급 엔진을 미리 받아 둠
@@ -3221,13 +3231,14 @@ function zxFormatName(res) {
 }
 
 // ZXing 라이브러리 지연 로드 (필요한 기기에서만, CDN 2곳 순차 시도)
+const ZX_VER = '0.18.6'; // 예비 엔진(ZXing)의 버전 — 받는 주소와 준비 상태 줄이 함께 씀
 let zxingLoadPromise = null;
 function loadZXing() {
   if (window.ZXing) return Promise.resolve(true);
   if (zxingLoadPromise) return zxingLoadPromise;
   const urls = [
-    'https://cdn.jsdelivr.net/npm/@zxing/library@0.18.6/umd/index.min.js',
-    'https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js'
+    'https://cdn.jsdelivr.net/npm/@zxing/library@' + ZX_VER + '/umd/index.min.js',
+    'https://unpkg.com/@zxing/library@' + ZX_VER + '/umd/index.min.js'
   ];
   zxingLoadPromise = new Promise(resolve => {
     let i = 0;
@@ -5698,13 +5709,14 @@ document.addEventListener('touchmove', (e) => {
 // ===== 신호 없이도 화면 열기 (2026-11-12) =====
 // 같은 폴더에 올린 sw.js(서비스 워커)가 이 화면과, 화면이 받은 스캔 엔진 파일을 기기에 넣어 둠
 //  → 화면을 올려 둔 곳에 닿지 않아도(냉동창고 안) 화면이 열리고 스캔도 됨. 품목 목록·입력 중인 내용·전송 대기 묶음은 예전부터 기기에 저장하므로 이어서 작업할 수 있음
-//  - sw.js 를 올리지 않았거나, 서비스 워커를 모르는 브라우저(앱 안에서 열린 화면 등)에서는 아무 일도 하지 않음 — 예전과 같음
+//  - sw.js 를 올리지 않았으면 아무 일도 하지 않음 — 예전과 같음. 서비스 워커를 모르거나 막아 둔 브라우저(앱 안에서 열린 화면 등)에서는 넣어 두지 못한다고 알림 (아래 '준비 상태 줄')
 //  - 끄려면 맨 위의 OFFLINE_SHELL 을 false 로
 let SHELL_ON = false; // sw.js 가 등록됨
 async function startShell() {
   try {
     if (OFFLINE_SHELL) {
-      await navigator.serviceWorker.register('sw.js');
+      SHELL_NO = !navigator.serviceWorker; // 화면을 기기에 넣어 둘 수 없는 브라우저 (앱 안에서 열린 화면 등) — 그러면 바로 아래에서 catch 로 감
+      SHELL_SCOPE = (await navigator.serviceWorker.register('sw.js')).scope;
       SHELL_ON = true;
       keepShell();
       // 브라우저가 적어 두는 '받은 것 목록'(keepShell 이 읽음)은 250개에서 멈춤 — 가득 차면: 그때까지의 목록을 알리고 → 비우고 → 넘쳐서 잠시 뒤에야 적히는 것까지 한 번 더 알림 (오래 열어 둔 화면이 나중에 받은 엔진 파일도 넣어 두게)
@@ -5712,7 +5724,8 @@ async function startShell() {
     } else { // 끄는 스위치 — 넣어 둔 것을 치우고 등록을 풀라고 알림 (등록된 것이 없으면 아래 catch 로)
       (await navigator.serviceWorker.getRegistration()).active.postMessage({ type: 'drop' });
     }
-  } catch (e) {} // 서비스 워커를 모르는 브라우저 · sw.js 가 없음(올리지 않음) · 브라우저가 막음 — 예전처럼 동작
+  } catch (e) { if (OFFLINE_SHELL && e.name === 'SecurityError') SHELL_NO = true; } // 브라우저가 막음(저장소 차단 등) — 넣어 둘 수 없는 브라우저로 알림 · 그 밖(서비스 워커를 모름 · sw.js 가 없음 = 올리지 않음)은 예전처럼 동작
+  shellCheck(); // 준비 상태 줄 (준비됨 · 준비 중 · 이 브라우저에서는 안 됨) — 준비될 때까지 스스로 다시 살핌
 }
 // 이 화면과, 지금까지 받은 것들을 기기에 넣어 두라고 sw.js 에 알림 (그 가운데 무엇을 넣어 둘지는 sw.js 가 고름 — 주소에 버전이 박힌 스캔 엔진 파일)
 function keepShell() {
@@ -5720,9 +5733,87 @@ function keepShell() {
   const urls = performance.getEntriesByType('resource').map(r => r.name); // 부른 그 자리에서 읽어 둠 (목록이 가득 차 비워지기 전의 것)
   navigator.serviceWorker.ready.then(reg => {
     const ch = new MessageChannel();
-    ch.port1.onmessage = e => { if (e.data.fresh) toast('📴 이제 이 브라우저에서는 신호가 없어도 화면이 열립니다', 5000); }; // 넣어 둔 것은 브라우저마다 따로 (다른 브라우저 · 앱 안에서 열린 화면은 거기서 한 번 열어야 함)
+    ch.port1.onmessage = e => { if (e.data.fresh) toast('📴 이제 이 브라우저에서는 신호가 없어도 화면이 열립니다 — 스캔 준비는 위쪽 줄에서 확인', 5000); }; // 넣어 둔 것은 브라우저마다 따로 (다른 브라우저 · 앱 안에서 열린 화면은 거기서 한 번 열어야 함)
     reg.active.postMessage({ type: 'keep', page: location.href, urls: urls }, [ch.port2]);
   }).catch(() => {});
+}
+
+// ===== 신호 없이 열기 — 준비 상태 줄 (2026-11-13) =====
+// 위쪽 '자동 저장' 줄 아래의 한 줄. sw.js 를 쓰는 동안, 이 브라우저에 화면과 스캔 파일이 실제로 들어 있는지를 살펴 보여 줌
+//  → 창고에 들어가기 전에 휴대폰마다 '준비됨'인지 확인할 수 있음 (넣어 둔 것은 브라우저마다 따로이므로)
+//  - 준비됨 = 이 화면이 들어 있음 + 스캔할 수 있음
+//      (스캔: 내장 인식기가 있는 기기 · 고급 엔진의 스크립트와 wasm 이 둘 다 들어 있음 · 고급 엔진을 받지 못한 기기는 예비 엔진 ZXing 이 들어 있음)
+//  - 준비되지 않은 채로 있으면 넣어 두기를 다시 부탁함 — 10초쯤 · 20초쯤 · 40초쯤 … 뒤에, 갈수록 드물게
+//      (약한 신호에서 넣어 두다 실패한 것을 화면을 다시 열지 않아도 채움 · 끝내 안 되는 곳에서 같은 파일을 쉬지 않고 다시 받지는 않게)
+//  - 화면을 기기에 넣어 둘 수 없는 브라우저(카카오톡 같은 앱 안에서 연 화면 · 비공개 창 · 저장소를 막아 둔 브라우저): 신호가 없으면 열리지 않는다고 알리고, 누르면 방법을 안내
+//  - sw.js 를 올리지 않았거나 꺼 두었으면 보이지 않음
+let SHELL_NO = false;        // 이 브라우저는 화면을 기기에 넣어 둘 수 없음
+let SHELL_SCOPE = '';        // sw.js 가 맡는 범위 (이 화면이 있는 폴더의 주소) — sw.js 가 쓰는 보관함의 이름에 들어감
+let SHELL_WASM_FAIL = false; // 고급 엔진을 받으려다 그만둠 (그런 기기는 예비 엔진으로 스캔함)
+let SHELL_TRY = 0;           // 준비되지 않은 채로 살핀 횟수
+let SHELL_NEXT = 5;          // 넣어 두기를 다시 부탁할 차례 (살핀 횟수로) — 부탁할 때마다 두 배로
+async function shellCheck() {
+  const el = $('shellLine');
+  if (!el) return;
+  let html = '', cls = '';
+  if (SHELL_NO) { html = '<button type="button" id="shellHelp">⚠️ 이 브라우저는 신호가 없으면 화면이 열리지 않습니다 — 눌러서 보기</button>'; cls = ' warn'; }
+  else if (SHELL_ON) {
+    let page = false, scan = false;
+    try {
+      const name = 'audit-shell-v1 ' + SHELL_SCOPE; // sw.js 가 쓰는 보관함의 이름 (sw.js 의 CACHE 와 같아야 함)
+      page = !!(await caches.match(location.origin + location.pathname.replace(/\/index\.html$/, '/'), { cacheName: name }));
+      scan = !!(await getNativeDetector()) || await shellHasEngine(name); // 내장 인식기가 있는 기기는 스캔 파일이 필요 없음
+    } catch (e) {}
+    if (page && scan) { html = '📴 신호 없이 열기: 준비됨'; cls = ' ok'; }
+    else {
+      html = '📴 신호 없이 열기: ' + (page ? '화면 준비됨 · 스캔 준비 중…' : '준비 중…');
+      if (++SHELL_TRY === SHELL_NEXT) { SHELL_NEXT *= 2; keepShell(); } // 넣어 두기를 다시 부탁 — 10초쯤 · 20초쯤 · 40초쯤 … 뒤 (이미 들어 있는 것은 다시 받지 않음)
+      setTimeout(shellCheck, 2000); // 준비될 때까지 2초 뒤에 다시 살핌 — 살피기를 마친 때부터 셈 (보관함이 느린 기기에서 겹치지 않게)
+    }
+  }
+  el.className = 'shell-line' + (html ? ' show' : '') + cls;
+  el.innerHTML = html;
+}
+// sw.js 가 넣어 둔 것으로 스캔할 수 있는지 — 화면이 받는 바로 그 버전의 파일이 들어 있어야 함 (엔진 버전을 올리기 전에 넣어 둔 것은 치지 않음)
+//  · 고급 엔진: 스크립트 + wasm 둘 다 (wasm 의 버전은 스크립트를 받은 뒤에야 알 수 있음 — 그 전에는 버전을 가리지 않음)
+//  · 고급 엔진을 받지 못한 기기: 예비 엔진(ZXing). 고급 엔진을 아직 받고 있는 동안은 예비 엔진이 먼저 들어와도 준비로 치지 않음 (다 받기 전에 창고로 들어가지 않게)
+async function shellHasEngine(name) {
+  if (!(await caches.has(name))) return false; // 없는 보관함은 열지 않음 (열면 새로 생김 — 끈 뒤에 열려 있던 화면이 빈 보관함을 되살리지 않게)
+  const urls = (await (await caches.open(name)).keys()).map(r => r.url);
+  const has = part => urls.some(u => u.indexOf(part) >= 0);
+  const api = window.BarcodeDetectionAPI;
+  return (has('/barcode-detector@' + BD_VER + '/') && has('/zxing-wasm@' + (api ? api.ZXING_WASM_VERSION + '/' : '')))
+    || (SHELL_WASM_FAIL && has('/@zxing/library@' + ZX_VER + '/'));
+}
+// 넣어 둘 수 없는 브라우저에서 줄을 눌렀을 때: 까닭과 방법을 알리고, 주소를 복사해 줌
+function shellHelp() {
+  const url = location.origin + location.pathname;
+  const busy = items.length || OUTBOX.length; // 입력하던 품목 · 전송 대기 묶음은 브라우저마다 따로 보관됨 — 다른 브라우저로 옮겨지지 않음
+  ask('이 브라우저(카카오톡 등 앱 안에서 연 화면 · 비공개 창)는 신호가 없으면 화면이 열리지 않습니다.\n\n'
+    + "재고조사는 Safari나 Chrome으로 여세요. 창고에 들어가기 전에 한 번 열어 '준비됨'을 확인합니다.\n"
+    + '[주소 복사] → Safari·Chrome 주소 칸에 붙여 넣기\n'
+    + (busy ? '⚠️ 지금 입력한 것과 전송 대기 묶음은 옮겨지지 않습니다 — 먼저 [제출]을 마치세요.\n' : '')
+    + '\n' + url,
+    { yes: '주소 복사', no: '닫기', onYes: () => copyText(url) });
+}
+{ const el = $('shellLine'); if (el) el.addEventListener('click', e => { if (e.target && e.target.closest && e.target.closest('#shellHelp')) shellHelp(); }); }
+// 글을 기기의 복사함에 넣음 — 버튼을 누른 그 자리에서 불러야 함 (브라우저는 손가락으로 누른 때에만 복사를 허락)
+function copyText(text) {
+  const done = () => toast('📋 주소를 복사했습니다 — Safari·Chrome 주소 칸에 붙여 넣으세요', 5000);
+  const fail = () => toast("⚠️ 복사하지 못했습니다 — 앱의 메뉴에서 '다른 브라우저로 열기'를 눌러 주세요", 5000);
+  // 예전 방식 (앱 안 브라우저에서도 됨): 보이지 않는 글 상자를 잠깐 만들어, 고른 뒤 복사
+  const t = document.createElement('textarea');
+  let ok = false;
+  try {
+    t.className = 'copy-tmp'; t.value = text; t.readOnly = true;
+    t.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;padding:0;border:0;opacity:0;font-size:16px;';
+    document.body.appendChild(t);
+    t.select(); t.setSelectionRange(0, text.length);
+    ok = document.execCommand('copy');
+  } catch (e) {}
+  try { document.body.removeChild(t); } catch (e) {}
+  if (ok) { done(); return; }
+  try { navigator.clipboard.writeText(text).then(done, fail); } catch (e) { fail(); } // 새 방식
 }
 
 // 바코드 인식 라이브러리 미리 로드 — 냉동창고 안은 신호가 약하므로 입구에서 받아 둠
